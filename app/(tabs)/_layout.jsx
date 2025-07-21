@@ -1,57 +1,58 @@
-import { Tabs } from 'expo-router';
-import { MaterialIcons, FontAwesome } from '@expo/vector-icons'; // Using Expo icons directly
+// app/(tabs)/_layout.jsx
+import React from 'react';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { withLayoutContext } from 'expo-router';
 import { Platform, View } from 'react-native';
-import { useColorScheme } from 'nativewind'; // NativeWind's color scheme hook
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons, Feather, MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 
-export default function TabLayout() {
-  const { colorScheme } = useColorScheme(); // NativeWind's hook (replace if not using)
-  const isDark = colorScheme === 'dark';
+const Tab = createMaterialTopTabNavigator();
+const Tabs = withLayoutContext(Tab.Navigator);
 
+export default function TabsLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: isDark ? '#3b82f6' : '#2563eb', // Tailwind blue-500/600
-        tabBarInactiveTintColor: isDark ? '#94a3b8' : '#cbd5e1', // Tailwind slate-400/300
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: isDark ? '#1e293b' : '#ffffff', // Tailwind slate-900/white
-          borderTopWidth: 0,
-          ...Platform.select({
-            ios: {
-              position: 'absolute',
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-            },
-          }),
-        },
-        tabBarItemStyle: {
-          paddingVertical: Platform.OS === 'ios' ? 5 : 0,
-        },
-      }}
-    >
-      {/* Home Tab */}
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons name="home" size={24} color={color} />
-          ),
-        }}
-      />
-
-      {/* Explore Tab */}
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => (
-            <FontAwesome name="search" size={24} color={color} />
-          ),
-        }}
-      />
-
-      {/* Add more tabs as needed */}
-    </Tabs>
+    <SafeAreaView style={{ flex: 1 }}>
+      <Tabs
+        tabBarPosition="bottom"
+        screenOptions={({ route }) => ({
+          tabBarShowLabel: false,
+          swipeEnabled: true,
+          tabBarStyle: {
+            backgroundColor: 'white',
+            borderTopWidth: 0.5,
+            borderColor: '#ccc',
+            height: 60,
+          },
+          tabBarIndicatorStyle: {
+            backgroundColor: '#2563EB',
+            height: 3,
+            top: 0,
+          },
+          tabBarIcon: ({ focused }) => {
+            const color = focused ? '#2563EB' : '#999';
+            switch (route.name) {
+              case 'index':
+                return <Ionicons name="home-outline" size={26} color={color} />;
+              case 'tasks':
+                return <Feather name="check-square" size={26} color={color} />;
+              case 'planner':
+                return <MaterialCommunityIcons name="calendar-month-outline" size={26} color={color} />;
+              case 'notifications':
+                return <Ionicons name="notifications-outline" size={26} color={color} />;
+              case 'profile':
+                return <AntDesign name="user" size={26} color={color} />;
+              default:
+                return null;
+            }
+          },
+        })}
+      >
+        <Tabs.Screen name="index" />
+        <Tabs.Screen name="tasks" />
+        <Tabs.Screen name="planner" />
+        <Tabs.Screen name="notifications" />
+        <Tabs.Screen name="profile" />
+      </Tabs>
+    </SafeAreaView>
   );
 }

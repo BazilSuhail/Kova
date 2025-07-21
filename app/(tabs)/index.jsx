@@ -1,9 +1,11 @@
 import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 
 export default function App() {
+  const router =useRouter()
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-gray-500">
       <StatusBar style="auto" />
       
       <View className="flex-1 items-center justify-center p-4">
@@ -13,7 +15,7 @@ export default function App() {
         
         <TouchableOpacity 
           className="bg-blue-500 px-6 py-3 rounded-lg shadow-md active:bg-blue-700"
-          onPress={() => alert('Button Pressed!')}
+          onPress={() => router.push('/auth')}
         >
           <Text className="text-white font-semibold">Click Me</Text>
         </TouchableOpacity>
@@ -22,6 +24,6 @@ export default function App() {
           <Text className="text-gray-700">This is a Tailwind-styled box.</Text>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
