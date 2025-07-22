@@ -1,9 +1,9 @@
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
+import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AIAssistantScreen() {
-   
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <ScrollView contentContainerStyle={{ padding: 15 }}>
@@ -55,7 +55,23 @@ export default function AIAssistantScreen() {
               </View>
               <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
             </TouchableOpacity>
-          </Link> 
+          </Link>
+
+
+          <Link href="/assistant/notes-summarizer" asChild>
+            <TouchableOpacity className="flex-row items-center justify-between bg-white px-5 py-4 rounded-2xl shadow-sm border border-gray-100" activeOpacity={0.7}>
+              <View className="flex-row items-center flex-1">
+                <View className="w-12 h-12 bg-purple-50 rounded-xl items-center justify-center mr-4">
+                  <Ionicons name="document-text-outline" size={24} color="#8b5cf6" />
+                </View>
+                <Text className="text-base font-semibold text-gray-800 flex-1">
+                  Auto Notes Summarizer
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          </Link>
+
 
           <TouchableOpacity className="flex-row items-center justify-between bg-white px-5 py-4 rounded-2xl shadow-sm border border-gray-100" activeOpacity={0.7}>
             <View className="flex-row items-center flex-1">

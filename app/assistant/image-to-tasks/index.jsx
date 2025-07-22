@@ -14,10 +14,9 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-
-// OCR.space API configuration
-const OCR_API_KEY = 'K86810809188957'; // Replace with your actual API key
-const OCR_API_URL = 'https://api.ocr.space/parse/image';
+ 
+// not used
+const OCR_API_KEY = 'VnmrCwmOBgTr4+a/hOslNA==L2priItqKC6yrESn';  
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -27,6 +26,7 @@ export default function ImageProcessorScreen() {
     const [loading, setLoading] = useState(false);
     const [apiResponse, setApiResponse] = useState('');
     const [processingStep, setProcessingStep] = useState('');
+    const [imageError, setImageError] = useState('');
 
     useEffect(() => {
         // Show modal when component mounts
@@ -52,10 +52,21 @@ export default function ImageProcessorScreen() {
                 quality: 0.8,
             });
 
-
             if (!result.canceled && result.assets && result.assets.length > 0) {
-                setSelectedImage(result.assets[0]);
-                await processImage(result.assets[0]);
+                const imageAsset = result.assets[0];
+                if (imageAsset.fileSize && imageAsset.fileSize > 200 * 1024) {
+                    const fileSizeInBytes = imageAsset.fileSize;
+                    const fileSizeFormatted = fileSizeInBytes >= 1024 * 1024
+                        ? `${(fileSizeInBytes / (1024 * 1024)).toFixed(2)} MB`
+                        : `${(fileSizeInBytes / 1024).toFixed(1)} KB`;
+
+                    setImageError(`The selected image is ${fileSizeFormatted}, which exceeds the 200 KB limit. Please choose a smaller image for better performance.`);
+                    setShowModal(true);
+                    return;
+                }
+
+                setSelectedImage(imageAsset);
+                await processImage(imageAsset);
             } else {
                 setShowModal(true); // Re-open modal if selection was canceled
             }
@@ -85,15 +96,28 @@ export default function ImageProcessorScreen() {
             });
 
             if (!result.canceled && result.assets && result.assets.length > 0) {
-                setSelectedImage(result.assets[0]);
-                await processImage(result.assets[0]);
+                const imageAsset = result.assets[0];
+                if (imageAsset.fileSize && imageAsset.fileSize > 200 * 1024) {
+                    const fileSizeInBytes = imageAsset.fileSize;
+                    const fileSizeFormatted = fileSizeInBytes >= 1024 * 1024
+                        ? `${(fileSizeInBytes / (1024 * 1024)).toFixed(2)} MB`
+                        : `${(fileSizeInBytes / 1024).toFixed(1)} KB`;
+
+                    setImageError(`The selected image is ${fileSizeFormatted}, which exceeds the 200 KB limit. Please choose a smaller image for better performance.`);
+                    setShowModal(true);
+                    return;
+                }
+
+
+                setSelectedImage(imageAsset);
+                await processImage(imageAsset);
             } else {
-                setShowModal(true); // Re-open modal if photo was canceled
+                setShowModal(true);
             }
         } catch (error) {
             console.error('Camera error:', error);
             Alert.alert('Error', 'Failed to take photo');
-            setShowModal(true); // Re-open modal on error
+            setShowModal(true);
         }
     };
 
@@ -107,9 +131,8 @@ export default function ImageProcessorScreen() {
 
             setProcessingStep('Extracting text from image...');
             const response = await callOCRAPI(imageAsset);
-            setProcessingStep('ddd from image...');
-
             setProcessingStep('Processing results...');
+
             await new Promise(resolve => setTimeout(resolve, 500));
 
             if (response.success) {
@@ -130,70 +153,37 @@ export default function ImageProcessorScreen() {
 
     const callOCRAPI = async (imageAsset) => {
         try {
-            // Create FormData for OCR.space API
-            const formData = new FormData();
+            console.log("meow");
+            console.log(imageAsset.fileSize);
 
-            // Add the image file
-            formData.append('file', {
+            const formData = new FormData();
+            formData.append('image', {
                 uri: imageAsset.uri,
                 type: 'image/jpeg',
-                name: 'image.jpg',
+                name: 'photo.jpg',
             });
 
-            // Add API parameters according to OCR.space documentation
-            formData.append('apikey', OCR_API_KEY);
-            formData.append('language', 'eng'); // English language
-            formData.append('isOverlayRequired', 'false'); // Don't need overlay info
-            formData.append('detectOrientation', 'true'); // Auto-detect orientation
-            formData.append('isTable', 'false'); // Set to true if processing tables
-            formData.append('OCREngine', '2'); // Use OCR Engine 2 (more accurate)
-
-            console.log('Sending request to OCR.space API...');
-
-            const response = await fetch(OCR_API_URL, {
+            const response = await fetch('https://api.api-ninjas.com/v1/imagetotext', {
                 method: 'POST',
-                body: formData,
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    'X-Api-Key': '', 
                 },
+                body: formData,
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP ${response.status}`);
             }
 
             const data = await response.json();
-            // console.log('OCR API Response:', data);
 
-            // Check if the API call was successful
-            if (data.IsErroredOnProcessing) {
-                return {
-                    success: false,
-                    error: data.ErrorMessage || 'OCR processing failed'
-                };
-            }
+            const combinedText = Array.isArray(data)
+                ? data.map(item => item.text).join(' ')
+                : JSON.stringify(data);
 
-            // Extract text from all pages
-            let extractedText = '';
-            if (data.ParsedResults && data.ParsedResults.length > 0) {
-                extractedText = data.ParsedResults.map(result =>
-                    result.ParsedText || ''
-                ).join('\n\n').trim();
-            }
-
-            return {
-                success: true,
-                text: extractedText || 'No text detected in the image.',
-                confidence: data.ParsedResults?.[0]?.TextOverlay?.HasOverlay || false,
-                originalResponse: data
-            };
-
-        } catch (error) {
-            console.error('OCR API Error:', error);
-            return {
-                success: false,
-                error: error.message || 'Network error occurred'
-            };
+            return { success: true, text: combinedText, originalResponse: data };
+        } catch (error) { 
+            return { success: false, error: error.message };
         }
     };
 
@@ -323,6 +313,13 @@ export default function ImageProcessorScreen() {
                         <View className="items-center pt-3 pb-6">
                             <View className="w-12 h-1 bg-gray-300 rounded-full" />
                         </View>
+
+                        {imageError ? (
+                            <View className="bg-red-100 border border-red-300 rounded-xl m-4 p-4 mb-4">
+                                <Text className="text-red-800 font-semibold text-center">{imageError}</Text>
+                            </View>
+                        ) : null}
+
 
                         {/* Content */}
                         <View className="px-6 pb-8">
