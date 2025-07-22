@@ -16,7 +16,7 @@ export default function TaskCreationModal({ visible, onClose }) {
             </TouchableOpacity>
           </Link>
 
-          <Link href="/tasks/new/manual" asChild>
+          <Link href="/tasks/task-form" asChild>
             <TouchableOpacity className="flex-row items-center p-4 rounded-xl bg-gray-50">
               <Ionicons name="create-outline" size={22} color="#6366f1" />
               <Text className="ml-3 text-base text-gray-800">Traditional Form</Text>
