@@ -25,7 +25,7 @@ export default function AIAssistantScreen() {
 
         {/* Option Cards */}
         <View className="space-y-4">
-         <Link href="/assistant/sub-tasks">
+         <Link href="/assistant/create-sub-tasks">
           <View className="flex-row items-center bg-gray-100 px-4 py-4 rounded-2xl shadow-sm">
             <Ionicons name="list-outline" size={20} color="#4b5563" />
             <Text className="ml-3 text-base font-medium text-gray-800">
