@@ -4,7 +4,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import { withLayoutContext } from 'expo-router';
 import { Platform, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, Feather, MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
+import { Ionicons, Feather, MaterialCommunityIcons,MaterialIcons , AntDesign } from '@expo/vector-icons';
 
 const Tab = createMaterialTopTabNavigator();
 const Tabs = withLayoutContext(Tab.Navigator);
@@ -37,8 +37,8 @@ export default function TabsLayout() {
                 return <Feather name="check-square" size={26} color={color} />;
               case 'planner':
                 return <MaterialCommunityIcons name="calendar-month-outline" size={26} color={color} />;
-              case 'notifications':
-                return <Ionicons name="notifications-outline" size={26} color={color} />;
+              case 'assistant':
+                return <MaterialIcons name="assistant" size={26} color={color} />;
               case 'profile':
                 return <AntDesign name="user" size={26} color={color} />;
               default:
@@ -49,8 +49,8 @@ export default function TabsLayout() {
       >
         <Tabs.Screen name="index" />
         <Tabs.Screen name="tasks" />
+        <Tabs.Screen name="assistant" />
         <Tabs.Screen name="planner" />
-        <Tabs.Screen name="notifications" />
         <Tabs.Screen name="profile" />
       </Tabs>
     </SafeAreaView>

@@ -14,7 +14,7 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "app/(tabs)/index.jsx",
-    "app/(tabs)/planner.jsx",
+    "app/(tabs)/assistant.jsx",
     "app/(tabs)/_layout.jsx",
     "nativewind-env.d.ts"
   ]

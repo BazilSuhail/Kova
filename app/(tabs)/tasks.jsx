@@ -13,7 +13,7 @@ const tasks = [
 ];
 
 export default function TasksScreen() {
-const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#f9fafb' }} contentContainerStyle={{ padding: 20, paddingTop: 60 }}>
       {/* Header */}
@@ -22,11 +22,11 @@ const [modalVisible, setModalVisible] = useState(false);
         <Text className="text-gray-500 text-base">Stay on track and get things done</Text>
       </View>
 
-<TaskCreationModal visible={modalVisible} onClose={() => setModalVisible(false)} />
+      <TaskCreationModal visible={modalVisible} onClose={() => setModalVisible(false)} />
 
-<TouchableOpacity onPress={() => setModalVisible(true)} className="...">
-  <Text>Add Task</Text>
-</TouchableOpacity>
+      <TouchableOpacity onPress={() => setModalVisible(true)} className="...">
+        <Text>Add Task</Text>
+      </TouchableOpacity>
 
       {/* Task List */}
       <FlatList
@@ -58,7 +58,7 @@ const [modalVisible, setModalVisible] = useState(false);
 
       {/* Actions */}
       <View className="flex-row justify-between mt-8">
-        <TouchableOpacity  onPress={() => setModalVisible(true)} className="flex-1 flex-row items-center justify-center bg-indigo-600 py-3 rounded-2xl mr-2">
+        <TouchableOpacity onPress={() => setModalVisible(true)} className="flex-1 flex-row items-center justify-center bg-indigo-600 py-3 rounded-2xl mr-2">
           <Ionicons name="add-circle-outline" size={20} color="white" />
           <Text className="text-white font-semibold ml-2">Add Task</Text>
         </TouchableOpacity>

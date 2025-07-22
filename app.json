@@ -34,7 +34,12 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-audio"
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow $(ZenFlow) to access your microphone."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

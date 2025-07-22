@@ -9,10 +9,10 @@ export default function TaskCreationModal({ visible, onClose }) {
         <View className="bg-white rounded-t-3xl p-6 space-y-4">
           <Text className="text-xl font-bold text-gray-800 mb-2">Create a Task</Text>
 
-          <Link href="/tasks/new/nl" asChild>
+          <Link href="/tasks/natural-language" asChild>
             <TouchableOpacity className="flex-row items-center p-4 rounded-xl bg-gray-50">
               <Ionicons name="chatbubbles-outline" size={22} color="#6366f1" />
-              <Text className="ml-3 text-base text-gray-800">Natural Language</Text>
+              <Text className="ml-3 text-base text-gray-800">Natural Language k</Text>
             </TouchableOpacity>
           </Link>
 
