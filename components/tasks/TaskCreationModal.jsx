@@ -4,7 +4,7 @@ import { Link } from 'expo-router';
 
 export default function TaskCreationModal({ visible, onClose }) {
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="fade" transparent>
       <View className="flex-1 justify-end bg-black/30">
         <View className="bg-white rounded-t-3xl p-6 space-y-4">
           <Text className="text-xl font-bold text-gray-800 mb-2">Create a Task</Text>
