@@ -1,12 +1,15 @@
+// CalendarWithModal.js
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  Modal,
   ScrollView,
   Text,
   TouchableOpacity,
   View
 } from "react-native";
+import TaskDetailModal from "./TaskDetailModal";
 const { width } = Dimensions.get("window");
 
 const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -61,10 +64,23 @@ const DUMMY_TASKS = [
   }
 ];
 
-export default function CalendarView({ viewType = "month", currentDate = new Date() }) {
+
+export default function CalendarWithModal({ viewType = "month", currentDate = new Date() }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(null);
+
+  const openModal = (day) => {
+    setSelectedDay(day);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedDay(null);
+  };
 
   const dateInfo = useMemo(() => {
     const year = currentDate.getFullYear();
@@ -249,6 +265,7 @@ export default function CalendarView({ viewType = "month", currentDate = new Dat
     >
       <TouchableOpacity
         activeOpacity={0.7}
+        onPress={() => openModal(day)} 
         className={`
           border flex-1
           ${day.currentMonth ? "bg-white" : "bg-gray-50"}
@@ -270,14 +287,17 @@ export default function CalendarView({ viewType = "month", currentDate = new Dat
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled={true}
           >
-            {day.tasks.map((task) => (
+            {day.tasks.slice(0, 3).map((task) => ( 
               <TaskItem key={task.id} task={task} />
             ))}
+            {day.tasks.length > 3 && (
+              <Text className="text-xs text-gray-500 text-right">+{day.tasks.length - 3} more</Text>
+            )}
           </ScrollView>
         </View>
       </TouchableOpacity>
     </View>
-  ), [cellSize, viewType, TaskItem]);
+  ), [cellSize, viewType, TaskItem, openModal]); 
 
   if (loading) {
     return (
@@ -349,6 +369,14 @@ export default function CalendarView({ viewType = "month", currentDate = new Dat
           )}
         </ScrollView>
       </View>
+
+      <TaskDetailModal
+        visible={modalVisible}
+        onClose={closeModal}
+        selectedDay={selectedDay}
+        tasks={selectedDay ? selectedDay.tasks : []}
+        getCategoryColor={getCategoryColor}
+      />
     </View>
   );
 }
