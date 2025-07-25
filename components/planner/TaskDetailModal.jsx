@@ -1,7 +1,8 @@
 // TaskDetailModal.js
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
     Dimensions,
+    Modal,
     ScrollView,
     Text,
     TouchableOpacity,
@@ -19,39 +20,36 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-
-// Fallback height if selectedDay is not provided initially
-const MODAL_HEIGHT = SCREEN_HEIGHT * 0.6; 
+const BOTTOM_INSET_PADDING = 20;
 
 export default function TaskDetailModal({ visible, onClose, selectedDay, tasks, getCategoryColor }) {
-  const modalHeight = selectedDay?.tasks?.length > 0 
-    ? Math.min(SCREEN_HEIGHT * 0.8, 200 + (selectedDay.tasks.length * 60)) // Estimate height based on tasks
-    : SCREEN_HEIGHT * 0.4; // Default height for no tasks
+  const modalHeight = useMemo(() => {
+    const estimatedHeight = selectedDay?.tasks?.length > 0 
+      ? Math.min(SCREEN_HEIGHT * 0.8, 200 + (selectedDay.tasks.length * 60))
+      : SCREEN_HEIGHT * 0.4;
+    return estimatedHeight + BOTTOM_INSET_PADDING;
+  }, [selectedDay]);
 
-  const translateY = useSharedValue(SCREEN_HEIGHT); // Start off-screen
+  const translateY = useSharedValue(SCREEN_HEIGHT);
   const context = useSharedValue({ y: 0 });
   const isClosing = useSharedValue(false);
 
-  const animatedStyles = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateY: translateY.value }],
-    };
-  });
+  const animatedStyles = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
 
-  const backdropAnimatedStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
+  const backdropAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
       translateY.value,
-      [SCREEN_HEIGHT, SCREEN_HEIGHT * 0.1], // Adjust end value if needed
+      [SCREEN_HEIGHT, -(modalHeight * 0.8)],
       [0, 1],
       Extrapolate.CLAMP
-    );
-    return {
-      opacity,
-    };
-  });
+    ),
+  }));
 
   const openModal = () => {
-    translateY.value = withSpring(modalHeight - SCREEN_HEIGHT, { damping: 20, stiffness: 150 });
+    const finalPosition = -(modalHeight - BOTTOM_INSET_PADDING);
+    translateY.value = withSpring(finalPosition, { damping: 20, stiffness: 150 });
   };
 
   const closeModal = () => {
@@ -59,36 +57,35 @@ export default function TaskDetailModal({ visible, onClose, selectedDay, tasks, 
     translateY.value = withTiming(SCREEN_HEIGHT, { duration: 250 }, (finished) => {
       if (finished) {
         runOnJS(onClose)();
-        isClosing.value = false; // Reset for next open
+        isClosing.value = false;
       }
     });
   };
 
-  // Handle pan gesture
   const panGesture = Gesture.Pan()
     .onStart(() => {
       context.value = { y: translateY.value };
     })
     .onUpdate((event) => {
-      // Allow dragging only downwards and within limits
-      const newTranslate = Math.max(context.value.y + event.translationY, modalHeight - SCREEN_HEIGHT);
+      const maxUp = -(modalHeight - BOTTOM_INSET_PADDING);
+      const maxDown = SCREEN_HEIGHT;
+      const newTranslate = Math.min(Math.max(context.value.y + event.translationY, maxUp), maxDown);
       translateY.value = newTranslate;
     })
     .onEnd((event) => {
-      // Define velocity and threshold for closing
       const velocity = event.velocityY;
-      const threshold = modalHeight * 0.25; // 25% of modal height
+      const threshold = modalHeight * 0.25;
+      const openPosition = -(modalHeight - BOTTOM_INSET_PADDING);
+      const distanceFromOpen = translateY.value - openPosition;
 
-      // Close if dragged down enough or if velocity is high enough downwards
-      if (velocity > 1000 || translateY.value > (modalHeight - SCREEN_HEIGHT + threshold)) {
+      if (velocity > 1000 || distanceFromOpen > threshold) {
         runOnJS(closeModal)();
       } else {
-        // Snap back to open position
-        translateY.value = withSpring(modalHeight - SCREEN_HEIGHT, { damping: 20, stiffness: 150 });
+        const finalPosition = -(modalHeight - BOTTOM_INSET_PADDING);
+        translateY.value = withSpring(finalPosition, { damping: 20, stiffness: 150 });
       }
     });
 
-  // Handle backdrop tap
   const tapGesture = Gesture.Tap().onEnd(() => {
     runOnJS(closeModal)();
   });
@@ -97,9 +94,13 @@ export default function TaskDetailModal({ visible, onClose, selectedDay, tasks, 
     if (visible && selectedDay) {
       openModal();
     } else if (!visible && !isClosing.value) {
-      closeModal();
+      if (translateY.value !== SCREEN_HEIGHT) {
+         closeModal();
+      } else {
+        onClose();
+      }
     }
-  }, [visible, selectedDay]); // Depend on visible and selectedDay
+  }, [visible, selectedDay]);
 
   if (!selectedDay) return null;
 
@@ -111,7 +112,13 @@ export default function TaskDetailModal({ visible, onClose, selectedDay, tasks, 
   });
 
   return (
-    <>
+    <Modal
+      animationType="none"
+      transparent={true}
+      visible={visible}
+      onRequestClose={closeModal}
+      statusBarTranslucent={true}
+    >
       <Animated.View
         style={[
           {
@@ -120,11 +127,11 @@ export default function TaskDetailModal({ visible, onClose, selectedDay, tasks, 
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.4)', // bg-black/40 equivalent
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
           },
           backdropAnimatedStyle,
         ]}
-        pointerEvents={visible ? 'auto' : 'none'} // Only receive touches when visible
+        pointerEvents={visible ? 'auto' : 'none'}
       >
         <GestureDetector gesture={tapGesture}>
           <View className="flex-1" />
@@ -139,7 +146,7 @@ export default function TaskDetailModal({ visible, onClose, selectedDay, tasks, 
               left: 0,
               right: 0,
               height: modalHeight,
-              bottom: -modalHeight, // Start position offset
+              bottom: 0,
               backgroundColor: 'white',
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
@@ -148,17 +155,15 @@ export default function TaskDetailModal({ visible, onClose, selectedDay, tasks, 
               shadowOpacity: 0.25,
               shadowRadius: 4,
               elevation: 5,
-              overflow: 'hidden', // Contain children within rounded corners
+              overflow: 'hidden',
             },
             animatedStyles,
           ]}
         >
-          {/* Handle Bar */}
           <View className="items-center pt-3 pb-2">
             <View className="w-12 h-1 bg-gray-300 rounded-full" />
           </View>
 
-          {/* Header */}
           <View className="px-4 pb-2 border-b border-gray-200 flex-row justify-between items-center">
             <Text className="text-lg font-bold text-gray-800">{dateString}</Text>
             <TouchableOpacity onPress={closeModal} className="p-2">
@@ -166,7 +171,6 @@ export default function TaskDetailModal({ visible, onClose, selectedDay, tasks, 
             </TouchableOpacity>
           </View>
 
-          {/* Content */}
           <ScrollView className="p-4 flex-1">
             {tasks && tasks.length > 0 ? (
               tasks.map((task) => (
@@ -192,6 +196,6 @@ export default function TaskDetailModal({ visible, onClose, selectedDay, tasks, 
           </ScrollView>
         </Animated.View>
       </GestureDetector>
-    </>
+    </Modal>
   );
 }
