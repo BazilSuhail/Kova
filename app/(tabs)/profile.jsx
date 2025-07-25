@@ -1,8 +1,6 @@
-// SettingsScreen.js
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useState } from 'react';
-import { Alert, ScrollView, Switch, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Alert, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { useColorScheme } from 'nativewind';
 
 const user = {
   name: 'Bazil Suhail',
@@ -10,35 +8,7 @@ const user = {
 };
 
 export default function SettingsScreen() {
-  const colorScheme = useColorScheme();
-  const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
-
-  useEffect(() => {
-    const loadThemePreference = async () => {
-      try {
-        const savedPreference = await AsyncStorage.getItem('userDarkModePreference');
-        if (savedPreference !== null) {
-          setIsDarkMode(savedPreference === 'true');
-        } else {
-          setIsDarkMode(colorScheme === 'dark');
-        }
-      } catch (e) {
-        console.error("Failed to load theme preference", e);
-        setIsDarkMode(colorScheme === 'dark');
-      }
-    };
-
-    loadThemePreference();
-  }, [colorScheme]);
-
-  const toggleDarkMode = async (value) => {
-    setIsDarkMode(value);
-    try {
-      await AsyncStorage.setItem('userDarkModePreference', value.toString());
-    } catch (e) {
-      console.error("Failed to save theme preference", e);
-    }
-  };
+  const { colorScheme, toggleColorScheme } = useColorScheme();
 
   const handleLogout = () => {
     Alert.alert(
@@ -52,7 +22,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View className={isDarkMode ? 'dark flex-1' : 'flex-1'}>
+    <View className={colorScheme === 'dark' ? 'dark flex-1' : 'flex-1'}>
       <ScrollView
         className="flex-1 pt-12 bg-gray-100 dark:bg-gray-900"
         contentContainerStyle={{ padding: 20 }}
@@ -77,17 +47,17 @@ export default function SettingsScreen() {
               <Ionicons
                 name="moon-outline"
                 size={22}
-                color={isDarkMode ? "#93c5fd" : "#4b5563"}
+                color={colorScheme === 'dark' ? "#93c5fd" : "#4b5563"}
               />
               <Text className="ml-3 text-base text-gray-800 font-medium dark:text-white">
                 Dark Mode
               </Text>
             </View>
             <Switch
-              value={isDarkMode}
-              onValueChange={toggleDarkMode}
+              value={colorScheme === 'dark'}
+              onValueChange={toggleColorScheme}
               trackColor={{ false: '#d1d5db', true: '#3b82f6' }}
-              thumbColor={isDarkMode ? '#ffffff' : '#f4f4f5'}
+              thumbColor={colorScheme === 'dark' ? '#ffffff' : '#f4f4f5'}
             />
           </View>
 
