@@ -1,5 +1,6 @@
 // TaskDetailModal.js
 import { useEffect, useMemo } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     Dimensions,
     Modal,
@@ -19,15 +20,15 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
-const BOTTOM_INSET_PADDING = 20;
+const SCREEN_HEIGHT = Dimensions.get('window').height; 
 
 export default function TaskDetailModal({ visible, onClose, selectedDay, tasks, getCategoryColor }) {
+    const insets=useSafeAreaInsets()
   const modalHeight = useMemo(() => {
     const estimatedHeight = selectedDay?.tasks?.length > 0 
       ? Math.min(SCREEN_HEIGHT * 0.8, 200 + (selectedDay.tasks.length * 60))
       : SCREEN_HEIGHT * 0.4;
-    return estimatedHeight + BOTTOM_INSET_PADDING;
+    return estimatedHeight + insets.bottom;
   }, [selectedDay]);
 
   const translateY = useSharedValue(SCREEN_HEIGHT);
@@ -41,14 +42,15 @@ export default function TaskDetailModal({ visible, onClose, selectedDay, tasks, 
   const backdropAnimatedStyle = useAnimatedStyle(() => ({
     opacity: interpolate(
       translateY.value,
-      [SCREEN_HEIGHT, -(modalHeight * 0.8)],
+      [SCREEN_HEIGHT, SCREEN_HEIGHT - modalHeight],
       [0, 1],
       Extrapolate.CLAMP
     ),
   }));
 
   const openModal = () => {
-    const finalPosition = -(modalHeight - BOTTOM_INSET_PADDING);
+    // Move modal up by its height to show it at the bottom
+    const finalPosition = SCREEN_HEIGHT - modalHeight;
     translateY.value = withSpring(finalPosition, { damping: 20, stiffness: 150 });
   };
 
@@ -67,21 +69,21 @@ export default function TaskDetailModal({ visible, onClose, selectedDay, tasks, 
       context.value = { y: translateY.value };
     })
     .onUpdate((event) => {
-      const maxUp = -(modalHeight - BOTTOM_INSET_PADDING);
-      const maxDown = SCREEN_HEIGHT;
+      const maxUp = SCREEN_HEIGHT - modalHeight; // Top position when fully open
+      const maxDown = SCREEN_HEIGHT; // Bottom position when closed
       const newTranslate = Math.min(Math.max(context.value.y + event.translationY, maxUp), maxDown);
       translateY.value = newTranslate;
     })
     .onEnd((event) => {
       const velocity = event.velocityY;
       const threshold = modalHeight * 0.25;
-      const openPosition = -(modalHeight - BOTTOM_INSET_PADDING);
+      const openPosition = SCREEN_HEIGHT - modalHeight;
       const distanceFromOpen = translateY.value - openPosition;
 
       if (velocity > 1000 || distanceFromOpen > threshold) {
         runOnJS(closeModal)();
       } else {
-        const finalPosition = -(modalHeight - BOTTOM_INSET_PADDING);
+        const finalPosition = SCREEN_HEIGHT - modalHeight;
         translateY.value = withSpring(finalPosition, { damping: 20, stiffness: 150 });
       }
     });
@@ -146,7 +148,7 @@ export default function TaskDetailModal({ visible, onClose, selectedDay, tasks, 
               left: 0,
               right: 0,
               height: modalHeight,
-              bottom: 0,
+              top: 0, // Changed from bottom: 0 to top: 0
               backgroundColor: 'white',
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
