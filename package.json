@@ -17,7 +17,7 @@
     "@react-navigation/material-top-tabs": "^7.3.2",
     "@react-navigation/native": "^7.1.14",
     "axios": "^1.11.0",
-    "entity-bottom-sheet": "^1.1.0",
+    "entity-bottom-sheet": "^1.2.2",
     "expo": "~53.0.20",
     "expo-audio": "~0.4.8",
     "expo-blur": "~14.1.5",

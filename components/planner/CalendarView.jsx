@@ -9,7 +9,8 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import TaskDetailModal from "./TaskDetailModal";
+import BottomSheet from "entity-bottom-sheet";
+//import BottomSheet from "../BottomSheet";
 const { width } = Dimensions.get("window");
 
 const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -36,6 +37,22 @@ const DUMMY_TASKS = [
   },
   {
     id: "2",
+    title: "Team meeting",
+    category: "career",
+    due_date: new Date().toISOString(),
+    is_completed: true
+  },
+
+  {
+    id: "22",
+    title: "Team meeting",
+    category: "career",
+    due_date: new Date().toISOString(),
+    is_completed: true
+  },
+
+  {
+    id: "2335",
     title: "Team meeting",
     category: "career",
     due_date: new Date().toISOString(),
@@ -265,7 +282,7 @@ export default function CalendarWithModal({ viewType = "month", currentDate = ne
     >
       <TouchableOpacity
         activeOpacity={0.7}
-        onPress={() => openModal(day)} 
+        onPress={() => openModal(day)}
         className={`
           border flex-1
           ${day.currentMonth ? "bg-white" : "bg-gray-50"}
@@ -287,7 +304,7 @@ export default function CalendarWithModal({ viewType = "month", currentDate = ne
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled={true}
           >
-            {day.tasks.slice(0, 3).map((task) => ( 
+            {day.tasks.slice(0, 3).map((task) => (
               <TaskItem key={task.id} task={task} />
             ))}
             {day.tasks.length > 3 && (
@@ -297,7 +314,7 @@ export default function CalendarWithModal({ viewType = "month", currentDate = ne
         </View>
       </TouchableOpacity>
     </View>
-  ), [cellSize, viewType, TaskItem, openModal]); 
+  ), [cellSize, viewType, TaskItem, openModal]);
 
   if (loading) {
     return (
@@ -370,13 +387,36 @@ export default function CalendarWithModal({ viewType = "month", currentDate = ne
         </ScrollView>
       </View>
 
-      <TaskDetailModal
+      <BottomSheet
         visible={modalVisible}
         onClose={closeModal}
-        selectedDay={selectedDay}
-        tasks={selectedDay ? selectedDay.tasks : []}
-        getCategoryColor={getCategoryColor}
-      />
+        title="Welcome Sheet"
+        heightRatio={0.65}
+      >
+        <ScrollView className="px-4 pt-2 flex-1">
+          {selectedDay && selectedDay.tasks && selectedDay.tasks.length > 0 ? (
+            selectedDay.tasks.map((task) => (
+              <View
+                key={task.id}
+                className={`p-3 rounded-lg mb-2 ${getCategoryColor(task.category, task.is_completed)}`}
+              >
+                <Text
+                  className={`font-medium text-gray-800 ${task.is_completed ? "line-through" : ""}`}
+                >
+                  {task.title}
+                </Text>
+                <Text className="text-gray-800 text-xs opacity-75 mt-1 capitalize">
+                  {task.category}
+                </Text>
+              </View>
+            ))
+          ) : (
+            <View className="flex-1 justify-center items-center py-8">
+              <Text className="text-gray-500 text-center">No tasks scheduled for this day</Text>
+            </View>
+          )}
+        </ScrollView>
+      </BottomSheet>
     </View>
   );
 }
