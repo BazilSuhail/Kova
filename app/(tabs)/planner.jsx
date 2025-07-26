@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Button, SafeAreaView, StyleSheet,Text, ScrollView } from 'react-native';
-import BottomSheet from '@/components/BottomSheet'; // Adjust path if needed
+
+import BottomSheet from 'entity-bottom-sheet';
 
 export default function Planner() {
      const [visible, setVisible] = useState(false);
