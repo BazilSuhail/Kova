@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import BottomSheet from 'entity-bottom-sheet';
 import { useState } from 'react';
-import { Alert, Dimensions, Modal, ScrollView, StatusBar, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, ScrollView, StatusBar, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -107,135 +108,92 @@ const CustomDatePicker = ({ visible, onClose, onDateSelect, initialDate }) => {
   };
 
   return (
-    <Modal
-      transparent={true}
-      animationType="slide"
+    <BottomSheet
       visible={visible}
-      onRequestClose={onClose}
-    >
-      <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-        <View style={{ 
-          backgroundColor: 'white', 
-          borderTopLeftRadius: 24, 
-          borderTopRightRadius: 24, 
-          padding: 24,
-          maxHeight: '80%'
-        }}>
-          {/* Header */}
-          <View style={{ 
-            flexDirection: 'row', 
-            alignItems: 'center', 
-            justifyContent: 'space-between', 
-            marginBottom: 24 
-          }}>
-            <TouchableOpacity onPress={prevMonth} style={{ 
-              width: 44, 
-              height: 44, 
-              borderRadius: 22, 
-              backgroundColor: '#F3F4F6', 
-              alignItems: 'center', 
-              justifyContent: 'center' 
-            }}>
-              <Ionicons name="chevron-back" size={20} color="#6366F1" />
-            </TouchableOpacity>
-            <Text style={{ fontSize: 18, fontWeight: '600', color: '#1F2937' }}>
-              {formatMonthYear(currentDate)}
-            </Text>
-            <TouchableOpacity onPress={nextMonth} style={{ 
-              width: 44, 
-              height: 44, 
-              borderRadius: 22, 
-              backgroundColor: '#F3F4F6', 
-              alignItems: 'center', 
-              justifyContent: 'center' 
-            }}>
-              <Ionicons name="chevron-forward" size={20} color="#6366F1" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Weekdays */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
-              <Text
-                key={index}
-                style={{ 
-                  fontSize: 12,
-                  fontWeight: '500',
-                  color: '#9CA3AF',
-                  flex: 1,
-                  textAlign: 'center'
-                }}
-              >
-                {day}
-              </Text>
-            ))}
-          </View>
-
-          {/* Calendar Grid */}
-          <View>
-            {calendarGrid.map((week, rowIndex) => (
-              <View key={rowIndex} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                {week.map((day, colIndex) => (
-                  <View key={colIndex} style={{ flex: 1, alignItems: 'center' }}>
-                    {day ? (
-                      <TouchableOpacity
-                        onPress={() => handleDatePress(day)}
-                        style={{
-                          width: 36,
-                          height: 36,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: 18,
-                          backgroundColor: isSelected(day) 
-                            ? '#6366F1' 
-                            : isToday(day) 
-                            ? '#EEF2FF' 
-                            : 'transparent'
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            color: isSelected(day)
-                              ? 'white'
-                              : isToday(day)
-                              ? '#6366F1'
-                              : '#374151',
-                            fontWeight: isSelected(day) || isToday(day) ? '600' : '400'
-                          }}
-                        >
-                          {day.getDate()}
-                        </Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <View style={{ width: 36, height: 36 }} />
-                    )}
-                  </View>
-                ))}
-              </View>
-            ))}
-          </View>
-
-          {/* Done Button */}
+      onClose={onClose}
+      heightRatio={0.54}
+      header={
+        <View className="flex-row items-center justify-between px-8">
           <TouchableOpacity
-            onPress={onClose}
-            style={{
-              backgroundColor: '#6366F1',
-              paddingVertical: 16,
-              paddingHorizontal: 32,
-              borderRadius: 16,
-              alignSelf: 'center',
-              marginTop: 24,
-              minWidth: 120
-            }}
+            onPress={prevMonth}
+            className="w-11 h-11 rounded-full bg-gray-100 items-center justify-center"
           >
-            <Text style={{ color: 'white', fontWeight: '600', fontSize: 16, textAlign: 'center' }}>
-              Done
-            </Text>
+            <Ionicons name="chevron-back" size={20} color="#6366F1" />
+          </TouchableOpacity>
+
+          <Text className="text-lg font-semibold text-gray-800">
+            {formatMonthYear(currentDate)}
+          </Text>
+
+          <TouchableOpacity
+            onPress={nextMonth}
+            className="w-11 h-11 rounded-full bg-gray-100 items-center justify-center"
+          >
+            <Ionicons name="chevron-forward" size={20} color="#6366F1" />
           </TouchableOpacity>
         </View>
+      }
+    >
+      <View className="rounded-t-3xl px-6 pt-0 pb-6 max-h-[80%] mt-9 bg-white">
+        {/* Weekdays */}
+        <View className="flex-row justify-between mb-3">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
+            <Text
+              key={index}
+              className="text-xs font-medium text-gray-400 flex-1 text-center"
+            >
+              {day}
+            </Text>
+          ))}
+        </View>
+
+        {/* Calendar Grid */}
+        <View>
+          {calendarGrid.map((week, rowIndex) => (
+            <View key={rowIndex} className="flex-row justify-between mb-1">
+              {week.map((day, colIndex) => (
+                <View key={colIndex} className="flex-1 items-center">
+                  {day ? (
+                    <TouchableOpacity
+                      onPress={() => handleDatePress(day)}
+                      className={`
+                        w-9 h-9 items-center justify-center rounded-full
+                        ${isSelected(day) ? 'bg-indigo-500' : isToday(day) ? 'bg-indigo-100' : ''}
+                      `}
+                    >
+                      <Text
+                        className={`
+                          text-sm 
+                          ${isSelected(day)
+                            ? 'text-white font-semibold'
+                            : isToday(day)
+                              ? 'text-indigo-500 font-semibold'
+                              : 'text-gray-700 font-normal'}
+                        `}
+                      >
+                        {day.getDate()}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View className="w-9 h-9" />
+                  )}
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+
+        {/* Done Button */}
+        <TouchableOpacity
+          onPress={onClose}
+          className="bg-indigo-500 py-2 rounded-xl self-end mt-6 min-w-[90px]"
+        >
+          <Text className="text-white font-semibold text-base text-center">
+            Done
+          </Text>
+        </TouchableOpacity>
       </View>
-    </Modal>
+    </BottomSheet>
   );
 };
 
@@ -280,9 +238,9 @@ const PriorityBadge = ({ priority }) => {
       borderRadius: 20,
       alignSelf: 'flex-start'
     }}>
-      <Text style={{ 
-        color: colors.text, 
-        fontSize: 12, 
+      <Text style={{
+        color: colors.text,
+        fontSize: 12,
         fontWeight: '600',
         textTransform: 'uppercase',
         letterSpacing: 0.5
@@ -296,7 +254,7 @@ const PriorityBadge = ({ priority }) => {
 // Progress Bar Component
 const ProgressBar = ({ completed, total }) => {
   const progress = total > 0 ? (completed / total) * 100 : 0;
-  
+
   return (
     <View>
       <View style={{
@@ -359,7 +317,7 @@ export default function TaskDetailsScreen() {
       isCompleted: completed,
       checklist: checklist,
     };
-    
+
     setTask(updatedTask);
     console.log('Updated task:', updatedTask);
     setIsEditing(false);
@@ -373,9 +331,9 @@ export default function TaskDetailsScreen() {
   };
 
   const formatDate = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'short', 
+    const options = {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -386,10 +344,10 @@ export default function TaskDetailsScreen() {
   const completedItems = checklist.filter(item => item.done).length;
 
   return (
-    <>
+    <View className="flex-1 mb-12">
       <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
-      <ScrollView 
-        style={{ flex: 1, backgroundColor: '#FAFAFA' }} 
+      <ScrollView
+        style={{ flex: 1, backgroundColor: '#FAFAFA' }}
         contentContainerStyle={{ paddingTop: 60, paddingHorizontal: 20, paddingBottom: 30 }}
         showsVerticalScrollIndicator={false}
       >
@@ -423,7 +381,7 @@ export default function TaskDetailsScreen() {
                 </Text>
               </View>
             )}
-            
+
             <TouchableOpacity style={{
               width: 40,
               height: 40,
@@ -440,7 +398,7 @@ export default function TaskDetailsScreen() {
               <Ionicons name="bookmark-outline" size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
-          
+
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={{
@@ -472,7 +430,7 @@ export default function TaskDetailsScreen() {
               Description
             </Text>
           </View>
-          
+
           {isEditing ? (
             <TextInput
               style={{
@@ -498,10 +456,10 @@ export default function TaskDetailsScreen() {
               {task.description}
             </Text>
           )}
-          
-          <View style={{ 
-            flexDirection: 'row', 
-            alignItems: 'center', 
+
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
             marginTop: 16,
             paddingTop: 16,
             borderTopWidth: 1,
@@ -535,7 +493,7 @@ export default function TaskDetailsScreen() {
               {completedItems} of {checklist.length}
             </Text>
           </View>
-          
+
           {checklist.map((item, index) => (
             <TouchableOpacity
               key={item.id}
@@ -586,8 +544,8 @@ export default function TaskDetailsScreen() {
                 Mark as Completed
               </Text>
             </View>
-            <Switch 
-              value={completed} 
+            <Switch
+              value={completed}
               onValueChange={(value) => {
                 setCompleted(value);
                 setHasChanged(true);
@@ -626,7 +584,7 @@ export default function TaskDetailsScreen() {
           )}
 
           <View style={{ flexDirection: 'row', gap: 12 }}>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => {
                 if (isEditing) {
                   setEditData({
@@ -650,22 +608,22 @@ export default function TaskDetailsScreen() {
                 borderColor: isEditing ? '#E5E7EB' : '#BAE6FD'
               }}
             >
-              <Ionicons 
-                name={isEditing ? "close-outline" : "create-outline"} 
-                size={20} 
-                color={isEditing ? '#6B7280' : '#0284C7'} 
+              <Ionicons
+                name={isEditing ? "close-outline" : "create-outline"}
+                size={20}
+                color={isEditing ? '#6B7280' : '#0284C7'}
               />
-              <Text style={{ 
-                color: isEditing ? '#6B7280' : '#0284C7', 
-                fontWeight: '600', 
-                fontSize: 16, 
-                marginLeft: 8 
+              <Text style={{
+                color: isEditing ? '#6B7280' : '#0284C7',
+                fontWeight: '600',
+                fontSize: 16,
+                marginLeft: 8
               }}>
                 {isEditing ? 'Cancel' : 'Edit'}
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -694,6 +652,6 @@ export default function TaskDetailsScreen() {
           initialDate={editData.dueDate}
         />
       </ScrollView>
-    </>
+    </View>
   );
 }

@@ -160,14 +160,14 @@ export default function TasksScreen() {
   );
 
   return (
-    <GestureHandlerRootView className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-gray-50">
       <ScrollView
       showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 20, paddingTop: 60 }}
-        className="flex-1"
+        className="flex-1 bg-gray-50"
       >
         {/* Header */}
-        <View className="mb-8">
+        <View className="mb-8 ">
           <View className="flex-row items-center mb-2">
             <Ionicons name="leaf" size={28} color="#059669" />
             <Text className="text-3xl font-bold text-gray-900 ml-2">LeafTasks</Text>
@@ -210,6 +210,6 @@ export default function TasksScreen() {
       >
         <Ionicons name="add" size={28} color="white" />
       </TouchableOpacity>
-    </GestureHandlerRootView>
+    </View>
   );
 }
