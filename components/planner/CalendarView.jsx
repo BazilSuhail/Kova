@@ -1,16 +1,14 @@
 // CalendarWithModal.js
+import BottomSheet from "entity-bottom-sheet";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
-  Modal,
   ScrollView,
   Text,
   TouchableOpacity,
   View
 } from "react-native";
-import BottomSheet from "entity-bottom-sheet";
-//import BottomSheet from "../BottomSheet";
 const { width } = Dimensions.get("window");
 
 const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -396,10 +394,7 @@ export default function CalendarWithModal({ viewType = "month", currentDate = ne
         <ScrollView className="px-4 pt-2 flex-1">
           {selectedDay && selectedDay.tasks && selectedDay.tasks.length > 0 ? (
             selectedDay.tasks.map((task) => (
-              <View
-                key={task.id}
-                className={`p-3 rounded-lg mb-2 ${getCategoryColor(task.category, task.is_completed)}`}
-              >
+              <View key={task.id} className={`p-3 rounded-lg mb-2 ${getCategoryColor(task.category, task.is_completed)}`} >
                 <Text
                   className={`font-medium text-gray-800 ${task.is_completed ? "line-through" : ""}`}
                 >
