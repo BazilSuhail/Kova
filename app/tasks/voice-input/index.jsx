@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import BottomSheet from 'entity-bottom-sheet';
 import {
   AudioModule,
   RecordingPresets,
@@ -6,19 +7,38 @@ import {
   useAudioPlayer,
   useAudioRecorder
 } from 'expo-audio';
+import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
 
+// Custom Header Component
+const CustomHeader = () => (
+  <View className="px-6 pt-4 pb-5 border-b border-gray-100">
+    <View className="flex-row items-center justify-between">
+      <View>
+        <Text className="text-xl font-bold text-gray-900">Voice Input</Text>
+        <Text className="text-sm text-gray-500 mt-1">Record your task description</Text>
+      </View>
+      <View className="w-12 h-12 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl items-center justify-center">
+        <Ionicons name="mic" size={24} color="white" />
+      </View>
+    </View>
+  </View>
+);
+
 export default function VoiceInput() {
+  const router = useRouter();
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const player = useAudioPlayer();
 
+  const [modalVisible, setModalVisible] = useState(true);
   const [isPermissionGranted, setIsPermissionGranted] = useState(false);
   const [isPrepared, setIsPrepared] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [playbackTime, setPlaybackTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [recordingUri, setRecordingUri] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const timerRef = useRef(null);
   const playbackTimerRef = useRef(null);
@@ -28,7 +48,7 @@ export default function VoiceInput() {
       try {
         const status = await AudioModule.requestRecordingPermissionsAsync();
         if (!status.granted) {
-          Alert.alert('Permission required', 'Please grant microphone access');
+          Alert.alert('Permission Required', 'Please grant microphone access to record voice tasks');
           setIsPermissionGranted(false);
         } else {
           await setAudioModeAsync({
@@ -79,11 +99,9 @@ export default function VoiceInput() {
     }
 
     try {
-      // Reset timer
       setRecordingTime(0);
       if (timerRef.current) clearInterval(timerRef.current);
 
-      // Prepare and start recording
       await recorder.prepareToRecordAsync();
       setIsPrepared(true);
       recorder.record();
@@ -147,14 +165,28 @@ export default function VoiceInput() {
     }
   };
 
-  const uploadRecording = () => {
+  const uploadRecording = async () => {
     if (!recordingUri) {
       Alert.alert('Error', 'No recording found');
       return;
     }
 
-    console.log('Recording successful! File URI:', recordingUri);
-    Alert.alert('Success', 'Recording uploaded successfully!');
+    setIsUploading(true);
+    
+    // Simulate upload delay
+    setTimeout(() => {
+      console.log('Recording successful! File URI:', recordingUri);
+      setIsUploading(false);
+      Alert.alert('Success', 'Voice task created successfully!', [
+        {
+          text: 'OK',
+          onPress: () => {
+            setModalVisible(false);
+            router.back();
+          }
+        }
+      ]);
+    }, 2000);
   };
 
   const resetRecording = async () => {
@@ -190,115 +222,196 @@ export default function VoiceInput() {
     }
   };
 
+  const handleModalClose = () => {
+    setModalVisible(false);
+    router.back();
+  };
+
+  const getRecordButtonStyle = () => {
+    if (!isPermissionGranted || (recordingUri && !recorder.isRecording)) {
+      return 'bg-gray-200 shadow-sm';
+    }
+    if (recorder.isRecording) {
+      return 'bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/25';
+    }
+    return 'bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/25';
+  };
+
   return (
-    <View className="flex-1 bg-white p-6 justify-center items-center">
-      <Text className="text-xl font-bold text-gray-800 mb-8">Voice Task Input</Text>
+    <BottomSheet 
+      visible={modalVisible}
+      onClose={handleModalClose}
+      header={<CustomHeader />}
+      heightRatio={0.75}
+    >
+      <View className="px-6 py-6 flex-1">
+        {!isPermissionGranted && (
+          <View className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
+            <View className="flex-row items-center">
+              <Ionicons name="warning" size={20} color="#dc2626" />
+              <Text className="text-red-700 font-medium ml-3 flex-1">
+                Microphone permission required
+              </Text>
+            </View>
+            <Text className="text-red-600 text-sm mt-2 ml-8">
+              Please enable microphone access in your device settings
+            </Text>
+          </View>
+        )}
 
-      {!isPermissionGranted && (
-        <Text className="text-red-500 text-center mb-4">
-          Microphone permission is required
-        </Text>
-      )}
+        {/* Recording Timer Display */}
+        {(recorder.isRecording || recordingTime > 0) && (
+          <View className="items-center mb-8">
+            <View className="bg-gray-50 rounded-3xl px-8 py-4 border border-gray-100">
+              <Text className="text-4xl font-bold text-gray-800 font-mono tracking-wide">
+                {formatTime(recordingTime)}
+              </Text>
+              <View className="flex-row items-center justify-center mt-2">
+                {recorder.isRecording && (
+                  <View className="w-3 h-3 bg-red-500 rounded-full mr-2 animate-pulse" />
+                )}
+                <Text className="text-sm text-gray-500 font-medium">
+                  {recorder.isRecording ? 'Recording in progress' : 'Recording complete'}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
 
-      {(recorder.isRecording || recordingTime > 0) && (
-        <View className="mb-6">
-          <Text className="text-3xl font-mono text-center text-gray-700">
-            {formatTime(recordingTime)}
-          </Text>
-          <Text className="text-sm text-gray-500 text-center mt-1">
-            {recorder.isRecording ? 'Recording...' : 'Recording Duration'}
+        {/* Record Button */}
+        <View className="items-center mb-8">
+          <TouchableOpacity
+            onPress={handleRecordPress}
+            disabled={!isPermissionGranted || (!!recordingUri && !recorder.isRecording)}
+            className={`w-32 h-32 rounded-full justify-center items-center ${getRecordButtonStyle()}`}
+            style={{
+              transform: [{ scale: recorder.isRecording ? 0.95 : 1 }]
+            }}
+          >
+            <Ionicons
+              name={recorder.isRecording ? 'stop' : 'mic'}
+              size={48}
+              color={!isPermissionGranted || (recordingUri && !recorder.isRecording) ? '#9ca3af' : 'white'}
+            />
+          </TouchableOpacity>
+          
+          <Text className="text-gray-600 text-base text-center mt-4 px-4">
+            {!isPermissionGranted
+              ? 'Grant microphone access to continue'
+              : recorder.isRecording
+              ? 'Recording your voice... Tap to stop'
+              : recordingUri
+              ? 'Recording ready for review'
+              : 'Tap the microphone to start recording'}
           </Text>
         </View>
-      )}
 
-      <TouchableOpacity
-        onPress={handleRecordPress}
-        disabled={!isPermissionGranted || (!!recordingUri && !recorder.isRecording)}
-        className={`w-24 h-24 rounded-full justify-center items-center mb-6 ${
-          !isPermissionGranted || (recordingUri && !recorder.isRecording)
-            ? 'bg-gray-300'
-            : recorder.isRecording
-            ? 'bg-red-500'
-            : 'bg-indigo-600'
-        }`}
-      >
-        <Ionicons
-          name={recorder.isRecording ? 'stop' : 'mic'}
-          size={32}
-          color="white"
-        />
-      </TouchableOpacity>
+        {/* Playback Controls */}
+        {recordingUri && (
+          <View className="bg-gray-50 rounded-3xl p-6 mb-6 border border-gray-100">
+            {/* Playback Info */}
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-sm font-mono text-gray-700 bg-white px-3 py-2 rounded-lg">
+                {formatTime(playbackTime)}
+              </Text>
+              <View className="flex-row items-center">
+                <View className={`w-2 h-2 rounded-full mr-2 ${player.playing ? 'bg-blue-500 animate-pulse' : 'bg-gray-400'}`} />
+                <Text className="text-sm font-medium text-gray-600">
+                  {player.playing ? 'Playing' : 'Paused'}
+                </Text>
+              </View>
+              <Text className="text-sm font-mono text-gray-700 bg-white px-3 py-2 rounded-lg">
+                {formatTime(duration)}
+              </Text>
+            </View>
 
-      <Text className="text-gray-500 text-sm text-center mb-8">
-        {!isPermissionGranted
-          ? 'Grant microphone permission to record'
-          : recorder.isRecording
-          ? 'Recording... Tap to stop'
-          : recordingUri
-          ? 'Recording complete'
-          : 'Tap to start recording'}
-      </Text>
-
-      {recordingUri && (
-        <View className="w-full space-y-4">
-          <View className="flex-row justify-between items-center px-4">
-            <Text className="text-sm text-gray-600 font-mono">
-              {formatTime(playbackTime)}
-            </Text>
-            <Text className="text-sm text-gray-400">
-              {player.playing ? 'Playing...' : 'Paused'}
-            </Text>
-            <Text className="text-sm text-gray-600 font-mono">
-              {formatTime(duration)}
-            </Text>
-          </View>
-
-          <View className="w-full h-2 bg-gray-200 rounded-full mx-4">
-            <View
-              className="h-full bg-indigo-500 rounded-full"
-              style={{
-                width: duration > 0 ? `${(playbackTime / duration) * 100}%` : '0%'
-              }}
-            />
-          </View>
-
-          <View className="flex-row justify-center space-x-4 mt-4">
-            <TouchableOpacity
-              onPress={playRecording}
-              className="w-12 h-12 bg-blue-500 rounded-full justify-center items-center"
-            >
-              <Ionicons
-                name={player.playing ? 'pause' : 'play'}
-                size={20}
-                color="white"
+            {/* Progress Bar */}
+            <View className="w-full h-2 bg-gray-200 rounded-full mb-6">
+              <View
+                className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-300"
+                style={{
+                  width: duration > 0 ? `${(playbackTime / duration) * 100}%` : '0%'
+                }}
               />
-            </TouchableOpacity>
+            </View>
 
-            <TouchableOpacity
-              onPress={stopPlayback}
-              className="w-12 h-12 bg-gray-500 rounded-full justify-center items-center"
-            >
-              <Ionicons name="stop" size={20} color="white" />
-            </TouchableOpacity>
+            {/* Control Buttons */}
+            <View className="flex-row justify-center items-center space-x-4">
+              <TouchableOpacity
+                onPress={playRecording}
+                className="w-14 h-14 bg-blue-500 rounded-2xl justify-center items-center shadow-lg shadow-blue-500/25"
+              >
+                <Ionicons
+                  name={player.playing ? 'pause' : 'play'}
+                  size={24}
+                  color="white"
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={stopPlayback}
+                className="w-14 h-14 bg-gray-500 rounded-2xl justify-center items-center shadow-lg shadow-gray-500/25"
+              >
+                <Ionicons name="stop" size={24} color="white" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={resetRecording}
+                className="w-14 h-14 bg-orange-500 rounded-2xl justify-center items-center shadow-lg shadow-orange-500/25"
+              >
+                <Ionicons name="refresh" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
+        )}
 
-          <View className="space-y-3 mt-6">
+        {/* Action Buttons */}
+        {recordingUri && (
+          <View className="space-y-3">
             <TouchableOpacity
               onPress={uploadRecording}
-              className="bg-green-600 py-3 rounded-2xl items-center"
+              disabled={isUploading}
+              className={`py-4 rounded-2xl items-center shadow-lg ${
+                isUploading 
+                  ? 'bg-gray-300' 
+                  : 'bg-gradient-to-r from-green-500 to-emerald-600 shadow-green-500/25'
+              }`}
             >
-              <Text className="text-white font-semibold">Upload Recording</Text>
+              <View className="flex-row items-center">
+                {isUploading ? (
+                  <>
+                    <Ionicons name="time" size={20} color="white" />
+                    <Text className="text-white font-bold text-lg ml-2">Processing...</Text>
+                  </>
+                ) : (
+                  <>
+                    <Ionicons name="cloud-upload" size={20} color="white" />
+                    <Text className="text-white font-bold text-lg ml-2">Create Task</Text>
+                  </>
+                )}
+              </View>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={resetRecording}
-              className="bg-gray-200 py-3 rounded-2xl items-center"
+              className="py-4 rounded-2xl items-center bg-white border-2 border-gray-200"
             >
-              <Text className="text-gray-700 font-medium">Record Again</Text>
+              <View className="flex-row items-center">
+                <Ionicons name="mic" size={18} color="#6b7280" />
+                <Text className="text-gray-700 font-semibold text-base ml-2">Record Again</Text>
+              </View>
             </TouchableOpacity>
           </View>
-        </View>
-      )}
-    </View>
+        )}
+
+        {/* Cancel Button */}
+        <TouchableOpacity 
+          onPress={handleModalClose} 
+          className="mt-6 py-4 px-6 bg-white border border-gray-200 rounded-2xl items-center"
+        >
+          <Text className="text-center text-base font-semibold text-gray-600">Cancel</Text>
+        </TouchableOpacity>
+      </View>  
+    </BottomSheet>
   );
 }
