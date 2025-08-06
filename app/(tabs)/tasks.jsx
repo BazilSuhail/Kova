@@ -2,15 +2,8 @@ import TaskCreationModal from '@/components/tasks/TaskCreationModal';
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  runOnJS,
-  withSpring,
-} from 'react-native-reanimated';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native'; 
+import SwipeableTaskItem from '@/components/tasks/SwipeableTaskItem';
 
 // Mock Task Data
 const tasks = [
@@ -27,67 +20,68 @@ const tasks = [
 ];
 
 // Custom Swipeable Component using latest Reanimated and Gesture Handler
-const SwipeableTaskItem = ({ item, onDelete, children }) => {
-  const translateX = useSharedValue(0);
-  const opacity = useSharedValue(1);
-  const startX = useSharedValue(0);
+// const SwipeableTaskItem = ({ item, onDelete, children }) => {
+//   const translateX = useSharedValue(0);
+//   const opacity = useSharedValue(1);
+//   const startX = useSharedValue(0);
 
-  const panGesture = Gesture.Pan()
-    .onBegin(() => {
-      startX.value = translateX.value;
-    })
-    .onUpdate((event) => {
-      const newTranslateX = startX.value + event.translationX;
-      translateX.value = Math.min(0, newTranslateX);
-    })
-    .onEnd((event) => {
-      const shouldDelete = event.translationX < -100;
+//   const panGesture = Gesture.Pan()
+//     .onBegin(() => {
+//       startX.value = translateX.value;
+//     })
+//     .onUpdate((event) => {
+//       const newTranslateX = startX.value + event.translationX;
+//       translateX.value = Math.min(0, newTranslateX);
+//     })
+//     .onEnd((event) => {
+//       const shouldDelete = event.translationX < -100;
 
-      if (shouldDelete) {
-        translateX.value = withSpring(-300);
-        opacity.value = withSpring(0, undefined, (finished) => {
-          if (finished) {
-            runOnJS(onDelete)(item);
-          }
-        });
-      } else {
-        translateX.value = withSpring(0);
-      }
-    });
+//       if (shouldDelete) {
+//         translateX.value = withSpring(-300);
+//         opacity.value = withSpring(0, undefined, (finished) => {
+//           if (finished) {
+//             runOnJS(onDelete)(item);
+//           }
+//         });
+//       } else {
+//         translateX.value = withSpring(0);
+//       }
+//     });
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: translateX.value }],
-      opacity: opacity.value,
-    };
-  });
+//   const animatedStyle = useAnimatedStyle(() => {
+//     return {
+//       transform: [{ translateX: translateX.value }],
+//       opacity: opacity.value,
+//     };
+//   });
 
-  const deleteButtonStyle = useAnimatedStyle(() => {
-    const scale = translateX.value < -50 ? 1 : 0;
-    return {
-      transform: [{ scale: withSpring(scale) }],
-    };
-  });
+//   const deleteButtonStyle = useAnimatedStyle(() => {
+//     const scale = translateX.value < -50 ? 1 : 0;
+//     return {
+//       transform: [{ scale: withSpring(scale) }],
+//     };
+//   });
 
-  return (
-    <View className="relative">
-      {/* Delete Button Background */}
-      <Animated.View
-        style={deleteButtonStyle}
-        className="absolute right-0 top-0 bottom-0 w-20 bg-red-500 rounded-r-xl items-center justify-center mb-5 z-0"
-      >
-        <Ionicons name="trash" size={24} color="white" />
-      </Animated.View>
+//   return (
+//     <View className="relative">
+//       {/* Delete Button Background */}
+//       <Animated.View
+//         style={deleteButtonStyle}
+//         className="absolute right-0 top-0 bottom-0 w-20 bg-red-500 rounded-r-xl items-center justify-center mb-5 z-0"
+//       >
+//         <Ionicons name="trash" size={24} color="white" />
+//       </Animated.View>
 
-      {/* Main Task Item */}
-      <GestureDetector gesture={panGesture}>
-        <Animated.View style={animatedStyle}>
-          {children}
-        </Animated.View>
-      </GestureDetector>
-    </View>
-  );
-};
+//       {/* Main Task Item */}
+//       <GestureDetector gesture={panGesture}>
+//         <Animated.View style={animatedStyle}>
+//           {children}
+//         </Animated.View>
+//       </GestureDetector>
+//     </View>
+//   );
+// };
+
 
 export default function TasksScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -103,20 +97,25 @@ export default function TasksScreen() {
     setTaskList(prevTasks => prevTasks.filter(task => task.id !== taskToDelete.id));
   };
 
-  // Render individual task with swipe functionality
-  const renderTask = ({ item }) => (
+  // Render task with swipe functionality (when modal is closed)
+  const renderSwipeableTask = (item) => (
     <SwipeableTaskItem
+      key={item.id}
       item={item}
       onDelete={handleDeleteTask}
     >
-      <Link href={`/tasks/${item.id}`} className='mb-4'>
-        <View className={`flex-row items-center rounded-xl bg-white border-l-4 px-4 py-4 ${item.isCompleted ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300'
-          }`}>
+      <Link href={`/tasks/${item.id}`} className="mb-4">
+        <View
+          className={`flex-row items-center rounded-xl bg-white border-l-4 px-4 py-4 ${
+            item.isCompleted ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300'
+          }`}
+        >
           {/* Checkbox */}
           <TouchableOpacity className="mr-4">
             <View
-              className={`w-6 h-6 rounded-full items-center justify-center ${item.isCompleted ? 'bg-emerald-500' : 'border-2 border-gray-300'
-                }`}
+              className={`w-6 h-6 rounded-full items-center justify-center ${
+                item.isCompleted ? 'bg-emerald-500' : 'border-2 border-gray-300'
+              }`}
             >
               {item.isCompleted && (
                 <Ionicons name="checkmark" size={16} color="white" />
@@ -124,11 +123,12 @@ export default function TasksScreen() {
             </View>
           </TouchableOpacity>
 
-          {/* Task Content - Takes remaining space */}
+          {/* Task Content */}
           <View className="flex-1 min-w-0">
             <Text
-              className={`text-base font-medium ${item.isCompleted ? 'text-emerald-700 line-through' : 'text-gray-800'
-                }`}
+              className={`text-base font-medium ${
+                item.isCompleted ? 'text-emerald-700 line-through' : 'text-gray-800'
+              }`}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -136,14 +136,20 @@ export default function TasksScreen() {
             </Text>
             <View className="flex-row items-center mt-1">
               <View
-                className={`w-2 h-2 rounded-full mr-2 ${item.category === 'Academics' ? 'bg-amber-400' :
-                  item.category === 'Health' ? 'bg-rose-400' :
-                    item.category === 'Fitness' ? 'bg-sky-400' : 'bg-purple-400'
-                  }`}
+                className={`w-2 h-2 rounded-full mr-2 ${
+                  item.category === 'Academics'
+                    ? 'bg-amber-400'
+                    : item.category === 'Health'
+                      ? 'bg-rose-400'
+                      : item.category === 'Fitness'
+                        ? 'bg-sky-400'
+                        : 'bg-purple-400'
+                }`}
               />
               <Text
-                className={`text-xs ${item.isCompleted ? 'text-emerald-600' : 'text-gray-500'
-                  } capitalize`}
+                className={`text-xs ${
+                  item.isCompleted ? 'text-emerald-600' : 'text-gray-500'
+                } capitalize`}
               >
                 {item.category}
               </Text>
@@ -159,15 +165,81 @@ export default function TasksScreen() {
     </SwipeableTaskItem>
   );
 
+  // Render simple task (when modal is open - no swipe functionality)
+  const renderSimpleTask = (item) => (
+    <View key={item.id} className="mb-4 opacity-50">
+      <View
+        className={`flex-row items-center rounded-xl bg-white border-l-4 px-4 py-4 ${
+          item.isCompleted ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300'
+        }`}
+      >
+        {/* Checkbox */}
+        <View className="mr-4">
+          <View
+            className={`w-6 h-6 rounded-full items-center justify-center ${
+              item.isCompleted ? 'bg-emerald-500' : 'border-2 border-gray-300'
+            }`}
+          >
+            {item.isCompleted && (
+              <Ionicons name="checkmark" size={16} color="white" />
+            )}
+          </View>
+        </View>
+
+        {/* Task Content */}
+        <View className="flex-1 min-w-0">
+          <Text
+            className={`text-base font-medium ${
+              item.isCompleted ? 'text-emerald-700 line-through' : 'text-gray-800'
+            }`}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {item.title}
+          </Text>
+          <View className="flex-row items-center mt-1">
+            <View
+              className={`w-2 h-2 rounded-full mr-2 ${
+                item.category === 'Academics'
+                  ? 'bg-amber-400'
+                  : item.category === 'Health'
+                    ? 'bg-rose-400'
+                    : item.category === 'Fitness'
+                      ? 'bg-sky-400'
+                      : 'bg-purple-400'
+              }`}
+            />
+            <Text
+              className={`text-xs ${
+                item.isCompleted ? 'text-emerald-600' : 'text-gray-500'
+              } capitalize`}
+            >
+              {item.category}
+            </Text>
+          </View>
+        </View>
+
+        {/* Menu Button */}
+        <View className="ml-4 p-2">
+          <Ionicons name="ellipsis-horizontal" size={20} color="#94a3b8" />
+        </View>
+      </View>
+    </View>
+  );
+
+  // Get limited tasks (first 10 or all if less than 10)
+  const displayTasks = taskList.slice(0, 10);
+
   return (
     <View className="flex-1 bg-gray-50">
       <ScrollView
-      showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 20, paddingTop: 60 }}
-        className="flex-1 bg-gray-50"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ padding: 20 }}
+        className="bg-gray-50 flex-1"
+        scrollEnabled={!modalVisible} // Disable scroll when modal is open
       >
         {/* Header */}
-        <View className="mb-8 ">
+        <View className="mb-8">
           <View className="flex-row items-center mb-2">
             <Ionicons name="leaf" size={28} color="#059669" />
             <Text className="text-3xl font-bold text-gray-900 ml-2">LeafTasks</Text>
@@ -188,19 +260,34 @@ export default function TasksScreen() {
             />
           </View>
         </View>
- 
+
         {/* Task List Header */}
         <View className="flex-row justify-between items-center mb-4">
           <Text className="text-xl font-bold text-gray-800">My Tasks</Text>
+          {taskList.length > 10 && (
+            <Text className="text-gray-500 text-sm">Showing {displayTasks.length} of {taskList.length}</Text>
+          )}
         </View>
 
-        {/* Task List */}
-        <FlatList
-          data={taskList}
-          keyExtractor={(item) => item.id}
-          scrollEnabled={false}
-          renderItem={renderTask}
-        />
+        {/* Task List - Conditional Rendering */}
+        {displayTasks.length > 0 ? (
+          modalVisible ? (
+            // Render simple tasks when modal is open (no swipe, reduced opacity)
+            displayTasks.map(item => renderSimpleTask(item))
+          ) : (
+            // Render swipeable tasks when modal is closed
+            displayTasks.map(item => renderSwipeableTask(item))
+          )
+        ) : (
+          <Text className="text-gray-500 text-center py-4">No tasks available</Text>
+        )}
+
+        {/* Show "View All" button if there are more than 10 tasks and modal is closed */}
+        {!modalVisible && taskList.length > 10 && (
+          <TouchableOpacity className="mt-4 py-3 bg-gray-100 rounded-xl items-center">
+            <Text className="text-gray-600 font-medium">View All Tasks ({taskList.length})</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       {/* Floating Action Button */}
@@ -210,6 +297,11 @@ export default function TasksScreen() {
       >
         <Ionicons name="add" size={28} color="white" />
       </TouchableOpacity>
+
+      <TaskCreationModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+      />
     </View>
   );
 }
