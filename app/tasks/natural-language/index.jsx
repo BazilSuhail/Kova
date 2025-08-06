@@ -1,4 +1,4 @@
-import { Ionicons,MaterialCommunityIcons  } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import BottomSheet from 'entity-bottom-sheet';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -21,15 +21,15 @@ const PromptModalHeader = () => (
   <View className="px-6 pt-3 pb-4 border-b border-gray-100">
     <View className="flex-row items-center">
       {/* Gradient Icon with LinearGradient */}
-     <View className="w-10 h-10 rounded-lg items-center justify-center mr-3 relative overflow-hidden">
-  <LinearGradient
-    colors={['#10b981', '#059669']}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 1 }}
-    className="absolute inset-0 rounded-full"
-  />
-  <Ionicons name="sparkles" size={16} color="white" />
-</View>
+      <View className="w-10 h-10 rounded-lg items-center justify-center mr-3 relative overflow-hidden">
+        <LinearGradient
+          colors={['#10b981', '#059669']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="absolute inset-0 rounded-full"
+        />
+        <Ionicons name="sparkles" size={16} color="white" />
+      </View>
 
       <View className="flex-1">
         <Text className="text-lg font-semibold text-gray-800">Create with AI</Text>
@@ -198,40 +198,40 @@ export default function NaturalLanguageTaskScreen() {
               >
                 <Text className="text-gray-600 font-semibold">Cancel</Text>
               </TouchableOpacity>
-           <TouchableOpacity
-  onPress={handleCreateTask}
-  disabled={!prompt.trim()}
-  className={`
+              <TouchableOpacity
+                onPress={handleCreateTask}
+                disabled={!prompt.trim()}
+                className={`
     flex-1 flex-row items-center justify-center py-4 rounded-2xl 
     ${!prompt.trim() ? 'bg-gray-200' : ''}
     ml-3
     overflow-hidden
   `}
->
-  {prompt.trim() && (
-    <LinearGradient
-      colors={['#10b981', '#059669']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      className="absolute inset-0 rounded-2xl"
-    />
-  )}
+              >
+                {prompt.trim() && (
+                  <LinearGradient
+                    colors={['#10b981', '#059669']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    className="absolute inset-0 rounded-2xl"
+                  />
+                )}
 
-  <Ionicons
-    name="sparkles"
-    size={18}
-    color={prompt.trim() ? 'white' : '#9CA3AF'}
-    className="z-10"
-  />
-  <Text
-    className={`
+                <Ionicons
+                  name="sparkles"
+                  size={18}
+                  color={prompt.trim() ? 'white' : '#9CA3AF'}
+                  className="z-10"
+                />
+                <Text
+                  className={`
       ml-2 font-semibold z-10
       ${prompt.trim() ? 'text-white' : 'text-gray-400'}
     `}
-  >
-    Generate Task
-  </Text>
-</TouchableOpacity>
+                >
+                  Generate Task
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </BottomSheet>
@@ -304,7 +304,7 @@ export default function NaturalLanguageTaskScreen() {
               </View>
 
               {/* Form Fields */}
-              <View> 
+              <View>
                 <View style={{ marginBottom: 24 }}>
                   <View className="flex-row justify-between items-center" style={{ marginBottom: 12 }}>
                     <View className="flex-row items-center" >

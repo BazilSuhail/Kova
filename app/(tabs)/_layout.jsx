@@ -1,35 +1,51 @@
 // app/(tabs)/_layout.jsx
-import React from 'react';
+import { AntDesign, Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { withLayoutContext } from 'expo-router';
-import { Platform, View } from 'react-native';
+import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, Feather, MaterialCommunityIcons,MaterialIcons , AntDesign } from '@expo/vector-icons';
 
 const Tab = createMaterialTopTabNavigator();
 const Tabs = withLayoutContext(Tab.Navigator);
 
+// Define colors based on your palette
+const COLORS = {
+  primary: '#059669',    // emerald-600
+  background: '#f9fafb', // gray-50 (App background)
+  cardBackground: 'white',
+  tabBarBorder: '#e5e7eb', // gray-200
+  iconInactive: '#94a3b8', // slate-400 (Tertiary icons)
+  indicator: '#059669',    // emerald-600
+};
+
 export default function TabsLayout() {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <Tabs
         tabBarPosition="bottom"
         screenOptions={({ route }) => ({
           tabBarShowLabel: false,
           swipeEnabled: true,
           tabBarStyle: {
-            backgroundColor: 'white',
-            borderTopWidth: 0.5,
-            borderColor: '#ccc',
+            backgroundColor: COLORS.cardBackground,
+            borderTopWidth: 1, // Increased for clarity
+            borderColor: COLORS.tabBarBorder,
             height: 60,
+            // Optional: Add subtle shadow for depth if needed
+            // elevation: 2,
+            // shadowColor: '#000',
+            // shadowOffset: { width: 0, height: 2 },
+            // shadowOpacity: 0.1,
+            // shadowRadius: 3,
           },
           tabBarIndicatorStyle: {
-            backgroundColor: '#2563EB',
+            backgroundColor: COLORS.indicator, // Use emerald for active indicator
             height: 3,
-            top: 0,
+            top: 0, // Keep indicator at the top
           },
           tabBarIcon: ({ focused }) => {
-            const color = focused ? '#2563EB' : '#999';
+            // Use emerald for active, slate-400 for inactive
+            const color = focused ? COLORS.primary : COLORS.iconInactive;
             switch (route.name) {
               case 'index':
                 return <Ionicons name="home-outline" size={26} color={color} />;
