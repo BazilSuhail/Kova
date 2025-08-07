@@ -3,6 +3,11 @@ import { StatusBar, useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import "../global.css";
 
+import * as NavigationBar from 'expo-navigation-bar'; 
+
+NavigationBar.setBackgroundColorAsync('#FFFFFF');
+NavigationBar.setButtonStyleAsync('light');
+
 export default function RootLayout() {
   const colorScheme = useColorScheme(); 
 
