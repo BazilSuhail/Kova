@@ -45,7 +45,7 @@ const TaskCreationForm = ({ onSave }) => {
   return (
     <View className="px-6 pt-6 pb-6 flex-1">
       {/* Form Fields */}
-      <View className="flex-1 space-y-4">
+      <View className="flex-1 space-y-4" style={{gap:16}}>
         {/* Title Input */}
         <View>
           <Text className="text-sm font-medium text-gray-700 mb-2">Task Title</Text>
