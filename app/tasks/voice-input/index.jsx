@@ -23,92 +23,9 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSpring, withTiming } from 'react-native-reanimated';
 
-// Animated Recording Circles Component
-const RecordingCircles = ({ isRecording }) => {
-  const scale1 = useSharedValue(1);
-  const scale2 = useSharedValue(1);
-  const scale3 = useSharedValue(1);
-  const opacity1 = useSharedValue(0.3);
-  const opacity2 = useSharedValue(0.2);
-  const opacity3 = useSharedValue(0.1);
-
-  useEffect(() => {
-    if (isRecording) {
-      scale1.value = withRepeat(
-        withTiming(1.8, { duration: 1500, easing: Easing.inOut(Easing.quad) }),
-        -1,
-        true
-      );
-      scale2.value = withRepeat(
-        withTiming(2.2, { duration: 2000, easing: Easing.inOut(Easing.quad) }),
-        -1,
-        true
-      );
-      scale3.value = withRepeat(
-        withTiming(2.8, { duration: 2500, easing: Easing.inOut(Easing.quad) }),
-        -1,
-        true
-      );
-
-      opacity1.value = withRepeat(
-        withTiming(0.1, { duration: 1500, easing: Easing.inOut(Easing.quad) }),
-        -1,
-        true
-      );
-      opacity2.value = withRepeat(
-        withTiming(0.05, { duration: 2000, easing: Easing.inOut(Easing.quad) }),
-        -1,
-        true
-      );
-      opacity3.value = withRepeat(
-        withTiming(0.03, { duration: 2500, easing: Easing.inOut(Easing.quad) }),
-        -1,
-        true
-      );
-    } else {
-      scale1.value = withSpring(1);
-      scale2.value = withSpring(1);
-      scale3.value = withSpring(1);
-      opacity1.value = withSpring(0);
-      opacity2.value = withSpring(0);
-      opacity3.value = withSpring(0);
-    }
-  }, [isRecording]);
-
-  const circle1Style = useAnimatedStyle(() => ({
-    transform: [{ scale: scale1.value }],
-    opacity: opacity1.value,
-  }));
-
-  const circle2Style = useAnimatedStyle(() => ({
-    transform: [{ scale: scale2.value }],
-    opacity: opacity2.value,
-  }));
-
-  const circle3Style = useAnimatedStyle(() => ({
-    transform: [{ scale: scale3.value }],
-    opacity: opacity3.value,
-  }));
-
-  return (
-    <View className="absolute inset-0 items-center justify-center">
-      <Animated.View
-        style={[circle3Style]}
-        className="absolute w-32 h-32 rounded-full border-2 border-emerald-500"
-      />
-      <Animated.View
-        style={[circle2Style]}
-        className="absolute w-32 h-32 rounded-full border-2 border-emerald-400"
-      />
-      <Animated.View
-        style={[circle1Style]}
-        className="absolute w-32 h-32 rounded-full border-2 border-emerald-600"
-      />
-    </View>
-  );
-};
+import AudioVisualizer from '@/components/voice-tasks/AudioVisualizer';
+import RecordingAnimation from '@/components/voice-tasks/RecordingAnimation';
 
 export default function VoiceInputScreen() {
   const router = useRouter();
@@ -123,6 +40,7 @@ export default function VoiceInputScreen() {
   const [playbackTime, setPlaybackTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [recordingUri, setRecordingUri] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false); // Manual playing state
   const [fadeAnim] = useState(new Animated.Value(0));
 
   const [task, setTask] = useState({
@@ -136,7 +54,7 @@ export default function VoiceInputScreen() {
 
   const timerRef = useRef(null);
   const playbackTimerRef = useRef(null);
-  const buttonScale = useSharedValue(1);
+  // Removed buttonScale shared value to avoid reanimated warnings
 
   // Handle hardware back button
   useEffect(() => {
@@ -164,8 +82,8 @@ export default function VoiceInputScreen() {
     (async () => {
       try {
         const status = await AudioModule.requestRecordingPermissionsAsync();
-        if (!status.granted) {
-          Alert.alert('Permission Required', 'Please grant microphone access to record voice tasks');
+        console.log(status,"sdsd")
+        if (!status.granted) { 
           setIsPermissionGranted(false);
         } else {
           await setAudioModeAsync({
@@ -181,16 +99,41 @@ export default function VoiceInputScreen() {
     })();
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (playbackTimerRef.current) clearInterval(playbackTimerRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      if (playbackTimerRef.current) {
+        clearInterval(playbackTimerRef.current);
+        playbackTimerRef.current = null;
+      }
     };
   }, []);
 
+  // Remove debug logs when not needed
+  // useEffect(() => {
+  //   console.log('🎵 Player state changed - isPlaying:', isPlaying);
+  // }, [isPlaying]);
+
+  // Simple playback timer - just count seconds during playback
   useEffect(() => {
-    if (player.playing && player.currentTime !== undefined) {
+    if (isPlaying && recordingUri) {
+      if (playbackTimerRef.current) {
+        clearInterval(playbackTimerRef.current);
+      }
+      
       playbackTimerRef.current = setInterval(() => {
-        setPlaybackTime(Math.floor(player.currentTime || 0));
-      }, 100);
+        setPlaybackTime(prev => {
+          const newTime = prev + 1;
+          // Auto-stop when reaching the end
+          if (newTime >= duration) {
+            setIsPlaying(false);
+            player.pause();
+            return duration;
+          }
+          return newTime;
+        });
+      }, 1000); // Update every second
     } else {
       if (playbackTimerRef.current) {
         clearInterval(playbackTimerRef.current);
@@ -199,9 +142,12 @@ export default function VoiceInputScreen() {
     }
 
     return () => {
-      if (playbackTimerRef.current) clearInterval(playbackTimerRef.current);
+      if (playbackTimerRef.current) {
+        clearInterval(playbackTimerRef.current);
+        playbackTimerRef.current = null;
+      }
     };
-  }, [player.playing, player.currentTime]);
+  }, [isPlaying, recordingUri, duration]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -224,19 +170,22 @@ export default function VoiceInputScreen() {
   };
 
   const startRecording = async () => {
-    if (!isPermissionGranted) {
-      Alert.alert('Permission Error', 'Microphone permission is required');
-      return;
-    }
+    // if (!isPermissionGranted) { 
+    //   return;
+    // }
 
     try {
       setRecordingTime(0);
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
 
       await recorder.prepareToRecordAsync();
       setIsPrepared(true);
       recorder.record();
 
+      // Start recording timer
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
@@ -248,12 +197,45 @@ export default function VoiceInputScreen() {
     }
   };
 
+  const playRecording = async () => {
+    if (!recordingUri) {
+      Alert.alert('Error', 'No recording found');
+      return;
+    }
+
+    try {
+      if (isPlaying) {
+        await player.pause();
+        setIsPlaying(false);
+      } else {
+        // Reset playback position if at the end
+        if (duration > 0 && playbackTime >= duration) {
+          setPlaybackTime(0);
+        }
+        
+        await player.replace({ uri: recordingUri });
+        await player.play();
+        setIsPlaying(true);
+        
+        // Set initial duration from recording time if not available
+        if (duration === 0 && recordingTime > 0) {
+          setDuration(recordingTime);
+        }
+      }
+    } catch (error) {
+      console.error('Playback error:', error);
+      setIsPlaying(false);
+      Alert.alert('Error', 'Failed to play recording');
+    }
+  };
+
   const stopRecording = async () => {
     if (!isPrepared || !recorder.isRecording) return;
 
     try {
       await recorder.stop();
-      setRecordingUri(recorder.uri);
+      const recordingURI = recorder.uri;
+      setRecordingUri(recordingURI);
       setIsPrepared(false);
 
       if (timerRef.current) {
@@ -261,12 +243,13 @@ export default function VoiceInputScreen() {
         timerRef.current = null;
       }
 
+      // Set duration from recording time and reset playback
       setDuration(recordingTime);
       setPlaybackTime(0);
 
       // Get file size when recording stops
-      if (recorder.uri) {
-        await getFileSize(recorder.uri);
+      if (recordingURI) {
+        await getFileSize(recordingURI);
       }
 
     } catch (error) {
@@ -275,37 +258,31 @@ export default function VoiceInputScreen() {
     }
   };
 
-  const playRecording = async () => {
-    if (!recordingUri) {
-      Alert.alert('Error', 'No recording found');
-      return;
-    }
-
+  const stopPlayback = async () => {
     try {
-      if (player.playing) {
+      if (isPlaying) {
         await player.pause();
-      } else {
+        setIsPlaying(false);
+      }
+      // Reset to beginning
+      setPlaybackTime(0);
+      if (recordingUri) {
         await player.replace({ uri: recordingUri });
-        player.play();
       }
     } catch (error) {
-      console.error('Playback error:', error);
-      Alert.alert('Error', 'Failed to play recording');
-    }
-  };
-
-  const stopPlayback = async () => {
-    if (player.playing) {
-      await player.pause();
-      setPlaybackTime(0);
+      console.error('Stop playback error:', error);
     }
   };
 
   const resetRecording = async () => {
     try {
-      if (player.playing) await player.pause();
+      if (isPlaying) {
+        await player.pause();
+        setIsPlaying(false);
+      }
       if (recorder.isRecording) await recorder.stop();
 
+      // Clear all timers
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -326,17 +303,13 @@ export default function VoiceInputScreen() {
     }
   };
 
-  const handleRecordPress = () => {
-    buttonScale.value = withSpring(0.9, {}, () => {
-      buttonScale.value = withSpring(1);
-    });
-
+  const handleRecordPress = useCallback(() => {
     if (recorder.isRecording) {
       stopRecording();
     } else {
       startRecording();
     }
-  };
+  }, [recorder.isRecording]);
 
   const handleCloseModal = useCallback(() => {
     router.back();
@@ -403,23 +376,6 @@ export default function VoiceInputScreen() {
     });
   };
 
-  const getCategoryColor = (category) => {
-    switch (category?.toLowerCase()) {
-      case 'academics':
-        return { bg: 'bg-amber-100', text: 'text-amber-600' };
-      case 'health':
-        return { bg: 'bg-rose-100', text: 'text-rose-600' };
-      case 'fitness':
-        return { bg: 'bg-sky-100', text: 'text-sky-600' };
-      case 'work':
-        return { bg: 'bg-blue-100', text: 'text-blue-600' };
-      case 'personal':
-        return { bg: 'bg-purple-100', text: 'text-purple-600' };
-      default:
-        return { bg: 'bg-gray-100', text: 'text-gray-600' };
-    }
-  };
-
   const getRecordButtonStyle = () => {
     if (!isPermissionGranted || (recordingUri && !recorder.isRecording)) {
       return 'bg-slate-400';
@@ -430,9 +386,7 @@ export default function VoiceInputScreen() {
     return 'bg-emerald-500';
   };
 
-  const animatedButtonStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonScale.value }],
-  }));
+  // Removed animated style to avoid reanimated warnings
 
   return (
     <>
@@ -444,176 +398,181 @@ export default function VoiceInputScreen() {
           visible={showVoiceModal}
           onRequestClose={handleCloseModal}
         >
-          {showVoiceModal &&
+          {showVoiceModal && (
             <StatusBar backgroundColor="#00000066" barStyle="dark-content" />
-          }
+          )}
+
           <View className="flex-1 bg-black/40 justify-center items-center">
-            <View className="bg-gray-50 w-[95%] h-[60%]  p-5 rounded-3xl">
-              <View>
-                {/* Permission Warning */}
-                {!isPermissionGranted && (
-                  <View className="bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-6">
-                    <View className="flex-row items-center">
-                      <Ionicons name="warning" size={20} color="#dc2626" />
-                      <Text className="text-rose-700 font-medium ml-3 flex-1">
-                        Microphone permission required
-                      </Text>
-                    </View>
-                    <Text className="text-rose-600 text-sm mt-2 ml-8">
-                      Enable microphone access in settings
+            <View
+              className={`bg-gray-50 w-[85%] p-5 rounded-3xl ${recordingUri ? 'h-[50%]' : 'h-[60%]'
+                }`}
+            >
+              {/* Permission Warning */}
+              {!isPermissionGranted && (
+                <View className="bg-rose-50 border border-rose-200 rounded-[12px] p-4 mb-6">
+                  <View className="flex-row items-center">
+                    <Ionicons name="warning" size={20} color="#dc2626" />
+                    <Text className="text-rose-700 font-medium ml-3 flex-1">
+                      Microphone permission required
                     </Text>
                   </View>
-                )}
+                  <Text className="text-rose-600 text-sm mt-2 ml-8">
+                    Enable microphone access in settings
+                  </Text>
+                </View>
+              )}
 
-                {/* Recording Timer */}
-                {(recorder.isRecording || recordingTime > 0) && (
-                  <View className="items-center mb-6">
-                    <View className="bg-white rounded-2xl px-6 py-4 border border-gray-200">
-                      <Text className="text-3xl font-bold text-gray-800 text-center font-mono">
-                        {formatTime(recordingTime)}
-                      </Text>
-                      <View className="flex-row items-center justify-center mt-2">
-                        {recorder.isRecording && (
-                          <View className="w-2 h-2 bg-emerald-500 rounded-full mr-2" />
-                        )}
-                        <Text className="text-xs text-gray-500 font-medium">
-                          {recorder.isRecording ? 'Recording...' : 'Ready'}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                )}
-
-                {/* Recording Section */}
+              {/* Recording Section - Only show when NOT recording and NO recording exists */}
+              {!recordingUri && !recorder.isRecording && (
                 <View className="flex-1 items-center justify-center mb-6">
-                  <View className="relative mb-8">
-                    <RecordingCircles isRecording={recorder.isRecording} />
-                    <Animated.View style={animatedButtonStyle}>
-                      <TouchableOpacity
-                        onPress={handleRecordPress}
-                        disabled={!isPermissionGranted || (!!recordingUri && !recorder.isRecording)}
-                        className={`w-24 h-24 rounded-full justify-center items-center ${getRecordButtonStyle()}`}
-                      >
-                        <Ionicons
-                          name={recorder.isRecording ? 'stop' : 'mic'}
-                          size={32}
-                          color="white"
-                        />
-                      </TouchableOpacity>
-                    </Animated.View>
+                  <View className="relative mb-8 w-24 h-24">
+                    <TouchableOpacity
+                      onPress={handleRecordPress}
+                      disabled={!isPermissionGranted}
+                      className={`w-24 h-24 rounded-full justify-center items-center ${getRecordButtonStyle()}`}
+                      style={{ transform: [{ scale: 1 }] }}
+                    >
+                      <Ionicons
+                        name="mic"
+                        size={32}
+                        color="white"
+                      />
+                    </TouchableOpacity>
                   </View>
 
                   <Text className="text-gray-600 text-center mb-2">
                     {!isPermissionGranted
                       ? 'Grant microphone access'
-                      : recorder.isRecording
-                        ? 'Recording... Tap to stop'
-                        : recordingUri
-                          ? 'Recording complete'
-                          : 'Tap to start recording'}
+                      : 'Tap to start recording'}
                   </Text>
                 </View>
+              )}
 
-                {/* Playback Controls */}
-                {recordingUri && (
-                  <View className="bg-emerald-50 rounded-2xl p-5 mb-6 border border-emerald-200">
-                    <View className="flex-row justify-between items-center mb-4">
-                      <Text className="text-sm font-mono text-emerald-700 bg-white px-3 py-2 rounded-lg">
-                        {formatTime(playbackTime)}
-                      </Text>
-                      <View className="flex-row items-center">
-                        <View className={`w-2 h-2 rounded-full mr-2 ${player.playing ? 'bg-emerald-500' : 'bg-gray-400'}`} />
-                        <Text className="text-sm font-medium text-emerald-700">
-                          {player.playing ? 'Playing' : 'Paused'}
-                        </Text>
-                      </View>
-                      <Text className="text-sm font-mono text-emerald-700 bg-white px-3 py-2 rounded-lg">
-                        {formatTime(duration)}
-                      </Text>
-                    </View>
+              {/* Recording Section - Show during recording with animation */}
+              {recorder.isRecording && (
+                <View className="flex-1 items-center justify-center mb-6">
+                  <View className="relative mb-8 w-24 h-24">
+                    <RecordingAnimation
+                      isRecording={recorder.isRecording}
+                      size={96}
+                    />
 
-                    <View className="w-full h-2 bg-emerald-200 rounded-full mb-4">
-                      <View
-                        className="h-full bg-emerald-500 rounded-full"
-                        style={{
-                          width: duration > 0 ? `${(playbackTime / duration) * 100}%` : '0%'
-                        }}
+                    <TouchableOpacity
+                      onPress={handleRecordPress}
+                      className="w-24 h-24 rounded-full justify-center items-center bg-emerald-500"
+                    >
+                      <Ionicons
+                        name="stop"
+                        size={32}
+                        color="white"
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text className="text-gray-600 text-center mb-2">
+                    Recording... Tap to stop
+                  </Text>
+                  <Text className="text-emerald-600 font-mono text-lg">
+                    {formatTime(recordingTime)}
+                  </Text>
+                </View>
+              )}
+
+              {/* Playback Controls - Show after recording is complete */}
+              {recordingUri && (
+                <View className="flex-1 justify-center">
+                  <View className="bg-emerald-50 rounded-[12px] p-5 mb-6 border border-emerald-200">
+                    {/* Audio Visualizer with integrated time display and progress */}
+                    <View className="mb-4">
+                      <AudioVisualizer
+                        isPlaying={player.playing}
+                        progress={duration > 0 ? (playbackTime / duration) * 100 : 0}
+                        currentTime={playbackTime}
+                        duration={duration}
                       />
                     </View>
 
-                    <View className="flex-row justify-center">
+                    {/* Control Buttons */}
+                    <View className="flex-row justify-center items-center space-x-4">
+                      {/* Play/Pause Button */}
                       <TouchableOpacity
                         onPress={playRecording}
-                        className="w-12 h-12 bg-emerald-500 rounded-2xl justify-center items-center mr-3"
+                        className="w-14 h-14 bg-emerald-500 rounded-full justify-center items-center"
                       >
                         <Ionicons
-                          name={player.playing ? 'pause' : 'play'}
-                          size={20}
+                          name={isPlaying ? 'pause' : 'play'}
+                          size={24}
                           color="white"
                         />
                       </TouchableOpacity>
 
+                      {/* Stop Button */}
                       <TouchableOpacity
                         onPress={stopPlayback}
-                        className="w-12 h-12 bg-gray-500 rounded-2xl justify-center items-center mr-3"
+                        className="w-12 h-12 bg-gray-500 rounded-[12px] justify-center items-center"
                       >
                         <Ionicons name="stop" size={20} color="white" />
                       </TouchableOpacity>
 
+                      {/* Record Again Button */}
                       <TouchableOpacity
                         onPress={resetRecording}
-                        className="w-12 h-12 bg-slate-400 rounded-2xl justify-center items-center"
+                        className="py-3 px-4 rounded-[12px] relative overflow-hidden"
                       >
-                        <Ionicons name="refresh" size={20} color="white" />
+                        <LinearGradient
+                          colors={['#059669', '#10b981']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          className="absolute inset-0 rounded-[12px]"
+                        />
+                        <View className="flex-row items-center z-10">
+                          <Ionicons name="mic" size={16} color="white" />
+                          <Text className="text-white font-semibold text-sm ml-2">Record Again</Text>
+                        </View>
                       </TouchableOpacity>
                     </View>
                   </View>
-                )}
-
-                {/* Record Again Option */}
-                {recordingUri && (
-                  <TouchableOpacity
-                    onPress={resetRecording}
-                    className="py-3 rounded-2xl items-center bg-white border border-gray-300 mb-4"
-                  >
-                    <View className="flex-row items-center">
-                      <Ionicons name="mic" size={16} color="#6b7280" />
-                      <Text className="text-gray-700 font-semibold text-sm ml-2">Record Again</Text>
-                    </View>
-                  </TouchableOpacity>
-                )}
-              </View>
+                </View>
+              )}
 
               {/* Action Buttons */}
               <View className="flex-row mt-4">
                 <TouchableOpacity
-                  className="flex-1 bg-gray-50 py-4 rounded-2xl items-center border border-gray-200"
+                  className="flex-1 bg-gray-50 py-3 rounded-[12px] items-center border border-gray-200 mr-3"
                   onPress={handleCloseModal}
-                  style={{ marginRight: 12 }}
                 >
-                  <Text className="text-gray-600 font-semibold">Cancel</Text>
+                  <Text className="text-gray-600 text-[14px] font-semibold">Cancel</Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity
                   onPress={handleGenerateTask}
                   disabled={!recordingUri}
-                  className={`flex-1 flex-row items-center justify-center py-4 rounded-2xl ${!recordingUri ? 'bg-gray-200' : 'bg-emerald-500'
-                    }`}
+                  className="flex-1 flex-row items-center justify-center py-3 rounded-[12px] relative"
                 >
+                  {/* Background gradient */}
                   {recordingUri && (
                     <LinearGradient
                       colors={['#10b981', '#059669']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
-                      className="absolute inset-0 rounded-2xl"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        borderRadius: 12,
+                      }}
                     />
                   )}
+
                   <Ionicons
                     name="sparkles"
-                    size={18}
+                    size={16}
                     color={recordingUri ? 'white' : '#9CA3AF'}
                   />
                   <Text
-                    className={`ml-2 font-semibold ${recordingUri ? 'text-white' : 'text-gray-400'
+                    className={`ml-2 text-[14px] font-semibold ${recordingUri ? 'text-white' : 'text-gray-400'
                       }`}
                   >
                     Generate Task
@@ -622,9 +581,8 @@ export default function VoiceInputScreen() {
               </View>
             </View>
           </View>
-        </Modal>
-
-        {/* Loading State */}
+        </Modal> 
+        
         {loading && (
           <Animated.View
             className="flex-1 justify-center items-center px-8 bg-white"
@@ -664,8 +622,7 @@ export default function VoiceInputScreen() {
             </View>
           </Animated.View>
         )}
-
-        {/* Task Review & Edit Form */}
+ 
         {!loading && (
           <ScrollView
             className="flex-1"
@@ -675,11 +632,11 @@ export default function VoiceInputScreen() {
             <View className="px-6 pt-16 pb-8">
               {/* Header */}
               <View
-                className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100"
+                className="bg-emerald-50 rounded-[12px] p-6 border border-emerald-100"
                 style={{ marginBottom: 32 }}
               >
                 <View className="flex-row items-center">
-                  <View className="w-16 h-16 bg-emerald-100 rounded-2xl items-center justify-center" style={{ marginRight: 16 }}>
+                  <View className="w-16 h-16 bg-emerald-100 rounded-[12px] items-center justify-center" style={{ marginRight: 16 }}>
                     <Ionicons name="checkmark-circle" size={32} color="#059669" />
                   </View>
                   <View className="flex-1">
@@ -763,14 +720,6 @@ export default function VoiceInputScreen() {
                         <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
                       </View>
                     </View>
-                    {/* Category Accent Pill */}
-                    {task.category && (
-                      <View className={`mt-2 px-3 py-1 rounded-full ${getCategoryColor(task.category).bg}`}>
-                        <Text className={`text-sm font-medium ${getCategoryColor(task.category).text}`}>
-                          {task.category}
-                        </Text>
-                      </View>
-                    )}
                   </View>
 
                   {/* Priority */}
@@ -813,8 +762,7 @@ export default function VoiceInputScreen() {
                     <Ionicons name="calendar-outline" size={20} color="#9CA3AF" />
                   </TouchableOpacity>
                 </View>
-
-                {/* Estimated Time Field */}
+ 
                 <View style={{ marginBottom: 32 }}>
                   <View className="flex-row items-center" style={{ marginBottom: 12 }}>
                     <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>

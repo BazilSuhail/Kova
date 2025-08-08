@@ -249,49 +249,49 @@ export default function TaskFormPage() {
             </View>
           </View>
 
-<View className="h-[2px] bg-gray-200 w-full rounded-xl"></View>
+          <View className="h-[2px] bg-gray-200 w-full rounded-xl"></View>
 
           {/* Action Buttons Row */}
-<View className="flex-row justify-between" style={{ marginTop: 32 }}>
-  {/* Save Button */}
-  <TouchableOpacity
-    onPress={handleSave}
-    disabled={!isFormValid || loading}
-    className={`flex-1 py-2 rounded-[8px] items-center flex-row justify-center mr-2 ${isFormValid && !loading
-      ? 'bg-emerald-600'
-      : 'bg-gray-300'
-      }`}
-    activeOpacity={0.8}
-  >
-    {loading ? (
-      <View className="flex-row items-center">
-        <View className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-        <Text className="text-white text-base font-semibold">Saving...</Text>
-      </View>
-    ) : (
-      <>
-        <Ionicons
-          name="checkmark-circle"
-          size={20}
-          color={isFormValid ? "#ffffff" : "#9ca3af"}
-        />
-        <Text className={`ml-2 text-base font-semibold ${isFormValid ? 'text-white' : 'text-gray-500'
-          }`}>
-          Save
-        </Text>
-      </>
-    )}
-  </TouchableOpacity>
+          <View className="flex-row justify-between" style={{ marginTop: 32 }}>
+            {/* Save Button */}
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={!isFormValid || loading}
+              className={`flex-1 py-2 rounded-[8px] items-center flex-row justify-center mr-2 ${isFormValid && !loading
+                ? 'bg-emerald-600'
+                : 'bg-gray-300'
+                }`}
+              activeOpacity={0.8}
+            >
+              {loading ? (
+                <View className="flex-row items-center">
+                  <View className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  <Text className="text-white text-base font-semibold">Saving...</Text>
+                </View>
+              ) : (
+                <>
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color={isFormValid ? "#ffffff" : "#9ca3af"}
+                  />
+                  <Text className={`ml-2 text-base font-semibold ${isFormValid ? 'text-white' : 'text-gray-500'
+                    }`}>
+                    Save
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
 
-  {/* Cancel Button */}
-  <TouchableOpacity
-    onPress={handleCancel}
-    className="flex-1 bg-white py-2 rounded-[8px] items-center flex-row justify-center border border-gray-200 ml-2"
-  >
-    <Ionicons name="close" size={18} color="#6B7280" />
-    <Text className="text-gray-700 font-medium ml-2">Cancel</Text>
-  </TouchableOpacity>
-</View>
+            {/* Cancel Button */}
+            <TouchableOpacity
+              onPress={handleCancel}
+              className="flex-1 bg-white py-2 rounded-[8px] items-center flex-row justify-center border border-gray-200 ml-2"
+            >
+              <Ionicons name="close" size={18} color="#6B7280" />
+              <Text className="text-gray-700 font-medium ml-2">Cancel</Text>
+            </TouchableOpacity>
+          </View>
 
         </View>
       </ScrollView>

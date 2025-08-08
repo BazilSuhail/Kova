@@ -72,6 +72,20 @@ export default function AIAssistantScreen() {
             </TouchableOpacity>
           </Link>
 
+           <Link href="/assistant/with-sub-tasks" asChild>
+            <TouchableOpacity className="flex-row items-center justify-between bg-white px-5 py-4 rounded-2xl shadow-sm border border-gray-100" activeOpacity={0.7}>
+              <View className="flex-row items-center flex-1">
+                <View className="w-12 h-12 bg-purple-50 rounded-xl items-center justify-center mr-4">
+                  <Ionicons name="document-text-outline" size={24} color="#8b5cf6" />
+                </View>
+                <Text className="text-base font-semibold text-gray-800 flex-1">
+                  Auto Notes Summarizer
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          </Link>
+
 
           <TouchableOpacity className="flex-row items-center justify-between bg-white px-5 py-4 rounded-2xl shadow-sm border border-gray-100" activeOpacity={0.7}>
             <View className="flex-row items-center flex-1">
