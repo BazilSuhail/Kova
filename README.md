@@ -1,50 +1,102 @@
-# Welcome to your Expo app 👋
+# 📱 Personal AI Life Assistant  
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A smart, empathetic mobile application designed to help students manage their tasks, mood, schedules, and goals — all in one place. Built for the **SOFTEC 2025 App Development Competition**, this app blends AI-powered features with thoughtful UX to make university life less overwhelming and more productive.  
 
-## Get started
+---
 
-1. Install dependencies
+## ✨ Features  
 
+### Core Features  
+- **🔐 User Registration & Login** — Secure sign-up/login with session management.  
+- **🏠 Personalized Dashboard** — View tasks, schedules, mood logs, and reminders at a glance.  
+- **🗣️ Natural Language Task Creation** — Turn inputs like _"Buy milk tomorrow"_ into structured tasks.  
+- **📂 Smart Task Categorization** — Automatic labels (Academics, Personal, Health, etc.).  
+- **📅 Daily/Weekly/Monthly Planner** — Calendar views with drag-and-drop editing.  
+- **😊 Mood-Based Suggestions** — Adjust task load based on mood logs.  
+- **🎙️ Voice Input** — Log tasks through speech-to-text.  
+- **📝 Auto Notes Summarizer** — Convert long notes into 3–5 bullet points.  
+- **✅ Checklist Generator** — Break down broad goals into subtasks.  
+- **⏰ Smart Reminders** — Gentle nudges before deadlines, adaptive to habits.  
+- **📷 Quick Add from Camera/Scans** — OCR extracts and converts text from images into tasks.  
+- **📔 Mood Journal** — Log moods, reflections, and see trends.  
+- **📊 Personal Progress Tracker** — Visualize task streaks and achievements.  
+- **📴 Offline Usability** — Add/edit/view tasks offline with sync on reconnect.  
+- **🎨 Customization Options** — Light/dark mode, font sizes, layouts.  
+- **🔔 Notification Center** — See reminders, missed tasks, and system updates.  
+- **🧠 Adaptive Suggestions** — Learns your patterns to optimize productivity.  
+
+### Bonus Features  
+- **💬 Daily Affirmations** — Motivational messages and journaling prompts.  
+- **🪄 Smart Event Title Generator** — Rewrites vague task names into clearer ones.  
+- **📅 Daily Recap View** — Summary of completed/pending tasks and mood snapshot.  
+
+---
+
+## 🤖 Tech Stack  
+
+<a href="#"> 
+  <img alt="JavaScript" src="https://img.shields.io/badge/javascript%20-%23323330.svg?&style=for-the-badge&logo=javascript&logoColor=%23F7DF1E"/>  
+  <img alt="React" src="https://img.shields.io/badge/React-%2361DAFB.svg?&style=for-the-badge&logo=react&logoColor=white"/> 
+  <img alt="Framer Motion" src="https://img.shields.io/badge/Framer%20Motion-%23ED5A9F.svg?&style=for-the-badge&logo=framer&logoColor=white"/>
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind%20CSS-%2306B6D4.svg?&style=for-the-badge&logo=tailwindcss&logoColor=white"/>
+  <img alt="Node js" src="https://img.shields.io/badge/Node.js-%23339933.svg?&style=for-the-badge&logo=node.js&logoColor=white"/> 
+  <img alt="Express js" src="https://img.shields.io/badge/Express.js-%23000000.svg?&style=for-the-badge&logo=express&logoColor=white"/>   
+  <img alt="MongoDB" src ="https://img.shields.io/badge/MongoDB-%234ea94b.svg?&style=for-the-badge&logo=mongodb&logoColor=white"/> 
+</a>  
+
+---
+
+## 📦 Installation  
+
+1. Clone the repository:  
+   ```bash
+   git clone https://github.com/yourusername/personal-ai-life-assistant.git
+   cd personal-ai-life-assistant
+   ```
+
+2. Install dependencies:  
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. Run the development server:  
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 📂 Folder Structure  
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+.
+├── app/                # Expo Router pages & navigation
+├── components/         # Reusable UI components
+├── hooks/              # Custom hooks
+├── services/           # API calls & backend integration
+├── assets/             # Images, icons, fonts
+├── README.md
+└── package.json
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 🚀 Roadmap  
 
-To learn more about developing your project with Expo, look at the following resources:
+- [x] User authentication  
+- [x] OCR-based task creation  
+- [x] Auto Notes Summarizer  
+- [x] Checklist generator from goals  
+- [ ] AI-powered adaptive suggestions  
+- [ ] Multi-language support  
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+## 🏆 About SOFTEC 2025  
 
-Join our community of developers creating universal apps.
+This project was built for **SOFTEC 2025 App Development Competition**, under the theme **"Personal AI Life Assistant"** — a student-focused productivity tool designed to intelligently manage academic, personal, and mental well-being needs.  
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+
+## 📜 License  
+This project is licensed under the MIT License.  
