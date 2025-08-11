@@ -3,130 +3,103 @@ import { Link } from 'expo-router';
 import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AIAssistantScreen() {
+  const options = [
+    {
+      title: "Checklist Generator",
+      desc: "Turn goals into actionable checklists",
+      icon: "list-outline",
+      color: "#10b981",
+      href: "/assistant/create-sub-tasks",
+    },
+    {
+      title: "Quick Add from Camera",
+      desc: "Capture tasks from images",
+      icon: "camera-outline",
+      color: "#10b981",
+      href: "/assistant/image-to-tasks",
+    },
+    {
+      title: "PDF Notes Summarizer",
+      desc: "Summarize notes from your PDFs",
+      icon: "document-text-outline",
+      color: "#10b981",
+      href: "/assistant/notes-summarizer",
+    },
+    {
+      title: "See Sub-tasks",
+      desc: "Expand tasks into smaller steps",
+      icon: "list-circle-outline",
+      color: "#10b981",
+      href: "/assistant/with-sub-tasks",
+    },
+    {
+      title: "Auto Notes Summarizer",
+      desc: "Summarize your notes instantly",
+      icon: "document-outline",
+      color: "#10b981",
+    },
+    {
+      title: "Smart Task Suggestions",
+      desc: "Get AI-based task ideas",
+      icon: "bulb-outline",
+      color: "#10b981",
+    },
+  ];
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView contentContainerStyle={{ padding: 15 }}>
-        {/* App Label */}
-        <View className="mb-6">
-          <Text className="text-white bg-indigo-600 px-4 py-2 rounded-full text-sm font-bold self-start">
-            Alva
-          </Text>
-        </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f9fafb" }}>
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
+        
+        {/* Header */}
+        <Text style={{ fontSize: 26, fontWeight: "700", color: "#059669", marginBottom: 20 }}>
+          What can I do for you?
+        </Text>
 
-        {/* Hero Title */}
-        <View className="mb-8">
-          <Text className="text-4xl font-extrabold text-gray-900 leading-tight">
-            Revolution AI helped with{' '}
-            <Text className="text-green-500">Eva</Text>
-            {' '}Smart AI Assistant{' '}
-            <Text className="text-indigo-600">With superb Tech</Text>
-          </Text>
-        </View>
-
-        {/* Prompt Section Title */}
-        <Text className="text-lg text-gray-600 mb-6 font-medium">What can I do for you?</Text>
-
-        {/* Option Cards */}
-        <View className="space-y-4 mb-8">
-          <Link href="/assistant/create-sub-tasks" asChild>
-            <TouchableOpacity className="flex-row items-center justify-between bg-white px-5 py-4 rounded-2xl shadow-sm border border-gray-100" activeOpacity={0.7}>
-              <View className="flex-row items-center flex-1">
-                <View className="w-12 h-12 bg-indigo-50 rounded-xl items-center justify-center mr-4">
-                  <Ionicons name="list-outline" size={24} color="#6366f1" />
+        {/* Option Grid */}
+        <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" }}>
+          {options.map((opt, idx) => {
+            const CardContent = (
+              <View
+                style={{
+                  backgroundColor: "white",
+                  width: "48%",
+                  padding: 18,
+                  borderRadius: 20,
+                  marginBottom: 15,
+                  shadowColor: "#000",
+                  shadowOpacity: 0.05,
+                  shadowRadius: 5,
+                  shadowOffset: { width: 0, height: 2 },
+                }}
+              >
+                <View
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 16,
+                    backgroundColor: "#d1fae5", // emerald-100
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: 10,
+                  }}
+                >
+                  <Ionicons name={opt.icon} size={26} color={opt.color} />
                 </View>
-                <Text className="text-base font-semibold text-gray-800 flex-1">
-                  Checklist Generator from Goal Input
+                <Text style={{ fontSize: 16, fontWeight: "700", color: "#111827", marginBottom: 4 }}>
+                  {opt.title}
                 </Text>
+                <Text style={{ fontSize: 13, color: "#6b7280" }}>{opt.desc}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          </Link>
+            );
 
-          <Link href="/assistant/image-to-tasks" asChild>
-            <TouchableOpacity className="flex-row items-center justify-between bg-white px-5 py-4 rounded-2xl shadow-sm border border-gray-100" activeOpacity={0.7}>
-              <View className="flex-row items-center flex-1">
-                <View className="w-12 h-12 bg-green-50 rounded-xl items-center justify-center mr-4">
-                  <Ionicons name="camera-outline" size={24} color="#10b981" />
-                </View>
-                <Text className="text-base font-semibold text-gray-800 flex-1">
-                  Quick Add from Camera or gallery
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          </Link>
-
-
-          <Link href="/assistant/notes-summarizer" asChild>
-            <TouchableOpacity className="flex-row items-center justify-between bg-white px-5 py-4 rounded-2xl shadow-sm border border-gray-100" activeOpacity={0.7}>
-              <View className="flex-row items-center flex-1">
-                <View className="w-12 h-12 bg-purple-50 rounded-xl items-center justify-center mr-4">
-                  <Ionicons name="document-text-outline" size={24} color="#8b5cf6" />
-                </View>
-                <Text className="text-base font-semibold text-gray-800 flex-1">
-                  Auto Notes Summarizer
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          </Link>
-
-           <Link href="/assistant/with-sub-tasks" asChild>
-            <TouchableOpacity className="flex-row items-center justify-between bg-white px-5 py-4 rounded-2xl shadow-sm border border-gray-100" activeOpacity={0.7}>
-              <View className="flex-row items-center flex-1">
-                <View className="w-12 h-12 bg-purple-50 rounded-xl items-center justify-center mr-4">
-                  <Ionicons name="document-text-outline" size={24} color="#8b5cf6" />
-                </View>
-                <Text className="text-base font-semibold text-gray-800 flex-1">
-                  Auto Notes Summarizer
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          </Link>
-
-
-          <TouchableOpacity className="flex-row items-center justify-between bg-white px-5 py-4 rounded-2xl shadow-sm border border-gray-100" activeOpacity={0.7}>
-            <View className="flex-row items-center flex-1">
-              <View className="w-12 h-12 bg-purple-50 rounded-xl items-center justify-center mr-4">
-                <Ionicons name="document-text-outline" size={24} color="#8b5cf6" />
-              </View>
-              <Text className="text-base font-semibold text-gray-800 flex-1">
-                Auto Notes Summarizer
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-          </TouchableOpacity>
-
-          <TouchableOpacity className="flex-row items-center justify-between bg-white px-5 py-4 rounded-2xl shadow-sm border border-gray-100" activeOpacity={0.7}>
-            <View className="flex-row items-center flex-1">
-              <View className="w-12 h-12 bg-orange-50 rounded-xl items-center justify-center mr-4">
-                <Ionicons name="bulb-outline" size={24} color="#f59e0b" />
-              </View>
-              <Text className="text-base font-semibold text-gray-800 flex-1">
-                Smart Task Suggestions
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Auth Buttons */}
-        <View className="flex-row space-x-3">
-          <TouchableOpacity
-            className="flex-1 py-4 rounded-2xl border-2 border-gray-200 items-center bg-white"
-            activeOpacity={0.8}
-          >
-            <Text className="text-gray-700 font-semibold text-base">Login</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className="flex-1 py-4 rounded-2xl bg-indigo-600 items-center shadow-lg"
-            activeOpacity={0.8}
-          >
-            <Text className="text-white font-semibold text-base">Register</Text>
-          </TouchableOpacity>
+            return opt.href ? (
+              <Link key={idx} href={opt.href} asChild>
+                <TouchableOpacity activeOpacity={0.7}>{CardContent}</TouchableOpacity>
+              </Link>
+            ) : (
+              <TouchableOpacity key={idx} activeOpacity={0.7}>{CardContent}</TouchableOpacity>
+            );
+          })}
         </View>
       </ScrollView>
     </SafeAreaView>

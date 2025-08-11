@@ -1,4 +1,4 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import {
   AudioModule,
   RecordingPresets,
@@ -11,15 +11,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Animated,
   BackHandler,
   Modal,
-  ScrollView,
   StatusBar,
   Text,
-  TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
@@ -82,8 +79,8 @@ export default function VoiceInputScreen() {
     (async () => {
       try {
         const status = await AudioModule.requestRecordingPermissionsAsync();
-        console.log(status,"sdsd")
-        if (!status.granted) { 
+        console.log(status, "sdsd")
+        if (!status.granted) {
           setIsPermissionGranted(false);
         } else {
           await setAudioModeAsync({
@@ -121,7 +118,7 @@ export default function VoiceInputScreen() {
       if (playbackTimerRef.current) {
         clearInterval(playbackTimerRef.current);
       }
-      
+
       playbackTimerRef.current = setInterval(() => {
         setPlaybackTime(prev => {
           const newTime = prev + 1;
@@ -205,19 +202,19 @@ export default function VoiceInputScreen() {
 
     try {
       if (isPlaying) {
+        // Pause if already playing
         await player.pause();
         setIsPlaying(false);
       } else {
-        // Reset playback position if at the end
-        if (duration > 0 && playbackTime >= duration) {
-          setPlaybackTime(0);
+        // Only replace the audio if it hasn't been loaded yet
+        if (!player.playing && playbackTime === 0) {
+          await player.replace({ uri: recordingUri });
         }
-        
-        await player.replace({ uri: recordingUri });
+
         await player.play();
         setIsPlaying(true);
-        
-        // Set initial duration from recording time if not available
+
+        // If we don't have duration yet, set it from the file
         if (duration === 0 && recordingTime > 0) {
           setDuration(recordingTime);
         }
@@ -228,6 +225,7 @@ export default function VoiceInputScreen() {
       Alert.alert('Error', 'Failed to play recording');
     }
   };
+
 
   const stopRecording = async () => {
     if (!isPrepared || !recorder.isRecording) return;
@@ -484,35 +482,43 @@ export default function VoiceInputScreen() {
                   <View className="bg-emerald-50 rounded-[12px] p-5 mb-6 border border-emerald-200">
                     {/* Audio Visualizer with integrated time display and progress */}
                     <View className="mb-4">
-                      <AudioVisualizer
+                      {/* <AudioVisualizer
                         isPlaying={player.playing}
                         progress={duration > 0 ? (playbackTime / duration) * 100 : 0}
                         currentTime={playbackTime}
                         duration={duration}
+                      /> */}
+                      <AudioVisualizer
+                        mode={recorder.isRecording ? 'recording' : 'playback'}
+                        isActive={recorder.isRecording || isPlaying}
+                        currentTime={recorder.isRecording ? recordingTime : playbackTime}
+                        duration={recorder.isRecording ? recordingTime : duration}
                       />
+
                     </View>
 
                     {/* Control Buttons */}
-                    <View className="flex-row justify-center items-center space-x-4">
+                    <View className="flex-row justify-center items-center" style={{gap:5}}>
                       {/* Play/Pause Button */}
-                      <TouchableOpacity
-                        onPress={playRecording}
-                        className="w-14 h-14 bg-emerald-500 rounded-full justify-center items-center"
-                      >
-                        <Ionicons
-                          name={isPlaying ? 'pause' : 'play'}
-                          size={24}
-                          color="white"
-                        />
-                      </TouchableOpacity>
-
-                      {/* Stop Button */}
-                      <TouchableOpacity
-                        onPress={stopPlayback}
-                        className="w-12 h-12 bg-gray-500 rounded-[12px] justify-center items-center"
-                      >
-                        <Ionicons name="stop" size={20} color="white" />
-                      </TouchableOpacity>
+                      {isPlaying ?
+                        <TouchableOpacity
+                          onPress={stopPlayback}
+                          className="w-10 h-10 bg-gray-500 rounded-[12px] justify-center items-center"
+                        >
+                          <Ionicons name="stop" size={20} color="white" />
+                        </TouchableOpacity>
+                        :
+                        <TouchableOpacity
+                          onPress={playRecording}
+                          className="w-12 h-12 bg-emerald-500 rounded-full justify-center items-center"
+                        >
+                          <Ionicons
+                            name={isPlaying ? 'pause' : 'play'}
+                            size={22}
+                            color="white"
+                          />
+                        </TouchableOpacity>
+                      }
 
                       {/* Record Again Button */}
                       <TouchableOpacity
@@ -581,239 +587,8 @@ export default function VoiceInputScreen() {
               </View>
             </View>
           </View>
-        </Modal> 
-        
-        {loading && (
-          <Animated.View
-            className="flex-1 justify-center items-center px-8 bg-white"
-            style={{ opacity: fadeAnim }}
-          >
-            <View className="items-center">
-              <View
-                className="w-24 h-24 bg-emerald-50 rounded-3xl items-center justify-center border border-emerald-100"
-                style={{ marginBottom: 24 }}
-              >
-                <MaterialCommunityIcons name="brain" size={40} color="#059669" />
-              </View>
-              <Text className="text-2xl font-bold text-gray-900 mb-2">Processing Voice...</Text>
-              <Text
-                className="text-gray-500 text-center mb-8 leading-6 max-w-xs"
-                style={{ marginBottom: 32 }}
-              >
-                Analyzing your voice recording and creating the perfect task structure
-              </Text>
-              <ActivityIndicator size="large" color="#059669" />
+        </Modal>
 
-              {/* Progress Steps */}
-              <View className="w-full max-w-xs" style={{ marginTop: 32 }}>
-                <View className="flex-row items-center" style={{ marginBottom: 12 }}>
-                  <View className="w-2 h-2 bg-emerald-500 rounded-full" style={{ marginRight: 12 }} />
-                  <Text className="text-sm text-gray-600">Processing voice recording</Text>
-                </View>
-                <View className="flex-row items-center" style={{ marginBottom: 12 }}>
-                  <View className="w-2 h-2 bg-emerald-300 rounded-full" style={{ marginRight: 12 }} />
-                  <Text className="text-sm text-gray-500">Extracting task details</Text>
-                </View>
-                <View className="flex-row items-center">
-                  <View className="w-2 h-2 bg-gray-300 rounded-full" style={{ marginRight: 12 }} />
-                  <Text className="text-sm text-gray-400">Generating final task</Text>
-                </View>
-              </View>
-            </View>
-          </Animated.View>
-        )}
- 
-        {!loading && (
-          <ScrollView
-            className="flex-1"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 40 }}
-          >
-            <View className="px-6 pt-16 pb-8">
-              {/* Header */}
-              <View
-                className="bg-emerald-50 rounded-[12px] p-6 border border-emerald-100"
-                style={{ marginBottom: 32 }}
-              >
-                <View className="flex-row items-center">
-                  <View className="w-16 h-16 bg-emerald-100 rounded-[12px] items-center justify-center" style={{ marginRight: 16 }}>
-                    <Ionicons name="checkmark-circle" size={32} color="#059669" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-xl font-bold text-gray-800">Review Your Task</Text>
-                    <Text className="text-gray-500 text-[12px]">
-                      AI has generated your task from voice. Feel free to make any adjustments.
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Form Fields */}
-              <View>
-                <View style={{ marginBottom: 24 }}>
-                  <View className="flex-row justify-between items-center" style={{ marginBottom: 12 }}>
-                    <View className="flex-row items-center">
-                      <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                        <Ionicons name="bookmark" size={14} color="#059669" />
-                      </View>
-                      <Text className="text-gray-800 font-semibold">Title</Text>
-                      <Text className="text-red-400 ml-1">*</Text>
-                    </View>
-
-                    <View className="items-center">
-                      <View className="flex-row items-center bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">
-                        <Ionicons name="mic" size={14} color="#059669" />
-                        <Text className="text-emerald-700 text-sm font-medium ml-2">
-                          Generated from Voice
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <TextInput
-                    value={task.title}
-                    onChangeText={(text) => setTask({ ...task, title: text })}
-                    className="bg-white px-4 py-4 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300"
-                    placeholder="Enter task title"
-                    placeholderTextColor="#9CA3AF"
-                  />
-                </View>
-
-                {/* Description Field */}
-                <View style={{ marginBottom: 24 }}>
-                  <View className="flex-row items-center" style={{ marginBottom: 12 }}>
-                    <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                      <Ionicons name="document-text" size={14} color="#059669" />
-                    </View>
-                    <Text className="text-gray-800 font-semibold">Description</Text>
-                  </View>
-                  <TextInput
-                    value={task.description}
-                    onChangeText={(text) => setTask({ ...task, description: text })}
-                    className="bg-white px-4 py-4 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300 min-h-[100px]"
-                    multiline
-                    placeholder="Add more details about your task"
-                    placeholderTextColor="#9CA3AF"
-                    textAlignVertical="top"
-                  />
-                </View>
-
-                {/* Category and Priority Row */}
-                <View className="flex-row" style={{ marginBottom: 24 }}>
-                  {/* Category */}
-                  <View className="flex-1" style={{ marginRight: 16 }}>
-                    <View className="flex-row items-center" style={{ marginBottom: 12 }}>
-                      <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                        <Ionicons name="folder" size={14} color="#059669" />
-                      </View>
-                      <Text className="text-gray-800 font-semibold">Category</Text>
-                    </View>
-                    <View className="relative">
-                      <TextInput
-                        value={task.category}
-                        onChangeText={(text) => setTask({ ...task, category: text })}
-                        className="bg-white px-4 py-4 pr-10 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300"
-                        placeholder="Select category"
-                        placeholderTextColor="#9CA3AF"
-                      />
-                      <View className="absolute right-3 top-1/2 -mt-2">
-                        <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Priority */}
-                  <View className="flex-1">
-                    <View className="flex-row items-center" style={{ marginBottom: 12 }}>
-                      <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                        <Ionicons name="flag" size={14} color="#059669" />
-                      </View>
-                      <Text className="text-gray-800 font-semibold">Priority</Text>
-                    </View>
-                    <View className="relative">
-                      <TextInput
-                        value={task.priority}
-                        onChangeText={(text) => setTask({ ...task, priority: text })}
-                        className="bg-white px-4 py-4 pr-10 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300"
-                        placeholder="Set priority"
-                        placeholderTextColor="#9CA3AF"
-                      />
-                      <View className="absolute right-3 top-1/2 -mt-2">
-                        <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
-                      </View>
-                    </View>
-                  </View>
-                </View>
-
-                {/* Due Date Field */}
-                <View style={{ marginBottom: 24 }}>
-                  <View className="flex-row items-center" style={{ marginBottom: 12 }}>
-                    <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                      <Ionicons name="calendar" size={14} color="#059669" />
-                    </View>
-                    <Text className="text-gray-800 font-semibold">Due Date</Text>
-                  </View>
-                  <TouchableOpacity
-                    className="bg-white px-4 py-4 rounded-xl border border-gray-200 flex-row items-center justify-between"
-                  >
-                    <Text className={`text-base ${task.dueDate ? 'text-gray-800' : 'text-gray-400'}`}>
-                      {task.dueDate ? formatDate(task.dueDate) : 'Select due date'}
-                    </Text>
-                    <Ionicons name="calendar-outline" size={20} color="#9CA3AF" />
-                  </TouchableOpacity>
-                </View>
- 
-                <View style={{ marginBottom: 32 }}>
-                  <View className="flex-row items-center" style={{ marginBottom: 12 }}>
-                    <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                      <Ionicons name="time" size={14} color="#059669" />
-                    </View>
-                    <Text className="text-gray-800 font-semibold">Estimated Time</Text>
-                  </View>
-                  <TextInput
-                    value={task.estimatedTime}
-                    onChangeText={(text) => setTask({ ...task, estimatedTime: text })}
-                    className="bg-white px-4 py-4 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300"
-                    placeholder="How long will this take?"
-                    placeholderTextColor="#9CA3AF"
-                  />
-                </View>
-              </View>
-
-              {/* Action Buttons */}
-              <View style={{ marginTop: 32 }}>
-                <TouchableOpacity
-                  onPress={handleSave}
-                  className="bg-emerald-600 py-4 rounded-xl items-center flex-row justify-center"
-                  activeOpacity={0.8}
-                  style={{ marginBottom: 16 }}
-                >
-                  <Ionicons name="checkmark-circle" size={20} color="white" />
-                  <Text className="text-white text-base font-semibold ml-2">Save Task</Text>
-                </TouchableOpacity>
-
-                <View className="flex-row">
-                  <TouchableOpacity
-                    onPress={handleRegenerate}
-                    className="flex-1 bg-white py-4 rounded-xl items-center flex-row justify-center border border-gray-200"
-                    style={{ marginRight: 12 }}
-                  >
-                    <Ionicons name="refresh" size={18} color="#6B7280" />
-                    <Text className="text-gray-700 font-medium ml-2">Regenerate</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={handleCancel}
-                    className="flex-1 bg-white py-4 rounded-xl items-center flex-row justify-center border border-gray-200"
-                    style={{ marginLeft: 12 }}
-                  >
-                    <Ionicons name="close" size={18} color="#6B7280" />
-                    <Text className="text-gray-700 font-medium ml-2">Cancel</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </ScrollView>
-        )}
       </View>
     </>
   );
