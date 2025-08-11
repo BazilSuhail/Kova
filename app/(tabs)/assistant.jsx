@@ -47,48 +47,24 @@ export default function AIAssistantScreen() {
   ];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f9fafb" }}>
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <ScrollView contentContainerClassName="p-5">
         
         {/* Header */}
-        <Text style={{ fontSize: 26, fontWeight: "700", color: "#059669", marginBottom: 20 }}>
+        <Text className="text-2xl font-bold text-emerald-600 mb-5">
           What can I do for you?
         </Text>
 
         {/* Option Grid */}
-        <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" }}>
+        <View className="flex-row flex-wrap -mx-1.5">
           {options.map((opt, idx) => {
             const CardContent = (
-              <View
-                style={{
-                  backgroundColor: "white",
-                  width: "48%",
-                  padding: 18,
-                  borderRadius: 20,
-                  marginBottom: 15,
-                  shadowColor: "#000",
-                  shadowOpacity: 0.05,
-                  shadowRadius: 5,
-                  shadowOffset: { width: 0, height: 2 },
-                }}
-              >
-                <View
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 16,
-                    backgroundColor: "#d1fae5", // emerald-100
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: 10,
-                  }}
-                >
+              <View className="bg-white/50 w-[48%] p-4 rounded-2xl mb-4 mx-1.5">
+                <View className="w-14 h-14 rounded-xl bg-emerald-100 items-center justify-center mb-2">
                   <Ionicons name={opt.icon} size={26} color={opt.color} />
                 </View>
-                <Text style={{ fontSize: 16, fontWeight: "700", color: "#111827", marginBottom: 4 }}>
-                  {opt.title}
-                </Text>
-                <Text style={{ fontSize: 13, color: "#6b7280" }}>{opt.desc}</Text>
+                <Text className="text-base font-bold text-gray-900 mb-1">{opt.title}</Text>
+                <Text className="text-sm text-gray-500">{opt.desc}</Text>
               </View>
             );
 
@@ -97,7 +73,9 @@ export default function AIAssistantScreen() {
                 <TouchableOpacity activeOpacity={0.7}>{CardContent}</TouchableOpacity>
               </Link>
             ) : (
-              <TouchableOpacity key={idx} activeOpacity={0.7}>{CardContent}</TouchableOpacity>
+              <TouchableOpacity key={idx} activeOpacity={0.7}>
+                {CardContent}
+              </TouchableOpacity>
             );
           })}
         </View>

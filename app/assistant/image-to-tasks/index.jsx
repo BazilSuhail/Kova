@@ -1,20 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
+import BottomSheet from 'entity-bottom-sheet';
 import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Animated,
     Dimensions,
     Image,
-    Modal,
     SafeAreaView,
     ScrollView,
+    StatusBar,
     Text,
     TouchableOpacity,
-    View,
-    Animated,
-    StatusBar
+    View
 } from 'react-native';
 
 // not used
@@ -30,7 +30,7 @@ export default function ImageProcessorScreen() {
     const [processingStep, setProcessingStep] = useState('');
     const [imageError, setImageError] = useState('');
     const [progress, setProgress] = useState(0);
-    
+
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(0.8)).current;
     const progressAnim = useRef(new Animated.Value(0)).current;
@@ -72,7 +72,7 @@ export default function ImageProcessorScreen() {
 
             if (status !== 'granted') {
                 Alert.alert(
-                    'Permission Required', 
+                    'Permission Required',
                     'We need access to your photo library to select images.',
                     [
                         { text: 'Cancel', style: 'cancel', onPress: () => setShowModal(true) },
@@ -123,7 +123,7 @@ export default function ImageProcessorScreen() {
 
             if (status !== 'granted') {
                 Alert.alert(
-                    'Camera Permission Required', 
+                    'Camera Permission Required',
                     'We need camera access to take photos.',
                     [
                         { text: 'Cancel', style: 'cancel', onPress: () => setShowModal(true) },
@@ -260,11 +260,11 @@ export default function ImageProcessorScreen() {
     };
 
     const CustomLoader = () => (
-        <View className="flex-1 bg-gradient-to-br from-indigo-50 to-purple-50 justify-center items-center px-6">
-            <StatusBar barStyle="dark-content" backgroundColor="#EEF2FF" />
-            
-            <Animated.View 
-                className="bg-white rounded-3xl p-8 shadow-2xl shadow-indigo-100 items-center w-full max-w-sm"
+        <View className="flex-1 bg-gradient-to-br from-emerald-50 to-teal-50 justify-center items-center px-6">
+            <StatusBar barStyle="dark-content" backgroundColor="#ECFDF5" />
+
+            <Animated.View
+                className="bg-white rounded-3xl p-8 shadow-2xl shadow-emerald-100 items-center w-full max-w-sm"
                 style={{
                     transform: [{ scale: scaleAnim }],
                     opacity: fadeAnim
@@ -272,10 +272,10 @@ export default function ImageProcessorScreen() {
             >
                 {/* Animated Processing Icon */}
                 <View className="relative mb-6">
-                    <View className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full items-center justify-center">
+                    <View className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full items-center justify-center">
                         <Ionicons name="scan-outline" size={32} color="white" />
                     </View>
-                    <View className="absolute -right-2 -bottom-2 w-8 h-8 bg-green-500 rounded-full items-center justify-center">
+                    <View className="absolute -right-2 -bottom-2 w-8 h-8 bg-emerald-500 rounded-full items-center justify-center">
                         <ActivityIndicator size="small" color="white" />
                     </View>
                 </View>
@@ -287,11 +287,11 @@ export default function ImageProcessorScreen() {
                 <View className="w-full">
                     <View className="flex-row justify-between items-center mb-2">
                         <Text className="text-sm font-medium text-gray-700">Progress</Text>
-                        <Text className="text-sm font-bold text-indigo-600">{progress}%</Text>
+                        <Text className="text-sm font-bold text-emerald-600">{progress}%</Text>
                     </View>
                     <View className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                        <Animated.View 
-                            className="bg-gradient-to-r from-indigo-500 to-purple-600 h-full rounded-full"
+                        <Animated.View
+                            className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-full rounded-full"
                             style={{
                                 width: progressAnim.interpolate({
                                     inputRange: [0, 1],
@@ -303,16 +303,14 @@ export default function ImageProcessorScreen() {
                 </View>
 
                 {/* Processing Steps Indicator */}
-                <View className="mt-6 space-y-2 w-full">
+                <View className="mt-6 w-full" style={{ gap: 12 }}>
                     {['Analyze', 'Process', 'Extract', 'Format'].map((step, index) => (
                         <View key={step} className="flex-row items-center">
-                            <View className={`w-2 h-2 rounded-full mr-3 ${
-                                progress > (index + 1) * 25 ? 'bg-green-500' : 
-                                progress > index * 25 ? 'bg-indigo-500' : 'bg-gray-300'
-                            }`} />
-                            <Text className={`text-sm ${
-                                progress > index * 25 ? 'text-gray-700' : 'text-gray-400'
-                            }`}>
+                            <View className={`w-2 h-2 rounded-full mr-3 ${progress > (index + 1) * 25 ? 'bg-emerald-500' :
+                                    progress > index * 25 ? 'bg-emerald-400' : 'bg-slate-400'
+                                }`} />
+                            <Text className={`text-sm ${progress > index * 25 ? 'text-gray-800' : 'text-slate-400'
+                                }`}>
                                 {step}
                             </Text>
                         </View>
@@ -336,12 +334,12 @@ export default function ImageProcessorScreen() {
                             {/* Header */}
                             <View className="flex-row items-center justify-between mb-6">
                                 <View>
-                                    <Text className="text-2xl font-bold text-gray-900">Text Extracted</Text>
+                                    <Text className="text-2xl font-bold text-gray-800">Text Extracted</Text>
                                     <Text className="text-gray-500 mt-1">Review and create task</Text>
                                 </View>
                                 <TouchableOpacity
                                     onPress={resetApp}
-                                    className="bg-indigo-600 px-4 py-2 rounded-full shadow-lg shadow-indigo-200"
+                                    className="bg-emerald-600 px-4 py-2 rounded-full shadow-lg shadow-emerald-200"
                                     activeOpacity={0.8}
                                 >
                                     <View className="flex-row items-center">
@@ -354,7 +352,7 @@ export default function ImageProcessorScreen() {
                             {/* Selected Image Card */}
                             <View className="bg-white rounded-2xl p-4 shadow-sm shadow-gray-100 mb-6">
                                 <View className="flex-row items-center mb-3">
-                                    <Ionicons name="image-outline" size={20} color="#6366f1" />
+                                    <Ionicons name="image-outline" size={20} color="#10b981" />
                                     <Text className="text-lg font-semibold text-gray-800 ml-2">Source Image</Text>
                                 </View>
                                 <Image
@@ -363,7 +361,7 @@ export default function ImageProcessorScreen() {
                                     resizeMode="cover"
                                 />
                                 <View className="mt-3 flex-row items-center">
-                                    <View className="w-2 h-2 bg-green-500 rounded-full mr-2" />
+                                    <View className="w-2 h-2 bg-emerald-500 rounded-full mr-2" />
                                     <Text className="text-sm text-gray-600">Successfully processed</Text>
                                 </View>
                             </View>
@@ -372,11 +370,11 @@ export default function ImageProcessorScreen() {
                             <View className="bg-white rounded-2xl p-6 shadow-sm shadow-gray-100 mb-6">
                                 <View className="flex-row items-center justify-between mb-4">
                                     <View className="flex-row items-center">
-                                        <Ionicons name="document-text-outline" size={20} color="#6366f1" />
+                                        <Ionicons name="document-text-outline" size={20} color="#10b981" />
                                         <Text className="text-lg font-semibold text-gray-800 ml-2">Extracted Text</Text>
                                     </View>
-                                    <View className="bg-green-100 px-3 py-1 rounded-full">
-                                        <Text className="text-green-700 text-xs font-medium">Success</Text>
+                                    <View className="bg-emerald-100 px-3 py-1 rounded-full">
+                                        <Text className="text-emerald-700 text-xs font-medium">Success</Text>
                                     </View>
                                 </View>
 
@@ -398,7 +396,7 @@ export default function ImageProcessorScreen() {
                             <View className="space-y-3">
                                 <TouchableOpacity
                                     onPress={createTaskFromText}
-                                    className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 rounded-2xl items-center justify-center shadow-lg shadow-green-200"
+                                    className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-4 rounded-2xl items-center justify-center shadow-lg shadow-emerald-200"
                                     activeOpacity={0.9}
                                 >
                                     <View className="flex-row items-center">
@@ -407,14 +405,14 @@ export default function ImageProcessorScreen() {
                                     </View>
                                 </TouchableOpacity>
 
-                                <View className="flex-row space-x-3">
+                                <View className="flex-row" style={{ gap: 12 }}>
                                     <TouchableOpacity
                                         className="flex-1 bg-gray-50 border border-gray-200 p-4 rounded-2xl items-center justify-center"
                                         activeOpacity={0.7}
                                     >
                                         <View className="flex-row items-center">
                                             <Ionicons name="copy-outline" size={18} color="#6B7280" />
-                                            <Text className="text-gray-600 font-medium ml-2">Copy Text</Text>
+                                            <Text className="text-gray-500 font-medium ml-2">Copy Text</Text>
                                         </View>
                                     </TouchableOpacity>
 
@@ -424,7 +422,7 @@ export default function ImageProcessorScreen() {
                                     >
                                         <View className="flex-row items-center">
                                             <Ionicons name="share-outline" size={18} color="#6B7280" />
-                                            <Text className="text-gray-600 font-medium ml-2">Share</Text>
+                                            <Text className="text-gray-500 font-medium ml-2">Share</Text>
                                         </View>
                                     </TouchableOpacity>
                                 </View>
@@ -441,7 +439,7 @@ export default function ImageProcessorScreen() {
             <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
             <SafeAreaView className="flex-1 bg-gray-50">
                 {/* Main Content */}
-                <Animated.View 
+                <Animated.View
                     className="flex-1 justify-center items-center px-6"
                     style={{
                         opacity: fadeAnim,
@@ -449,25 +447,25 @@ export default function ImageProcessorScreen() {
                     }}
                 >
                     <View className="items-center">
-                        <View className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl items-center justify-center mb-6 shadow-lg shadow-indigo-200">
+                        <View className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl items-center justify-center mb-6 shadow-lg shadow-emerald-200">
                             <Ionicons name="scan-outline" size={40} color="white" />
                         </View>
 
-                        <Text className="text-3xl font-bold text-gray-900 mb-3">OCR Text Extractor</Text>
+                        <Text className="text-3xl font-bold text-gray-800 mb-3">OCR Text Extractor</Text>
                         <Text className="text-gray-600 text-center leading-6 max-w-sm">
                             Transform images into editable text using advanced OCR technology
                         </Text>
 
                         {/* Feature highlights */}
-                        <View className="mt-8 space-y-3">
+                        <View className="mt-8" style={{ gap: 12 }}>
                             {[
                                 { icon: 'flash-outline', text: 'Lightning fast processing' },
                                 { icon: 'shield-checkmark-outline', text: 'Secure & private' },
                                 { icon: 'sparkles-outline', text: 'AI-powered accuracy' }
                             ].map((feature, index) => (
                                 <View key={index} className="flex-row items-center">
-                                    <View className="w-8 h-8 bg-indigo-100 rounded-full items-center justify-center mr-3">
-                                        <Ionicons name={feature.icon} size={16} color="#6366f1" />
+                                    <View className="w-8 h-8 bg-emerald-100 rounded-full items-center justify-center mr-3">
+                                        <Ionicons name={feature.icon} size={16} color="#10b981" />
                                     </View>
                                     <Text className="text-gray-600 font-medium">{feature.text}</Text>
                                 </View>
@@ -477,18 +475,13 @@ export default function ImageProcessorScreen() {
                 </Animated.View>
 
                 {/* Bottom Sheet Modal */}
-                <Modal
-                    visible={showModal}
-                    transparent={true}
-                    animationType="slide"
-                    onRequestClose={() => setShowModal(false)}
+                <BottomSheet
+                visible={showModal} 
+                    heightRatio={0.55}
+                    onClose={() => setShowModal(false)}
                 >
                     <BlurView intensity={20} className="flex-1">
-                        <TouchableOpacity
-                            className="flex-1"
-                            activeOpacity={1}
-                            onPress={() => setShowModal(false)}
-                        />
+
 
                         <View
                             className="bg-white rounded-t-3xl shadow-2xl"
@@ -522,13 +515,13 @@ export default function ImageProcessorScreen() {
                             {/* Content */}
                             <View className="px-6 pb-8">
                                 <View className="items-center mb-8">
-                                    <View className="w-16 h-16 bg-indigo-100 rounded-2xl items-center justify-center mb-4">
-                                        <Ionicons name="camera-outline" size={28} color="#6366f1" />
+                                    <View className="w-16 h-16 bg-emerald-100 rounded-2xl items-center justify-center mb-4">
+                                        <Ionicons name="camera-outline" size={28} color="#10b981" />
                                     </View>
-                                    <Text className="text-2xl font-bold text-gray-900 mb-2">
+                                    <Text className="text-2xl font-bold text-gray-800 mb-2">
                                         Select Image Source
                                     </Text>
-                                    <Text className="text-gray-600 text-center">
+                                    <Text className="text-gray-500 text-center">
                                         Choose how you'd like to add your image for text extraction
                                     </Text>
                                 </View>
@@ -537,42 +530,42 @@ export default function ImageProcessorScreen() {
                                 <View className="space-y-4">
                                     <TouchableOpacity
                                         onPress={takePhoto}
-                                        className="flex-row items-center bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-2xl border border-indigo-100"
+                                        className="flex-row items-center bg-gradient-to-r from-emerald-50 to-teal-50 py-2 px-6 rounded-2xl"
                                         activeOpacity={0.7}
                                     >
-                                        <View className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl items-center justify-center mr-4">
-                                            <Ionicons name="camera" size={24} color="white" />
+                                        <View className="w-12 h-12 bg-emerald-200 to-emerald-600 rounded-lg items-center justify-center mr-4">
+                                            <Ionicons name="camera" size={24} color="#059669" />
                                         </View>
                                         <View className="flex-1">
-                                            <Text className="text-lg font-semibold text-gray-900">Take Photo</Text>
-                                            <Text className="text-gray-600 mt-1">Capture a new image with your camera</Text>
+                                            <Text className="text-lg font-semibold text-gray-800">Take Photo</Text>
+                                            <Text className="text-gray-500 mt-1">Capture a new image with your camera</Text>
                                         </View>
-                                        <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                                        <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
                                         onPress={pickImage}
-                                        className="flex-row items-center bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-100"
+                                        className="flex-row items-center mt-2 bg-gradient-to-r from-teal-50 to-emerald-50 py-2 px-6 rounded-2xl"
                                         activeOpacity={0.7}
                                     >
-                                        <View className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl items-center justify-center mr-4">
-                                            <Ionicons name="images" size={24} color="white" />
+                                        <View className="w-12 h-12 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-xl items-center justify-center mr-4">
+                                            <Ionicons name="images" size={24} color="#059669" />
                                         </View>
                                         <View className="flex-1">
-                                            <Text className="text-lg font-semibold text-gray-900">Choose from Gallery</Text>
-                                            <Text className="text-gray-600 mt-1">Select an existing image from your photos</Text>
+                                            <Text className="text-lg font-semibold text-gray-800">Choose from Gallery</Text>
+                                            <Text className="text-gray-500 mt-1">Select an existing image from your photos</Text>
                                         </View>
-                                        <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                                        <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
                                     </TouchableOpacity>
                                 </View>
 
                                 {/* Size Limit Info */}
-                                <View className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                <View className="mt-6 bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                                     <View className="flex-row items-center">
-                                        <Ionicons name="information-circle-outline" size={20} color="#3B82F6" />
-                                        <Text className="text-blue-800 font-medium ml-2">Size Limit</Text>
+                                        <Ionicons name="information-circle-outline" size={20} color="#10b981" />
+                                        <Text className="text-emerald-800 font-medium ml-2">Size Limit</Text>
                                     </View>
-                                    <Text className="text-blue-700 text-sm mt-1">
+                                    <Text className="text-emerald-700 text-sm mt-1">
                                         Images must be under 200 KB for optimal processing speed and accuracy.
                                     </Text>
                                 </View>
@@ -588,7 +581,7 @@ export default function ImageProcessorScreen() {
                             </View>
                         </View>
                     </BlurView>
-                </Modal>
+                </BottomSheet>
             </SafeAreaView>
         </>
     );
