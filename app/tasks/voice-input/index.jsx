@@ -393,7 +393,7 @@ export default function VoiceInputScreen() {
         <Modal
           animationType="fade"
           transparent={true}
-          visible={showVoiceModal}
+          visible={showVoiceModal}  
           onRequestClose={handleCloseModal}
         >
           {showVoiceModal && (

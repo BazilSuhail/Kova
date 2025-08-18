@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import BottomSheet from 'entity-bottom-sheet';
 import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
@@ -23,6 +24,7 @@ const OCR_API_KEY = 'VnmrCwmOBgTr4+a/hOslNA==L2priItqKC6yrESn';
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
 export default function ImageProcessorScreen() {
+  const router = useRouter();
     const [showModal, setShowModal] = useState(true);
     const [selectedImage, setSelectedImage] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -307,7 +309,7 @@ export default function ImageProcessorScreen() {
                     {['Analyze', 'Process', 'Extract', 'Format'].map((step, index) => (
                         <View key={step} className="flex-row items-center">
                             <View className={`w-2 h-2 rounded-full mr-3 ${progress > (index + 1) * 25 ? 'bg-emerald-500' :
-                                    progress > index * 25 ? 'bg-emerald-400' : 'bg-slate-400'
+                                progress > index * 25 ? 'bg-emerald-400' : 'bg-slate-400'
                                 }`} />
                             <Text className={`text-sm ${progress > index * 25 ? 'text-gray-800' : 'text-slate-400'
                                 }`}>
@@ -476,13 +478,11 @@ export default function ImageProcessorScreen() {
 
                 {/* Bottom Sheet Modal */}
                 <BottomSheet
-                visible={showModal} 
-                    heightRatio={0.55}
+                    visible={showModal}
+                    heightRatio={0.86}
                     onClose={() => setShowModal(false)}
                 >
                     <BlurView intensity={20} className="flex-1">
-
-
                         <View
                             className="bg-white rounded-t-3xl shadow-2xl"
                             style={{
@@ -572,7 +572,7 @@ export default function ImageProcessorScreen() {
 
                                 {/* Cancel Button */}
                                 <TouchableOpacity
-                                    onPress={() => setShowModal(false)}
+                                onPress={() => router.back()}
                                     className="mt-6 py-4 items-center"
                                     activeOpacity={0.7}
                                 >

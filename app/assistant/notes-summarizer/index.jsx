@@ -17,7 +17,7 @@ import {
 const FilePickerModalHeader = () => (
   <View className="px-6 pt-3 pb-4 border-b border-gray-100">
     <View className="flex-row items-center">
-      <View className="w-8 h-8 bg-gradient-to-br from-blue-500 to-violet-600 rounded-lg items-center justify-center mr-3">
+      <View className="w-8 h-8 bg-emerald-500 rounded-lg items-center justify-center mr-3">
         <Ionicons name="document-attach" size={16} color="white" />
       </View>
       <View className="flex-1">
@@ -29,7 +29,7 @@ const FilePickerModalHeader = () => (
 );
 
 export default function NoteSummarizerScreen() {
-  const [showModal, setShowModal] = useState(true);
+  const [showModal, setShowModal] = useState(false);
   const [selectedPdf, setSelectedPdf] = useState(null);
   const [loading, setLoading] = useState(false);
   const [uploadError, setUploadError] = useState('');
@@ -42,12 +42,8 @@ export default function NoteSummarizerScreen() {
   });
 
   useEffect(() => {
+    // Initialize with modal open
     setShowModal(true);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 800,
-      useNativeDriver: true,
-    }).start();
   }, []);
 
   const handleCloseModal = useCallback(() => {
@@ -115,10 +111,23 @@ export default function NoteSummarizerScreen() {
     Alert.alert('Saved', 'Summary saved successfully');
   }, [summary]);
 
+  // Loading animation effect
+  useEffect(() => {
+    if (loading) {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      fadeAnim.setValue(0);
+    }
+  }, [loading]);
+
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-gray-50">
         {/* PDF Picker BottomSheet */}
         <BottomSheet 
           visible={showModal}
@@ -139,13 +148,13 @@ export default function NoteSummarizerScreen() {
 
             {/* Selected File Display */}
             {selectedPdf && (
-              <View className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6">
+              <View className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-6">
                 <View className="flex-row items-center">
-                  <View className="w-12 h-12 bg-green-100 rounded-xl items-center justify-center mr-4">
+                  <View className="w-12 h-12 bg-emerald-100 rounded-xl items-center justify-center mr-4">
                     <Ionicons name="checkmark-circle" size={24} color="#059669" />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-sm font-semibold text-green-700 mb-1">FILE SELECTED</Text>
+                    <Text className="text-sm font-semibold text-emerald-700 mb-1">FILE SELECTED</Text>
                     <Text className="text-base font-bold text-gray-900 mb-1">{selectedPdf.name}</Text>
                     <Text className="text-sm text-gray-600">Size: {(selectedPdf.size / 1024).toFixed(1)} KB</Text>
                   </View>
@@ -157,7 +166,7 @@ export default function NoteSummarizerScreen() {
             <View className="flex-1">
               <TouchableOpacity
                 onPress={pickPdf}
-                className="bg-gradient-to-r from-blue-500 to-violet-600 p-6 rounded-3xl shadow-xl shadow-blue-500/25 mb-6"
+                className="p-6 rounded-3xl mb-6"
                 activeOpacity={0.9}
               >
                 <View className="flex-row items-center">
@@ -168,7 +177,7 @@ export default function NoteSummarizerScreen() {
                     <Text className="text-xl font-bold text-white mb-1">
                       {selectedPdf ? 'Change PDF File' : 'Select PDF File'}
                     </Text>
-                    <Text className="text-blue-100 text-base">Choose from your device storage</Text>
+                    <Text className="text-emerald-100 text-base">Choose from your device storage</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={24} color="white" />
                 </View>
@@ -192,16 +201,16 @@ export default function NoteSummarizerScreen() {
             {/* Action Buttons */}
             <View className="flex-row space-x-3">
               <TouchableOpacity
-                className="flex-1 bg-gray-50 py-4 rounded-2xl items-center border border-gray-200"
+                className="flex-1 bg-gray-100 py-4 rounded-2xl items-center border border-gray-200"
                 onPress={handleCloseModal}
               >
-                <Text className="text-gray-600 font-semibold">Cancel</Text>
+                <Text className="text-gray-700 font-semibold">Cancel</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
                 className={`flex-1 py-4 rounded-2xl items-center flex-row justify-center ${
                   selectedPdf 
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
+                    ? 'bg-emerald-600' 
                     : 'bg-gray-200'
                 }`}
                 onPress={uploadPdf}
@@ -225,35 +234,35 @@ export default function NoteSummarizerScreen() {
         {/* Loading State */}
         {loading && (
           <Animated.View 
-            className="flex-1 justify-center items-center px-8 bg-white"
+            className="flex-1 justify-center items-center px-8 bg-gray-50"
             style={{ opacity: fadeAnim }}
           >
             <View className="items-center">
               {/* Animated Icon Container */}
-              <View className="w-24 h-24 bg-blue-50 rounded-3xl items-center justify-center mb-6 border border-blue-100">
-                <Ionicons name="document-text-outline" size={40} color="#3b82f6" />
+              <View className="w-24 h-24 bg-emerald-50 rounded-3xl items-center justify-center mb-6 border border-emerald-100">
+                <Ionicons name="document-text-outline" size={40} color="#059669" />
               </View>
               
               <Text className="text-2xl font-bold text-gray-900 mb-2">Processing PDF...</Text>
-              <Text className="text-gray-500 text-center mb-8 leading-6 max-w-xs">
+              <Text className="text-gray-600 text-center mb-8 leading-6 max-w-xs">
                 AI is reading your document and extracting key insights for summarization
               </Text>
               
-              <ActivityIndicator size="large" color="#3b82f6" />
+              <ActivityIndicator size="large" color="#059669" />
               
               {/* Progress Steps */}
               <View className="mt-8 space-y-3 w-full max-w-xs">
                 <View className="flex-row items-center">
-                  <View className="w-2 h-2 bg-blue-500 rounded-full mr-3" />
-                  <Text className="text-sm text-gray-600">Reading PDF content</Text>
+                  <View className="w-2 h-2 bg-emerald-500 rounded-full mr-3" />
+                  <Text className="text-sm text-gray-700">Reading PDF content</Text>
                 </View>
                 <View className="flex-row items-center">
-                  <View className="w-2 h-2 bg-blue-300 rounded-full mr-3" />
-                  <Text className="text-sm text-gray-500">Analyzing key points</Text>
+                  <View className="w-2 h-2 bg-emerald-300 rounded-full mr-3" />
+                  <Text className="text-sm text-gray-600">Analyzing key points</Text>
                 </View>
                 <View className="flex-row items-center">
                   <View className="w-2 h-2 bg-gray-300 rounded-full mr-3" />
-                  <Text className="text-sm text-gray-400">Generating summary</Text>
+                  <Text className="text-sm text-gray-500">Generating summary</Text>
                 </View>
               </View>
             </View>
@@ -269,14 +278,14 @@ export default function NoteSummarizerScreen() {
           >
             <View className="px-6 pt-16 pb-8">
               {/* Header */}
-              <View className="bg-green-50 rounded-2xl p-6 mb-8 border border-green-100">
+              <View className="bg-emerald-50 rounded-2xl p-6 mb-8 border border-emerald-100">
                 <View className="flex-row items-center">
-                  <View className="w-16 h-16 bg-green-100 rounded-2xl items-center justify-center mr-4">
-                    <Ionicons name="checkmark-circle" size={32} color="#16a34a" />
+                  <View className="w-16 h-16 bg-emerald-100 rounded-2xl items-center justify-center mr-4">
+                    <Ionicons name="checkmark-circle" size={32} color="#059669" />
                   </View>
                   <View className="flex-col flex-1">
                     <Text className="text-2xl font-bold text-gray-900 mb-2">Summary Ready</Text>
-                    <Text className="text-gray-600">
+                    <Text className="text-gray-700">
                       AI has analyzed your PDF and created a comprehensive summary.
                     </Text>
                   </View>
@@ -288,10 +297,10 @@ export default function NoteSummarizerScreen() {
                 {/* Document Title */}
                 <View>
                   <View className="flex-row items-center mb-3">
-                    <View className="w-6 h-6 bg-blue-100 rounded-lg items-center justify-center mr-3">
-                      <Ionicons name="document" size={14} color="#3b82f6" />
+                    <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center mr-3">
+                      <Ionicons name="document" size={14} color="#059669" />
                     </View>
-                    <Text className="text-gray-700 font-semibold">Document Title</Text>
+                    <Text className="text-gray-800 font-semibold">Document Title</Text>
                   </View>
                   <View className="bg-white p-4 rounded-xl border border-gray-200">
                     <Text className="text-lg font-bold text-gray-900">{summary.title}</Text>
@@ -301,15 +310,15 @@ export default function NoteSummarizerScreen() {
                 {/* Key Points */}
                 <View>
                   <View className="flex-row items-center mb-3">
-                    <View className="w-6 h-6 bg-blue-100 rounded-lg items-center justify-center mr-3">
-                      <Ionicons name="list" size={14} color="#3b82f6" />
+                    <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center mr-3">
+                      <Ionicons name="list" size={14} color="#059669" />
                     </View>
-                    <Text className="text-gray-700 font-semibold">Key Points</Text>
+                    <Text className="text-gray-800 font-semibold">Key Points</Text>
                   </View>
                   <View className="bg-white p-4 rounded-xl border border-gray-200">
                     {summary.keyPoints.map((point, index) => (
                       <View key={index} className="flex-row items-start mb-3 last:mb-0">
-                        <View className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0" />
+                        <View className="w-2 h-2 bg-emerald-500 rounded-full mt-2 mr-3 flex-shrink-0" />
                         <Text className="text-gray-800 leading-6 flex-1">{point}</Text>
                       </View>
                     ))}
@@ -319,16 +328,16 @@ export default function NoteSummarizerScreen() {
                 {/* Main Topics */}
                 <View>
                   <View className="flex-row items-center mb-3">
-                    <View className="w-6 h-6 bg-blue-100 rounded-lg items-center justify-center mr-3">
-                      <Ionicons name="pricetags" size={14} color="#3b82f6" />
+                    <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center mr-3">
+                      <Ionicons name="pricetags" size={14} color="#059669" />
                     </View>
-                    <Text className="text-gray-700 font-semibold">Main Topics</Text>
+                    <Text className="text-gray-800 font-semibold">Main Topics</Text>
                   </View>
                   <View className="bg-white p-4 rounded-xl border border-gray-200">
                     <View className="flex-row flex-wrap -m-1">
                       {summary.mainTopics.map((topic, index) => (
-                        <View key={index} className="bg-blue-50 px-3 py-2 rounded-full m-1 border border-blue-100">
-                          <Text className="text-blue-700 text-sm font-medium">{topic}</Text>
+                        <View key={index} className="bg-emerald-50 px-3 py-2 rounded-full m-1 border border-emerald-100">
+                          <Text className="text-emerald-700 text-sm font-medium">{topic}</Text>
                         </View>
                       ))}
                     </View>
@@ -338,10 +347,10 @@ export default function NoteSummarizerScreen() {
                 {/* Reading Time */}
                 <View>
                   <View className="flex-row items-center mb-3">
-                    <View className="w-6 h-6 bg-blue-100 rounded-lg items-center justify-center mr-3">
-                      <Ionicons name="time" size={14} color="#3b82f6" />
+                    <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center mr-3">
+                      <Ionicons name="time" size={14} color="#059669" />
                     </View>
-                    <Text className="text-gray-700 font-semibold">Estimated Reading Time</Text>
+                    <Text className="text-gray-800 font-semibold">Estimated Reading Time</Text>
                   </View>
                   <View className="bg-white p-4 rounded-xl border border-gray-200">
                     <Text className="text-gray-800 text-base">{summary.estimatedReadTime}</Text>
@@ -353,7 +362,7 @@ export default function NoteSummarizerScreen() {
               <View className="mt-8 space-y-4">
                 <TouchableOpacity
                   onPress={handleSave}
-                  className="bg-blue-600 py-4 rounded-xl items-center flex-row justify-center"
+                  className="bg-emerald-600 py-4 rounded-xl items-center flex-row justify-center"
                   activeOpacity={0.8}
                 >
                   <Ionicons name="bookmark" size={20} color="white" />
@@ -381,9 +390,9 @@ export default function NoteSummarizerScreen() {
 
               {/* AI Credit Footer */}
               <View className="mt-8 items-center">
-                <View className="flex-row items-center bg-blue-50 px-4 py-3 rounded-full border border-blue-100">
-                  <Ionicons name="sparkles" size={16} color="#3b82f6" />
-                  <Text className="text-blue-700 text-sm font-medium ml-2">
+                <View className="flex-row items-center bg-emerald-50 px-4 py-3 rounded-full border border-emerald-100">
+                  <Ionicons name="sparkles" size={16} color="#059669" />
+                  <Text className="text-emerald-700 text-sm font-medium ml-2">
                     Summarized by AI
                   </Text>
                 </View>
@@ -394,9 +403,9 @@ export default function NoteSummarizerScreen() {
 
         {/* Default State - Show when no modal and no loading */}
         {!showModal && !loading && !summary.title && (
-          <View className="flex-1 justify-center items-center bg-gradient-to-br from-slate-50 to-blue-50 px-8">
+          <View className="flex-1 justify-center items-center bg-emerald-50 px-8">
             <View className="items-center">
-              <View className="w-20 h-20 bg-gradient-to-br from-blue-500 to-violet-600 rounded-2xl items-center justify-center mb-6 shadow-lg">
+              <View className="w-20 h-20 bg-emerald-600 rounded-2xl items-center justify-center mb-6">
                 <Ionicons name="document-text-outline" size={32} color="white" />
               </View>
               <Text className="text-3xl font-bold text-gray-900 mb-3">Note Summarizer</Text>
@@ -405,7 +414,7 @@ export default function NoteSummarizerScreen() {
               </Text>
               <TouchableOpacity
                 onPress={() => setShowModal(true)}
-                className="bg-gradient-to-r from-blue-500 to-violet-600 px-8 py-4 rounded-2xl shadow-xl shadow-blue-500/25"
+                className="bg-emerald-600 px-8 py-4 rounded-2xl"
                 activeOpacity={0.9}
               >
                 <Text className="text-white font-bold text-lg">Get Started</Text>

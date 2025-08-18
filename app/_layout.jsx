@@ -15,8 +15,8 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View className={colorScheme === 'dark' ? 'dark flex-1' : 'flex-1'}>
         <StatusBar
-          backgroundColor={colorScheme === 'dark' ? '#000' : '#F3F4F6'}
-          barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+          backgroundColor={colorScheme !== 'dark' ? '#000' : '#F3F4F6'}
+          barStyle={colorScheme !== 'dark' ? 'light-content' : 'dark-content'}
         />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
