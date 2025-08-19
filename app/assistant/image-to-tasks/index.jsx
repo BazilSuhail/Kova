@@ -1,22 +1,20 @@
+import CustomLoader from '@/components/image-tasks/ImageLoader';
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet from 'entity-bottom-sheet';
-import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
     Alert,
     Animated,
     Dimensions,
     Image,
-    SafeAreaView,
     ScrollView,
-    StatusBar,
     Text,
     TouchableOpacity,
     View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // not used
 const OCR_API_KEY = 'VnmrCwmOBgTr4+a/hOslNA==L2priItqKC6yrESn';
@@ -24,7 +22,8 @@ const OCR_API_KEY = 'VnmrCwmOBgTr4+a/hOslNA==L2priItqKC6yrESn';
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
 export default function ImageProcessorScreen() {
-  const router = useRouter();
+    const router = useRouter();
+    const insets = useSafeAreaInsets()
     const [showModal, setShowModal] = useState(true);
     const [selectedImage, setSelectedImage] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -261,328 +260,276 @@ export default function ImageProcessorScreen() {
         setShowModal(true);
     };
 
-    const CustomLoader = () => (
-        <View className="flex-1 bg-gradient-to-br from-emerald-50 to-teal-50 justify-center items-center px-6">
-            <StatusBar barStyle="dark-content" backgroundColor="#ECFDF5" />
-
-            <Animated.View
-                className="bg-white rounded-3xl p-8 shadow-2xl shadow-emerald-100 items-center w-full max-w-sm"
-                style={{
-                    transform: [{ scale: scaleAnim }],
-                    opacity: fadeAnim
-                }}
-            >
-                {/* Animated Processing Icon */}
-                <View className="relative mb-6">
-                    <View className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full items-center justify-center">
-                        <Ionicons name="scan-outline" size={32} color="white" />
-                    </View>
-                    <View className="absolute -right-2 -bottom-2 w-8 h-8 bg-emerald-500 rounded-full items-center justify-center">
-                        <ActivityIndicator size="small" color="white" />
-                    </View>
-                </View>
-
-                <Text className="text-xl font-bold text-gray-800 mb-2">Processing Image</Text>
-                <Text className="text-gray-600 text-center mb-6 leading-5">{processingStep}</Text>
-
-                {/* Enhanced Progress Bar */}
-                <View className="w-full">
-                    <View className="flex-row justify-between items-center mb-2">
-                        <Text className="text-sm font-medium text-gray-700">Progress</Text>
-                        <Text className="text-sm font-bold text-emerald-600">{progress}%</Text>
-                    </View>
-                    <View className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                        <Animated.View
-                            className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-full rounded-full"
-                            style={{
-                                width: progressAnim.interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: ['0%', '100%']
-                                })
-                            }}
-                        />
-                    </View>
-                </View>
-
-                {/* Processing Steps Indicator */}
-                <View className="mt-6 w-full" style={{ gap: 12 }}>
-                    {['Analyze', 'Process', 'Extract', 'Format'].map((step, index) => (
-                        <View key={step} className="flex-row items-center">
-                            <View className={`w-2 h-2 rounded-full mr-3 ${progress > (index + 1) * 25 ? 'bg-emerald-500' :
-                                progress > index * 25 ? 'bg-emerald-400' : 'bg-slate-400'
-                                }`} />
-                            <Text className={`text-sm ${progress > index * 25 ? 'text-gray-800' : 'text-slate-400'
-                                }`}>
-                                {step}
-                            </Text>
-                        </View>
-                    ))}
-                </View>
-            </Animated.View>
-        </View>
-    );
-
     if (loading) {
-        return <CustomLoader />;
+        return (
+            <CustomLoader
+                fadeAnim={fadeAnim}
+                scaleAnim={scaleAnim}
+                progressAnim={progressAnim}
+                processingStep={processingStep}
+                progress={progress}
+            />
+        );
     }
 
-    if (apiResponse && selectedImage) {
+    if (apiResponse || selectedImage) {
         return (
-            <>
-                <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
-                <SafeAreaView className="flex-1 bg-gray-50">
-                    <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                        <View className="px-6 pt-4 pb-8">
-                            {/* Header */}
-                            <View className="flex-row items-center justify-between mb-6">
-                                <View>
-                                    <Text className="text-2xl font-bold text-gray-800">Text Extracted</Text>
-                                    <Text className="text-gray-500 mt-1">Review and create task</Text>
-                                </View>
-                                <TouchableOpacity
-                                    onPress={resetApp}
-                                    className="bg-emerald-600 px-4 py-2 rounded-full shadow-lg shadow-emerald-200"
-                                    activeOpacity={0.8}
-                                >
-                                    <View className="flex-row items-center">
-                                        <Ionicons name="add-outline" size={16} color="white" />
-                                        <Text className="text-white font-semibold ml-1">New</Text>
-                                    </View>
-                                </TouchableOpacity>
+            <ScrollView className="flex-1 bg-gray-50"
+                contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingTop: insets.top }}
+                showsVerticalScrollIndicator={false}>
+                <View className="px-6 pt-4 pb-8">
+                    {/* Header */}
+                    <View className="flex-row items-center justify-between mb-6">
+                        <View>
+                            <Text className="text-2xl font-bold text-gray-800">Text Extracted</Text>
+                            <Text className="text-gray-500 mt-1">Review and create task</Text>
+                        </View>
+                        <TouchableOpacity
+                            onPress={resetApp}
+                            className="bg-emerald-600 px-4 py-2 rounded-full shadow-lg shadow-emerald-200"
+                            activeOpacity={0.8}
+                        >
+                            <View className="flex-row items-center">
+                                <Ionicons name="add-outline" size={16} color="white" />
+                                <Text className="text-white font-semibold ml-1">New</Text>
                             </View>
+                        </TouchableOpacity>
+                    </View>
 
-                            {/* Selected Image Card */}
-                            <View className="bg-white rounded-2xl p-4 shadow-sm shadow-gray-100 mb-6">
-                                <View className="flex-row items-center mb-3">
-                                    <Ionicons name="image-outline" size={20} color="#10b981" />
-                                    <Text className="text-lg font-semibold text-gray-800 ml-2">Source Image</Text>
-                                </View>
-                                <Image
-                                    source={{ uri: selectedImage.uri }}
-                                    className="w-full h-48 rounded-xl"
-                                    resizeMode="cover"
-                                />
-                                <View className="mt-3 flex-row items-center">
-                                    <View className="w-2 h-2 bg-emerald-500 rounded-full mr-2" />
-                                    <Text className="text-sm text-gray-600">Successfully processed</Text>
-                                </View>
+                    {/* Selected Image Card */}
+                    <View className="bg-white rounded-2xl p-4 shadow-sm shadow-gray-100 mb-6">
+                        <View className="flex-row items-center mb-3">
+                            <Ionicons name="image-outline" size={20} color="#10b981" />
+                            <Text className="text-lg font-semibold text-gray-800 ml-2">Source Image</Text>
+                        </View>
+                        <Image
+                            source={{ uri: selectedImage.uri }}
+                            className="w-full h-48 rounded-xl"
+                            resizeMode="cover"
+                        />
+                        <View className="mt-3 flex-row items-center">
+                            <View className="w-2 h-2 bg-emerald-500 rounded-full mr-2" />
+                            <Text className="text-sm text-gray-600">Successfully processed</Text>
+                        </View>
+                    </View>
+
+                    {/* Extracted Text Card */}
+                    <View className="bg-white rounded-2xl p-6 shadow-sm shadow-gray-100 mb-6">
+                        <View className="flex-row items-center justify-between mb-4">
+                            <View className="flex-row items-center">
+                                <Ionicons name="document-text-outline" size={20} color="#10b981" />
+                                <Text className="text-lg font-semibold text-gray-800 ml-2">Extracted Text</Text>
                             </View>
-
-                            {/* Extracted Text Card */}
-                            <View className="bg-white rounded-2xl p-6 shadow-sm shadow-gray-100 mb-6">
-                                <View className="flex-row items-center justify-between mb-4">
-                                    <View className="flex-row items-center">
-                                        <Ionicons name="document-text-outline" size={20} color="#10b981" />
-                                        <Text className="text-lg font-semibold text-gray-800 ml-2">Extracted Text</Text>
-                                    </View>
-                                    <View className="bg-emerald-100 px-3 py-1 rounded-full">
-                                        <Text className="text-emerald-700 text-xs font-medium">Success</Text>
-                                    </View>
-                                </View>
-
-                                <View className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                                    <Text className="text-gray-700 leading-6 text-base">
-                                        {apiResponse}
-                                    </Text>
-                                </View>
-
-                                <View className="mt-4 flex-row items-center">
-                                    <Ionicons name="information-circle-outline" size={16} color="#9CA3AF" />
-                                    <Text className="text-sm text-gray-500 ml-2">
-                                        Text extracted using OCR technology
-                                    </Text>
-                                </View>
-                            </View>
-
-                            {/* Action Buttons */}
-                            <View className="space-y-3">
-                                <TouchableOpacity
-                                    onPress={createTaskFromText}
-                                    className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-4 rounded-2xl items-center justify-center shadow-lg shadow-emerald-200"
-                                    activeOpacity={0.9}
-                                >
-                                    <View className="flex-row items-center">
-                                        <Ionicons name="checkmark-circle-outline" size={20} color="white" />
-                                        <Text className="text-white font-semibold text-lg ml-2">Create Task from Text</Text>
-                                    </View>
-                                </TouchableOpacity>
-
-                                <View className="flex-row" style={{ gap: 12 }}>
-                                    <TouchableOpacity
-                                        className="flex-1 bg-gray-50 border border-gray-200 p-4 rounded-2xl items-center justify-center"
-                                        activeOpacity={0.7}
-                                    >
-                                        <View className="flex-row items-center">
-                                            <Ionicons name="copy-outline" size={18} color="#6B7280" />
-                                            <Text className="text-gray-500 font-medium ml-2">Copy Text</Text>
-                                        </View>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        className="flex-1 bg-gray-50 border border-gray-200 p-4 rounded-2xl items-center justify-center"
-                                        activeOpacity={0.7}
-                                    >
-                                        <View className="flex-row items-center">
-                                            <Ionicons name="share-outline" size={18} color="#6B7280" />
-                                            <Text className="text-gray-500 font-medium ml-2">Share</Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                </View>
+                            <View className="bg-emerald-100 px-3 py-1 rounded-full">
+                                <Text className="text-emerald-700 text-xs font-medium">Success</Text>
                             </View>
                         </View>
-                    </ScrollView>
-                </SafeAreaView>
-            </>
+
+                        <View className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                            <Text className="text-gray-700 leading-6 text-base">
+                                {apiResponse}
+                            </Text>
+                        </View>
+
+                        <View className="mt-4 flex-row items-center">
+                            <Ionicons name="information-circle-outline" size={16} color="#9CA3AF" />
+                            <Text className="text-sm text-gray-500 ml-2">
+                                Text extracted using OCR technology
+                            </Text>
+                        </View>
+                    </View>
+
+                    {/* Action Buttons */}
+                    <View className="space-y-3">
+                        <TouchableOpacity
+                            onPress={createTaskFromText}
+                            className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-4 rounded-2xl items-center justify-center shadow-lg shadow-emerald-200"
+                            activeOpacity={0.9}
+                        >
+                            <View className="flex-row items-center">
+                                <Ionicons name="checkmark-circle-outline" size={20} color="white" />
+                                <Text className="text-white font-semibold text-lg ml-2">Create Task from Text</Text>
+                            </View>
+                        </TouchableOpacity>
+
+                        <View className="flex-row" style={{ gap: 12 }}>
+                            <TouchableOpacity
+                                className="flex-1 bg-gray-50 border border-gray-200 p-4 rounded-2xl items-center justify-center"
+                                activeOpacity={0.7}
+                            >
+                                <View className="flex-row items-center">
+                                    <Ionicons name="copy-outline" size={18} color="#6B7280" />
+                                    <Text className="text-gray-500 font-medium ml-2">Copy Text</Text>
+                                </View>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                className="flex-1 bg-gray-50 border border-gray-200 p-4 rounded-2xl items-center justify-center"
+                                activeOpacity={0.7}
+                            >
+                                <View className="flex-row items-center">
+                                    <Ionicons name="share-outline" size={18} color="#6B7280" />
+                                    <Text className="text-gray-500 font-medium ml-2">Share</Text>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </ScrollView>
         );
     }
 
     return (
-        <>
-            <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
-            <SafeAreaView className="flex-1 bg-gray-50">
-                {/* Main Content */}
-                <Animated.View
-                    className="flex-1 justify-center items-center px-6"
-                    style={{
-                        opacity: fadeAnim,
-                        transform: [{ scale: scaleAnim }]
-                    }}
-                >
-                    <View className="items-center">
-                        <View className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl items-center justify-center mb-6 shadow-lg shadow-emerald-200">
-                            <Ionicons name="scan-outline" size={40} color="white" />
-                        </View>
+        <ScrollView className="flex-1 bg-gray-50"
+            contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingTop: insets.top }}
+            showsVerticalScrollIndicator={false}>
+            {/* Main Content */}
+            <Animated.View
+                className="flex-1 justify-center items-center px-6"
+                style={{
+                    opacity: fadeAnim,
+                    transform: [{ scale: scaleAnim }]
+                }}
+            >
+                <View className="items-center">
+                    <View className="w-24 h-24 bg-emerald-500 rounded-3xl items-center justify-center mb-6">
+                        <Ionicons name="scan-outline" size={40} color="white" />
+                    </View>
 
-                        <Text className="text-3xl font-bold text-gray-800 mb-3">OCR Text Extractor</Text>
-                        <Text className="text-gray-600 text-center leading-6 max-w-sm">
-                            Transform images into editable text using advanced OCR technology
-                        </Text>
+                    <Text className="text-3xl font-bold text-gray-800 mb-3">OCR Text Extractor</Text>
+                    <Text className="text-gray-600 text-center leading-6 max-w-sm">
+                        Transform images into editable text using advanced OCR technology
+                    </Text>
 
-                        {/* Feature highlights */}
-                        <View className="mt-8" style={{ gap: 12 }}>
-                            {[
-                                { icon: 'flash-outline', text: 'Lightning fast processing' },
-                                { icon: 'shield-checkmark-outline', text: 'Secure & private' },
-                                { icon: 'sparkles-outline', text: 'AI-powered accuracy' }
-                            ].map((feature, index) => (
-                                <View key={index} className="flex-row items-center">
-                                    <View className="w-8 h-8 bg-emerald-100 rounded-full items-center justify-center mr-3">
-                                        <Ionicons name={feature.icon} size={16} color="#10b981" />
-                                    </View>
-                                    <Text className="text-gray-600 font-medium">{feature.text}</Text>
+                    {/* Feature highlights */}
+                    <View className="mt-8" style={{ gap: 12 }}>
+                        {[
+                            { icon: 'flash-outline', text: 'Lightning fast processing' },
+                            { icon: 'shield-checkmark-outline', text: 'Secure & private' },
+                            { icon: 'sparkles-outline', text: 'AI-powered accuracy' }
+                        ].map((feature, index) => (
+                            <View key={index} className="flex-row items-center">
+                                <View className="w-8 h-8 bg-emerald-100 rounded-full items-center justify-center mr-3">
+                                    <Ionicons name={feature.icon} size={16} color="#10b981" />
                                 </View>
-                            ))}
+                                <Text className="text-gray-600 font-medium">{feature.text}</Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+            </Animated.View>
+
+            {/* Bottom Sheet Modal */}
+            <BottomSheet
+                visible={showModal}
+                heightRatio={imageError ? 0.72 : 0.55}
+                header={
+                    <View className="px-4 flex-row justify- items-center pb-5 pt-3 border-b-[2px] border-gray-200">
+                        <View className="w-12 h-12 mr-[15px] bg-emerald-100 rounded-2xl items-center justify-center">
+                            <Ionicons name="camera-outline" size={24} color="#10b981" />
+                        </View>
+                        <View className="">
+                            <Text className="text-lg font-semibold text-gray-800">Select Image Source</Text>
+                            <Text className="text-[11px] text-gray-500 mt-0.5">Choose how you'd like to add your image</Text>
                         </View>
                     </View>
-                </Animated.View>
-
-                {/* Bottom Sheet Modal */}
-                <BottomSheet
-                    visible={showModal}
-                    heightRatio={0.86}
-                    onClose={() => setShowModal(false)}
+                }
+                onClose={() => {
+                    setShowModal(false);
+                    router.back();
+                }}
+            >
+                <View
+                    className="bg-white rounded-t-3xl flex-1"
+                    style={{
+                        minHeight: screenHeight * 0.4,
+                        maxHeight: screenHeight * 0.7
+                    }}
                 >
-                    <BlurView intensity={20} className="flex-1">
-                        <View
-                            className="bg-white rounded-t-3xl shadow-2xl"
-                            style={{
-                                minHeight: screenHeight * 0.4,
-                                maxHeight: screenHeight * 0.7
-                            }}
-                        >
-                            {/* Handle */}
-                            <View className="items-center pt-3 pb-6">
-                                <View className="w-12 h-1 bg-gray-300 rounded-full" />
-                            </View>
-
-                            {/* Error Message */}
-                            {imageError ? (
-                                <View className="mx-6 mb-4">
-                                    <View className="bg-red-50 border border-red-200 rounded-2xl p-4">
-                                        <View className="flex-row items-start">
-                                            <View className="w-8 h-8 bg-red-100 rounded-full items-center justify-center mr-3 mt-0.5">
-                                                <Ionicons name="warning-outline" size={16} color="#DC2626" />
-                                            </View>
-                                            <View className="flex-1">
-                                                <Text className="text-red-800 font-semibold mb-1">Image Too Large</Text>
-                                                <Text className="text-red-700 text-sm leading-5">{imageError}</Text>
-                                            </View>
-                                        </View>
+                    {/* Error Message */}
+                    {imageError ? (
+                        <View className="mx-4 mt-4">
+                            <View className="bg-red-50 border border-red-200 rounded-xl p-4">
+                                <View className="flex-row items-start" style={{ gap: 12 }}>
+                                    <View className="w-6 h-6 bg-red-100 rounded-full items-center justify-center">
+                                        <Ionicons name="warning-outline" size={14} color="#DC2626" />
+                                    </View>
+                                    <View className="flex-1">
+                                        <Text className="text-red-800 font-medium mb-1">Image Too Large</Text>
+                                        <Text className="text-red-700 text-sm">{imageError}</Text>
                                     </View>
                                 </View>
-                            ) : null}
-
-                            {/* Content */}
-                            <View className="px-6 pb-8">
-                                <View className="items-center mb-8">
-                                    <View className="w-16 h-16 bg-emerald-100 rounded-2xl items-center justify-center mb-4">
-                                        <Ionicons name="camera-outline" size={28} color="#10b981" />
-                                    </View>
-                                    <Text className="text-2xl font-bold text-gray-800 mb-2">
-                                        Select Image Source
-                                    </Text>
-                                    <Text className="text-gray-500 text-center">
-                                        Choose how you'd like to add your image for text extraction
-                                    </Text>
-                                </View>
-
-                                {/* Options */}
-                                <View className="space-y-4">
-                                    <TouchableOpacity
-                                        onPress={takePhoto}
-                                        className="flex-row items-center bg-gradient-to-r from-emerald-50 to-teal-50 py-2 px-6 rounded-2xl"
-                                        activeOpacity={0.7}
-                                    >
-                                        <View className="w-12 h-12 bg-emerald-200 to-emerald-600 rounded-lg items-center justify-center mr-4">
-                                            <Ionicons name="camera" size={24} color="#059669" />
-                                        </View>
-                                        <View className="flex-1">
-                                            <Text className="text-lg font-semibold text-gray-800">Take Photo</Text>
-                                            <Text className="text-gray-500 mt-1">Capture a new image with your camera</Text>
-                                        </View>
-                                        <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        onPress={pickImage}
-                                        className="flex-row items-center mt-2 bg-gradient-to-r from-teal-50 to-emerald-50 py-2 px-6 rounded-2xl"
-                                        activeOpacity={0.7}
-                                    >
-                                        <View className="w-12 h-12 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-xl items-center justify-center mr-4">
-                                            <Ionicons name="images" size={24} color="#059669" />
-                                        </View>
-                                        <View className="flex-1">
-                                            <Text className="text-lg font-semibold text-gray-800">Choose from Gallery</Text>
-                                            <Text className="text-gray-500 mt-1">Select an existing image from your photos</Text>
-                                        </View>
-                                        <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-                                    </TouchableOpacity>
-                                </View>
-
-                                {/* Size Limit Info */}
-                                <View className="mt-6 bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                                    <View className="flex-row items-center">
-                                        <Ionicons name="information-circle-outline" size={20} color="#10b981" />
-                                        <Text className="text-emerald-800 font-medium ml-2">Size Limit</Text>
-                                    </View>
-                                    <Text className="text-emerald-700 text-sm mt-1">
-                                        Images must be under 200 KB for optimal processing speed and accuracy.
-                                    </Text>
-                                </View>
-
-                                {/* Cancel Button */}
-                                <TouchableOpacity
-                                onPress={() => router.back()}
-                                    className="mt-6 py-4 items-center"
-                                    activeOpacity={0.7}
-                                >
-                                    <Text className="text-gray-500 font-semibold">Cancel</Text>
-                                </TouchableOpacity>
                             </View>
                         </View>
-                    </BlurView>
-                </BottomSheet>
-            </SafeAreaView>
-        </>
+                    ) : null}
+
+                    {/* Content */}
+                    <View className="px-4 py-6 flex-1">
+
+                        {/* Options */}
+                        <View style={{ gap: 12 }}>
+                            {/* Take Photo Option */}
+                            <TouchableOpacity
+                                onPress={takePhoto}
+                                className="flex-row items-center bg-white border border-emerald-200 py-4 px-4 rounded-xl"
+                                activeOpacity={0.7}
+                            >
+                                <View className="w-10 h-10 bg-emerald-500 rounded-xl items-center justify-center">
+                                    <Ionicons name="camera" size={20} color="#ffffff" />
+                                </View>
+                                <View className="flex-1" style={{ marginLeft: 12 }}>
+                                    <Text className="text-base font-semibold text-gray-800">Take Photo</Text>
+                                    <Text className="text-gray-500 text-sm mt-0.5">Capture with camera</Text>
+                                </View>
+                                <View className="w-6 h-6 items-center justify-center">
+                                    <Ionicons name="chevron-forward" size={16} color="#10b981" />
+                                </View>
+                            </TouchableOpacity>
+
+                            {/* Gallery Option */}
+                            <TouchableOpacity
+                                onPress={pickImage}
+                                className="flex-row items-center bg-white border border-emerald-200 py-4 px-4 rounded-xl"
+                                activeOpacity={0.7}
+                            >
+                                <View className="w-10 h-10 bg-emerald-500 rounded-xl items-center justify-center">
+                                    <Ionicons name="images" size={20} color="#ffffff" />
+                                </View>
+                                <View className="flex-1" style={{ marginLeft: 12 }}>
+                                    <Text className="text-base font-semibold text-gray-800">Choose from Gallery</Text>
+                                    <Text className="text-gray-500 text-sm mt-0.5">Select from photos</Text>
+                                </View>
+                                <View className="w-6 h-6 items-center justify-center">
+                                    <Ionicons name="chevron-forward" size={16} color="#10b981" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Size Limit Info */}
+                        <View className="mt-6 bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                            <View className="flex-row items-center" style={{ gap: 8 }}>
+                                <View className="w-5 h-5 bg-emerald-500 rounded items-center justify-center">
+                                    <Ionicons name="information" size={12} color="#ffffff" />
+                                </View>
+                                <Text className="text-emerald-800 font-medium text-sm">Size Limit: Under 200 KB</Text>
+                            </View>
+                        </View>
+
+                        {/* Cancel Button */}
+                        <TouchableOpacity
+                            onPress={() => {
+                                setShowModal(false);
+                                router.back();
+                            }
+                            }
+                            className="mt-6 py-4 items-center bg-gray-100 rounded-xl"
+                            activeOpacity={0.7}
+                        >
+                            <Text className="text-gray-600 font-medium">Cancel</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </BottomSheet>
+        </ScrollView>
     );
 }

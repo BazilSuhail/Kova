@@ -382,13 +382,16 @@ export default function VoiceInputScreen() {
 
   return (
     <View className="flex-1 bg-gray-50">
+      {/* Main StatusBar - Always present except when modal is shown */}
+      {!showVoiceModal && (
+        <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
+      )}
 
       {loading ? (
         <Animated.View
-          className="flex-1 justify-center items-center px-8 bg-white"
+          className="flex-1 justify-center items-center px-8"
           style={{ opacity: fadeAnim }}
         >
-
           {/* Loading State */}
           <View className="items-center">
             <View
@@ -649,10 +652,7 @@ export default function VoiceInputScreen() {
         visible={showVoiceModal}
         onRequestClose={handleCloseModal}
       >
-        {showVoiceModal && (
-          <StatusBar backgroundColor="#00000066" barStyle="dark-content" />
-        )}
-
+        <StatusBar backgroundColor="#00000066" barStyle="dark-content" />
         <View className="flex-1 bg-black/40 justify-center items-center">
           <View
             className={`bg-gray-50 w-[85%] p-5 rounded-3xl ${recordingUri ? 'h-[50%]' : 'h-[60%]'
