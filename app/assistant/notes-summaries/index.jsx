@@ -10,6 +10,7 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Dummy data for saved PDF summaries
 const dummyPdfSummaries = [
@@ -83,18 +84,19 @@ const dummyPdfSummaries = [
 const SummaryDetailHeader = ({ fileName }) => (
   <View className="px-6 pt-3 pb-4 border-b border-gray-100">
     <View className="flex-row items-center">
-      <View className="w-8 h-8 bg-emerald-500 rounded-lg items-center justify-center mr-3">
+      <View className="w-10 h-10 bg-emerald-500 rounded-lg items-center justify-center mr-3">
         <Ionicons name="document-text" size={16} color="white" />
       </View>
       <View className="flex-1">
         <Text className="text-lg font-semibold text-gray-900">Summary Details</Text>
-        <Text className="text-sm text-gray-500 mt-1">{fileName}</Text>
+        <Text className="text-sm text-gray-500 ">{fileName}</Text>
       </View>
     </View>
   </View>
 );
 
 export default function PdfSummariesScreen() {
+  const insets = useSafeAreaInsets()
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSummary, setSelectedSummary] = useState(null);
@@ -156,10 +158,10 @@ export default function PdfSummariesScreen() {
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingHorizontal: 20, paddingTop: insets.top + 20 }}
       >
         {/* Header Section */}
-        <View className="px-6 pt-16 pb-6">
+        <View className="px-6 pb-6">
           <View className="flex-row items-center justify-between mb-6">
             <View>
               <Text className="text-2xl font-bold text-gray-900 mb-1">My Summaries</Text>
