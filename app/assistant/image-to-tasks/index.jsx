@@ -214,7 +214,7 @@ export default function ImageProcessorScreen() {
                 name: 'photo.jpg',
             });
 
-            const response = await fetch('https://api.api-ninjas.com/v1/imagetotext', {
+            const response = await fetch('https://api.api-ninjas.com/v1/imagetotext  ', {
                 method: 'POST',
                 headers: {
                     'X-Api-Key': '',
@@ -272,8 +272,10 @@ export default function ImageProcessorScreen() {
         );
     }
 
-    if (apiResponse || selectedImage) {
-        return (
+    // Show empty view when modal is active (no main content)
+    return (
+        <View className="flex-1 bg-gray-50">
+            {/* Empty view when modal is active - no main content */}
             <ScrollView className="flex-1 bg-gray-50"
                 contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingTop: insets.top }}
                 showsVerticalScrollIndicator={false}>
@@ -286,7 +288,7 @@ export default function ImageProcessorScreen() {
                         </View>
                         <TouchableOpacity
                             onPress={resetApp}
-                            className="bg-emerald-600 px-4 py-2 rounded-full shadow-lg shadow-emerald-200"
+                            className="bg-emerald-600 px-4 py-2 rounded-full"
                             activeOpacity={0.8}
                         >
                             <View className="flex-row items-center">
@@ -296,38 +298,57 @@ export default function ImageProcessorScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Selected Image Card */}
-                    <View className="bg-white rounded-2xl p-4 shadow-sm shadow-gray-100 mb-6">
+                    {/* Selected Image Card - show image when exists, placeholder otherwise */}
+                    <View className="bg-white rounded-2xl p-4 mb-6">
                         <View className="flex-row items-center mb-3">
                             <Ionicons name="image-outline" size={20} color="#10b981" />
                             <Text className="text-lg font-semibold text-gray-800 ml-2">Source Image</Text>
                         </View>
-                        <Image
-                            source={{ uri: selectedImage.uri }}
-                            className="w-full h-48 rounded-xl"
-                            resizeMode="cover"
-                        />
-                        <View className="mt-3 flex-row items-center">
-                            <View className="w-2 h-2 bg-emerald-500 rounded-full mr-2" />
-                            <Text className="text-sm text-gray-600">Successfully processed</Text>
-                        </View>
+
+                        {selectedImage ? (
+                            <>
+                                <Image
+                                    source={{ uri: selectedImage.uri }}
+                                    className="w-full h-48 rounded-xl"
+                                    resizeMode="cover"
+                                />
+                                <View className="mt-3 flex-row items-center">
+                                    <View className="w-2 h-2 bg-emerald-500 rounded-full mr-2" />
+                                    <Text className="text-sm text-gray-600">Successfully processed</Text>
+                                </View>
+                            </>
+                        ) : (
+                            <View className="w-full h-48 bg-gray-200 rounded-xl items-center justify-center">
+                                <View className="items-center">
+                                    <Ionicons name="image-outline" size={48} color="#9CA3AF" />
+                                    <Text className="text-gray-500 mt-2 text-center">No image selected</Text>
+                                    <Text className="text-gray-400 text-sm mt-1 text-center">Choose an image to process</Text>
+                                </View>
+                            </View>
+                        )}
                     </View>
 
-                    {/* Extracted Text Card */}
-                    <View className="bg-white rounded-2xl p-6 shadow-sm shadow-gray-100 mb-6">
+                    {/* Extracted Text Card - show placeholder when no response */}
+                    <View className="bg-white rounded-2xl p-6 mb-6">
                         <View className="flex-row items-center justify-between mb-4">
                             <View className="flex-row items-center">
                                 <Ionicons name="document-text-outline" size={20} color="#10b981" />
                                 <Text className="text-lg font-semibold text-gray-800 ml-2">Extracted Text</Text>
                             </View>
-                            <View className="bg-emerald-100 px-3 py-1 rounded-full">
-                                <Text className="text-emerald-700 text-xs font-medium">Success</Text>
-                            </View>
+                            {apiResponse ? (
+                                <View className="bg-emerald-100 px-3 py-1 rounded-full">
+                                    <Text className="text-emerald-700 text-xs font-medium">Success</Text>
+                                </View>
+                            ) : (
+                                <View className="bg-amber-100 px-3 py-1 rounded-full">
+                                    <Text className="text-amber-700 text-xs font-medium">No text extracted</Text>
+                                </View>
+                            )}
                         </View>
 
                         <View className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                            <Text className="text-gray-700 leading-6 text-base">
-                                {apiResponse}
+                            <Text className={  `leading-6 text-base ${!apiResponse ?'mb-[60px] text-gray-400' : 'text-gray-700'}`}>
+                                {apiResponse || 'No text extracted...'}
                             </Text>
                         </View>
 
@@ -339,85 +360,26 @@ export default function ImageProcessorScreen() {
                         </View>
                     </View>
 
-                    {/* Action Buttons */}
-                    <View className="space-y-3">
+                    {/* Action Buttons - disable create task button when no response */}
+                    <View style={{ gap: 8 }}>
                         <TouchableOpacity
                             onPress={createTaskFromText}
-                            className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-4 rounded-2xl items-center justify-center shadow-lg shadow-emerald-200"
+                            disabled={!apiResponse}
+                            className={`p-4 rounded-2xl items-center justify-center ${apiResponse
+                                ? 'bg-emerald-600'
+                                : 'bg-gray-300'}`}
                             activeOpacity={0.9}
                         >
                             <View className="flex-row items-center">
-                                <Ionicons name="checkmark-circle-outline" size={20} color="white" />
-                                <Text className="text-white font-semibold text-lg ml-2">Create Task from Text</Text>
+                                <Ionicons name="checkmark-circle-outline" size={20} color={apiResponse ? "white" : "#9CA3AF"} />
+                                <Text className={`font-semibold text-lg ml-2 ${apiResponse ? 'text-white' : 'text-gray-500'}`}>
+                                    Create Task from Text
+                                </Text>
                             </View>
                         </TouchableOpacity>
-
-                        <View className="flex-row" style={{ gap: 12 }}>
-                            <TouchableOpacity
-                                className="flex-1 bg-gray-50 border border-gray-200 p-4 rounded-2xl items-center justify-center"
-                                activeOpacity={0.7}
-                            >
-                                <View className="flex-row items-center">
-                                    <Ionicons name="copy-outline" size={18} color="#6B7280" />
-                                    <Text className="text-gray-500 font-medium ml-2">Copy Text</Text>
-                                </View>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                className="flex-1 bg-gray-50 border border-gray-200 p-4 rounded-2xl items-center justify-center"
-                                activeOpacity={0.7}
-                            >
-                                <View className="flex-row items-center">
-                                    <Ionicons name="share-outline" size={18} color="#6B7280" />
-                                    <Text className="text-gray-500 font-medium ml-2">Share</Text>
-                                </View>
-                            </TouchableOpacity>
-                        </View>
                     </View>
                 </View>
             </ScrollView>
-        );
-    }
-
-    return (
-        <ScrollView className="flex-1 bg-gray-50"
-            contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingTop: insets.top }}
-            showsVerticalScrollIndicator={false}>
-            {/* Main Content */}
-            <Animated.View
-                className="flex-1 justify-center items-center px-6"
-                style={{
-                    opacity: fadeAnim,
-                    transform: [{ scale: scaleAnim }]
-                }}
-            >
-                <View className="items-center">
-                    <View className="w-24 h-24 bg-emerald-500 rounded-3xl items-center justify-center mb-6">
-                        <Ionicons name="scan-outline" size={40} color="white" />
-                    </View>
-
-                    <Text className="text-3xl font-bold text-gray-800 mb-3">OCR Text Extractor</Text>
-                    <Text className="text-gray-600 text-center leading-6 max-w-sm">
-                        Transform images into editable text using advanced OCR technology
-                    </Text>
-
-                    {/* Feature highlights */}
-                    <View className="mt-8" style={{ gap: 12 }}>
-                        {[
-                            { icon: 'flash-outline', text: 'Lightning fast processing' },
-                            { icon: 'shield-checkmark-outline', text: 'Secure & private' },
-                            { icon: 'sparkles-outline', text: 'AI-powered accuracy' }
-                        ].map((feature, index) => (
-                            <View key={index} className="flex-row items-center">
-                                <View className="w-8 h-8 bg-emerald-100 rounded-full items-center justify-center mr-3">
-                                    <Ionicons name={feature.icon} size={16} color="#10b981" />
-                                </View>
-                                <Text className="text-gray-600 font-medium">{feature.text}</Text>
-                            </View>
-                        ))}
-                    </View>
-                </View>
-            </Animated.View>
 
             {/* Bottom Sheet Modal */}
             <BottomSheet
@@ -530,6 +492,6 @@ export default function ImageProcessorScreen() {
                     </View>
                 </View>
             </BottomSheet>
-        </ScrollView>
+        </View>
     );
 }

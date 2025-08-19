@@ -94,7 +94,7 @@ export default function CustomDatePicker({ visible, onClose, onDateSelect, initi
       onClose={onClose}
       heightRatio={0.54}
       header={
-        <View className="flex-row items-center justify-between px-8 bg-gray-50">
+        <View className="flex-row items-center justify-between px-8">
           <TouchableOpacity
             onPress={prevMonth}
             className="w-11 h-11 rounded-full bg-gray-100 items-center justify-center"

@@ -9,7 +9,7 @@ const CustomLoader = ({
   progress 
 }) => {
   return (
-    <View className="flex-1 bg-emerald-50 justify-center items-center px-6">
+    <View className="flex-1 bg-gray-50 justify-center items-center px-6">
       <Animated.View
         className="bg-white rounded-3xl p-8 items-center w-full max-w-sm"
         style={{

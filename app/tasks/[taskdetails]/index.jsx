@@ -1,9 +1,8 @@
+import CustomDatePicker from '@/components/tasks/CustomCalendar';
 import { Ionicons } from '@expo/vector-icons';
-import BottomSheet from 'entity-bottom-sheet';
 import { useState } from 'react';
-import { Alert, Dimensions, ScrollView, StatusBar, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
-const { width } = Dimensions.get('window');
+import { Alert, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Mock task data
 const initialTask = {
@@ -22,182 +21,6 @@ const initialTask = {
   ],
 };
 
-const CustomDatePicker = ({ visible, onClose, onDateSelect, initialDate }) => {
-  const [currentDate, setCurrentDate] = useState(new Date(initialDate));
-  const [selectedDate, setSelectedDate] = useState(new Date(initialDate));
-
-  const getDaysInMonth = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const totalDays = new Date(year, month + 1, 0).getDate();
-    const days = [];
-
-    for (let i = 1; i <= totalDays; i++) {
-      days.push(new Date(year, month, i));
-    }
-    return days;
-  };
-
-  const buildCalendarGrid = (date) => {
-    const days = getDaysInMonth(date);
-    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-
-    const grid = [];
-    let currentRow = [];
-
-    for (let i = 0; i < firstDay; i++) {
-      currentRow.push(null);
-    }
-
-    days.forEach((day) => {
-      currentRow.push(day);
-      if (currentRow.length === 7) {
-        grid.push(currentRow);
-        currentRow = [];
-      }
-    });
-
-    while (currentRow.length < 7) {
-      currentRow.push(null);
-    }
-    grid.push(currentRow);
-
-    while (grid.length < 6) {
-      grid.push(Array(7).fill(null));
-    }
-
-    return grid;
-  };
-
-  const calendarGrid = buildCalendarGrid(currentDate);
-
-  const prevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  };
-
-  const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-  };
-
-  const handleDatePress = (date) => {
-    setSelectedDate(date);
-    onDateSelect(date);
-  };
-
-  const formatMonthYear = (date) => {
-    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
-  };
-
-  const isToday = (date) => {
-    const today = new Date();
-    return (
-      date &&
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    );
-  };
-
-  const isSelected = (date) => {
-    return (
-      date &&
-      date.getDate() === selectedDate.getDate() &&
-      date.getMonth() === selectedDate.getMonth() &&
-      date.getFullYear() === selectedDate.getFullYear()
-    );
-  };
-
-  return (
-    <BottomSheet
-      visible={visible}
-      onClose={onClose}
-      heightRatio={0.54}
-      header={
-        <View className="flex-row items-center justify-between px-8">
-          <TouchableOpacity
-            onPress={prevMonth}
-            className="w-11 h-11 rounded-full bg-gray-100 items-center justify-center"
-          >
-            <Ionicons name="chevron-back" size={20} color="#6366F1" />
-          </TouchableOpacity>
-
-          <Text className="text-lg font-semibold text-gray-800">
-            {formatMonthYear(currentDate)}
-          </Text>
-
-          <TouchableOpacity
-            onPress={nextMonth}
-            className="w-11 h-11 rounded-full bg-gray-100 items-center justify-center"
-          >
-            <Ionicons name="chevron-forward" size={20} color="#6366F1" />
-          </TouchableOpacity>
-        </View>
-      }
-    >
-      <View className="rounded-t-3xl px-6 pt-0 pb-6 max-h-[80%] mt-9 bg-white">
-        {/* Weekdays */}
-        <View className="flex-row justify-between mb-3">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
-            <Text
-              key={index}
-              className="text-xs font-medium text-gray-400 flex-1 text-center"
-            >
-              {day}
-            </Text>
-          ))}
-        </View>
-
-        {/* Calendar Grid */}
-        <View>
-          {calendarGrid.map((week, rowIndex) => (
-            <View key={rowIndex} className="flex-row justify-between mb-1">
-              {week.map((day, colIndex) => (
-                <View key={colIndex} className="flex-1 items-center">
-                  {day ? (
-                    <TouchableOpacity
-                      onPress={() => handleDatePress(day)}
-                      className={`
-                        w-9 h-9 items-center justify-center rounded-full
-                        ${isSelected(day) ? 'bg-indigo-500' : isToday(day) ? 'bg-indigo-100' : ''}
-                      `}
-                    >
-                      <Text
-                        className={`
-                          text-sm 
-                          ${isSelected(day)
-                            ? 'text-white font-semibold'
-                            : isToday(day)
-                              ? 'text-indigo-500 font-semibold'
-                              : 'text-gray-700 font-normal'}
-                        `}
-                      >
-                        {day.getDate()}
-                      </Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <View className="w-9 h-9" />
-                  )}
-                </View>
-              ))}
-            </View>
-          ))}
-        </View>
-
-        {/* Done Button */}
-        <TouchableOpacity
-          onPress={onClose}
-          className="bg-indigo-500 py-2 rounded-xl self-end mt-6 min-w-[90px]"
-        >
-          <Text className="text-white font-semibold text-base text-center">
-            Done
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </BottomSheet>
-  );
-};
-
-// Reusable Card Component
 const Card = ({ children, style = {} }) => (
   <View style={{
     backgroundColor: 'white',
@@ -217,39 +40,45 @@ const Card = ({ children, style = {} }) => (
 
 // Priority Badge Component
 const PriorityBadge = ({ priority }) => {
-  const getPriorityColor = (priority) => {
+  const getPriorityClasses = (priority) => {
     switch (priority?.toLowerCase()) {
-      case 'high': return { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA' };
-      case 'medium': return { bg: '#FFFBEB', text: '#D97706', border: '#FDE68A' };
-      case 'low': return { bg: '#F0FDF4', text: '#16A34A', border: '#BBF7D0' };
-      default: return { bg: '#F3F4F6', text: '#6B7280', border: '#D1D5DB' };
+      case "high":
+        return "bg-red-100 border border-red-300";
+      case "medium":
+        return "bg-yellow-100 border border-yellow-300";
+      case "low":
+        return "bg-blue-100 border border-blue-300";
+      default:
+        return "bg-gray-100 border border-gray-300";
     }
   };
 
-  const colors = getPriorityColor(priority);
+  const getTextClasses = (priority) => {
+    switch (priority?.toLowerCase()) {
+      case "high":
+        return "text-red-700";
+      case "medium":
+        return "text-yellow-700";
+      case "low":
+        return "text-blue-700";
+      default:
+        return "text-gray-500";
+    }
+  };
 
   return (
-    <View style={{
-      backgroundColor: colors.bg,
-      borderColor: colors.border,
-      borderWidth: 1,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 20,
-      alignSelf: 'flex-start'
-    }}>
-      <Text style={{
-        color: colors.text,
-        fontSize: 12,
-        fontWeight: '600',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5
-      }}>
+    <View
+      className={`px-3 py-1.5 rounded-full self-start ${getPriorityClasses(priority)}`}
+    >
+      <Text
+        className={`text-[10px] font-semibold uppercase tracking-[0.5px] ${getTextClasses(priority)}`}
+      >
         {priority} Priority
       </Text>
     </View>
   );
 };
+
 
 // Progress Bar Component
 const ProgressBar = ({ completed, total }) => {
@@ -266,7 +95,7 @@ const ProgressBar = ({ completed, total }) => {
         <Text style={{ fontSize: 14, fontWeight: '500', color: '#6B7280' }}>
           Progress
         </Text>
-        <Text style={{ fontSize: 14, fontWeight: '600', color: '#6366F1' }}>
+        <Text style={{ fontSize: 14, fontWeight: '600', color: '#059669' }}>
           {completed}/{total} completed
         </Text>
       </View>
@@ -279,7 +108,7 @@ const ProgressBar = ({ completed, total }) => {
         <View style={{
           height: '100%',
           width: `${progress}%`,
-          backgroundColor: '#6366F1',
+          backgroundColor: '#059669',
           borderRadius: 4
         }} />
       </View>
@@ -288,6 +117,7 @@ const ProgressBar = ({ completed, total }) => {
 };
 
 export default function TaskDetailsScreen() {
+  const insets = useSafeAreaInsets()
   const [task, setTask] = useState(initialTask);
   const [completed, setCompleted] = useState(task.isCompleted);
   const [checklist, setChecklist] = useState(task.checklist);
@@ -335,8 +165,6 @@ export default function TaskDetailsScreen() {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
@@ -344,314 +172,225 @@ export default function TaskDetailsScreen() {
   const completedItems = checklist.filter(item => item.done).length;
 
   return (
-    <View className="flex-1 mb-12">
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
-      <ScrollView
-        style={{ flex: 1, backgroundColor: '#FAFAFA' }}
-        contentContainerStyle={{ paddingTop: 60, paddingHorizontal: 20, paddingBottom: 30 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={{ marginBottom: 24 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-            {isEditing ? (
-              <TextInput
-                style={{
-                  fontSize: 28,
-                  fontWeight: '700',
-                  color: '#111827',
-                  borderBottomWidth: 2,
-                  borderBottomColor: '#6366F1',
-                  paddingBottom: 8,
-                  flex: 1,
-                  marginRight: 16
-                }}
-                value={editData.title}
-                onChangeText={(text) => {
-                  setEditData({ ...editData, title: text });
-                  setHasChanged(true);
-                }}
-                placeholder="Task title"
-                multiline
-              />
-            ) : (
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 28, fontWeight: '700', color: '#111827', lineHeight: 36 }}>
-                  {task.title}
-                </Text>
-              </View>
-            )}
+    <ScrollView
+      className="flex-1 bg-gray-50"
+      contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingHorizontal: 20, paddingTop: insets.top + 20 }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
+      <View className="mb-6">
+        <View
+          className="flex-row justify-between items-start mb-3"
+          style={{ gap: 12 }}
+        >
+          {isEditing ? (
+            <TextInput
+              className="flex-1 mr-4 px-4 py-3 text-[15px] rounded-[16px] font-bold text-emerald-700 border-[2px] border-emerald-200 bg-emerald-100"
+              value={editData.title}
+              onChangeText={(text) => {
+                setEditData({ ...editData, title: text });
+                setHasChanged(true);
+              }}
+              placeholder="Task title"
+              multiline
+            />
+          ) : (
+            <View className="flex-1">
+              <Text className="text-[20px] font-bold text-gray-900 leading-9">
+                {task.title}
+              </Text>
+            </View>
+          )}
 
-            <TouchableOpacity style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: 'white',
-              alignItems: 'center',
-              justifyContent: 'center',
+          <TouchableOpacity
+            className="w-10 h-10 rounded-full bg-white items-center justify-center"
+            style={{
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.08,
               shadowRadius: 4,
-              elevation: 2
-            }}>
-              <Ionicons name="bookmark-outline" size={20} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{
-                backgroundColor: '#EEF2FF',
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderRadius: 20,
-                marginRight: 12
-              }}>
-                <Text style={{ color: '#6366F1', fontSize: 12, fontWeight: '600' }}>
-                  {task.category}
-                </Text>
-              </View>
-              <PriorityBadge priority={task.priority} />
-            </View>
-          </View>
+              elevation: 2,
+            }}
+          >
+            <Ionicons name="bookmark-outline" size={20} color="#059669" />
+          </TouchableOpacity>
         </View>
 
-        {/* Progress Card */}
-        <Card>
-          <ProgressBar completed={completedItems} total={checklist.length} />
-        </Card>
-
-        {/* Description Card */}
-        <Card>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-            <Ionicons name="document-text-outline" size={20} color="#6366F1" />
-            <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginLeft: 8 }}>
-              Description
-            </Text>
+        <View className="flex-row items-center border-t-[2px] border-gray-200 pt-6">
+          <View className="flex-row items-center" style={{ gap: 12 }}>
+            <View className="bg-emerald-100 px-3 py-1.5 rounded-full">
+              <Text className="text-emerald-600 text-sm font-semibold">
+                {task.category}
+              </Text>
+            </View>
+            <PriorityBadge priority={task.priority} />
           </View>
+        </View>
+      </View>
 
+
+      {/* Progress Card */}
+      <Card>
+        <ProgressBar completed={completedItems} total={checklist.length} />
+      </Card>
+
+      {/* Description Card */}
+      <Card>
+        <View className="flex-row items-center mb-3">
+          <Ionicons name="document-text-outline" size={20} color="#059669" />
+          <Text className="ml-2 text-base font-semibold text-gray-900">Description</Text>
+        </View>
+
+        {isEditing ? (
+          <TextInput
+            className="text-sm text-gray-500 border border-emerald-100 rounded-lg p-3 min-h-[80px]"
+            style={{ lineHeight: 20 }}
+            multiline
+            value={editData.description}
+            onChangeText={(text) => {
+              setEditData({ ...editData, description: text });
+              setHasChanged(true);
+            }}
+            placeholder="Add a description..."
+          />
+        ) : (
+          <Text className="text-sm text-gray-500" style={{ lineHeight: 20 }}>
+            {task.description}
+          </Text>
+        )}
+
+        <View className="flex-row items-center mt-4 pt-4 border-t border-emerald-50">
+          <Ionicons name="calendar-outline" size={16} color="#059669" />
           {isEditing ? (
-            <TextInput
-              style={{
-                fontSize: 14,
-                color: '#6B7280',
-                lineHeight: 20,
-                borderWidth: 1,
-                borderColor: '#D1D5DB',
-                borderRadius: 8,
-                padding: 12,
-                minHeight: 80
-              }}
-              multiline
-              value={editData.description}
-              onChangeText={(text) => {
-                setEditData({ ...editData, description: text });
-                setHasChanged(true);
-              }}
-              placeholder="Add a description..."
-            />
+            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+              <Text className="ml-1.5 text-xs font-medium text-emerald-600">
+                Due: {formatDate(editData.dueDate)}
+              </Text>
+            </TouchableOpacity>
           ) : (
-            <Text style={{ fontSize: 14, color: '#6B7280', lineHeight: 20 }}>
-              {task.description}
+            <Text className="ml-1.5 text-xs text-emerald-600">
+              Due: {formatDate(task.dueDate)}
             </Text>
           )}
+        </View>
+      </Card>
 
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginTop: 16,
-            paddingTop: 16,
-            borderTopWidth: 1,
-            borderTopColor: '#F3F4F6'
-          }}>
-            <Ionicons name="calendar-outline" size={16} color="#9CA3AF" />
-            {isEditing ? (
-              <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-                <Text style={{ fontSize: 12, color: '#6366F1', marginLeft: 6, fontWeight: '500' }}>
-                  Due: {formatDate(editData.dueDate)}
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <Text style={{ fontSize: 12, color: '#9CA3AF', marginLeft: 6 }}>
-                Due: {formatDate(task.dueDate)}
-              </Text>
-            )}
+      {/* Checklist Card */}
+      <Card>
+        <View className="flex-row items-center justify-between mb-4">
+          <View className="flex-row items-center">
+            <Ionicons name="list-outline" size={20} color="#059669" />
+            <Text className="ml-2 text-base font-semibold text-gray-900">Checklist</Text>
           </View>
-        </Card>
-
-        {/* Checklist Card */}
-        <Card>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="list-outline" size={20} color="#6366F1" />
-              <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginLeft: 8 }}>
-                Checklist
-              </Text>
-            </View>
-            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
-              {completedItems} of {checklist.length}
-            </Text>
-          </View>
-
-          {checklist.map((item, index) => (
-            <TouchableOpacity
-              key={item.id}
-              onPress={() => toggleChecklistItem(item.id)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingVertical: 12,
-                paddingHorizontal: 12,
-                backgroundColor: item.done ? '#F9FAFB' : 'transparent',
-                borderRadius: 12,
-                marginBottom: index < checklist.length - 1 ? 8 : 0,
-                borderWidth: 1,
-                borderColor: item.done ? '#E5E7EB' : 'transparent'
-              }}
-            >
-              <View style={{
-                width: 20,
-                height: 20,
-                borderRadius: 10,
-                borderWidth: 2,
-                borderColor: item.done ? '#6366F1' : '#D1D5DB',
-                backgroundColor: item.done ? '#6366F1' : 'transparent',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: 12
-              }}>
-                {item.done && <Ionicons name="checkmark" size={12} color="white" />}
-              </View>
-              <Text style={{
-                fontSize: 14,
-                color: item.done ? '#9CA3AF' : '#374151',
-                textDecorationLine: item.done ? 'line-through' : 'none',
-                flex: 1
-              }}>
-                {item.title}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </Card>
-
-        {/* Status Toggle Card */}
-        <Card>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="checkmark-circle-outline" size={20} color="#6366F1" />
-              <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827', marginLeft: 8 }}>
-                Mark as Completed
-              </Text>
-            </View>
-            <Switch
-              value={completed}
-              onValueChange={(value) => {
-                setCompleted(value);
-                setHasChanged(true);
-              }}
-              trackColor={{ false: '#E5E7EB', true: '#6366F1' }}
-              thumbColor={completed ? 'white' : '#F3F4F6'}
-            />
-          </View>
-        </Card>
-
-        {/* Action Buttons */}
-        <View style={{ marginTop: 8 }}>
-          {hasChanged && (
-            <TouchableOpacity
-              onPress={handleUpdateTask}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#6366F1',
-                paddingVertical: 16,
-                borderRadius: 16,
-                marginBottom: 12,
-                shadowColor: '#6366F1',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 4
-              }}
-            >
-              <Ionicons name="save-outline" size={20} color="white" />
-              <Text style={{ color: 'white', fontWeight: '600', fontSize: 16, marginLeft: 8 }}>
-                {isEditing ? 'Save Changes' : 'Update Task'}
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          <View style={{ flexDirection: 'row', gap: 12 }}>
-            <TouchableOpacity
-              onPress={() => {
-                if (isEditing) {
-                  setEditData({
-                    title: task.title,
-                    description: task.description,
-                    dueDate: new Date(task.dueDate),
-                  });
-                  setHasChanged(false);
-                }
-                setIsEditing(!isEditing);
-              }}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: isEditing ? '#F3F4F6' : '#F0F9FF',
-                paddingVertical: 16,
-                borderRadius: 16,
-                flex: 1,
-                borderWidth: 1,
-                borderColor: isEditing ? '#E5E7EB' : '#BAE6FD'
-              }}
-            >
-              <Ionicons
-                name={isEditing ? "close-outline" : "create-outline"}
-                size={20}
-                color={isEditing ? '#6B7280' : '#0284C7'}
-              />
-              <Text style={{
-                color: isEditing ? '#6B7280' : '#0284C7',
-                fontWeight: '600',
-                fontSize: 16,
-                marginLeft: 8
-              }}>
-                {isEditing ? 'Cancel' : 'Edit'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#FEF2F2',
-                paddingVertical: 16,
-                borderRadius: 16,
-                flex: 1,
-                borderWidth: 1,
-                borderColor: '#FECACA'
-              }}
-            >
-              <Ionicons name="trash-outline" size={20} color="#DC2626" />
-              <Text style={{ color: '#DC2626', fontWeight: '600', fontSize: 16, marginLeft: 8 }}>
-                Delete
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <Text className="text-xs text-emerald-600">
+            {completedItems} of {checklist.length}
+          </Text>
         </View>
 
-        {/* Custom Date Picker Modal */}
-        <CustomDatePicker
-          visible={showDatePicker}
-          onClose={() => setShowDatePicker(false)}
-          onDateSelect={handleDateSelect}
-          initialDate={editData.dueDate}
-        />
-      </ScrollView>
-    </View>
+        {checklist.map((item, index) => (
+          <TouchableOpacity
+            key={item.id}
+            onPress={() => toggleChecklistItem(item.id)}
+            className={`flex-row items-center px-3 py-3 rounded-xl border ${item.done ? "bg-emerald-50 border-emerald-200" : "border-transparent"
+              }`}
+            style={{ marginBottom: index < checklist.length - 1 ? 8 : 0 }}
+          >
+            <View
+              className={`w-5 h-5 rounded-full items-center justify-center mr-3 border-2 ${item.done ? "bg-emerald-600 border-emerald-600" : "border-gray-300"
+                }`}
+            >
+              {item.done && <Ionicons name="checkmark" size={12} color="white" />}
+            </View>
+            <Text
+              className={`flex-1 text-sm ${item.done ? "text-emerald-600 line-through" : "text-gray-700"
+                }`}
+            >
+              {item.title}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </Card>
+
+      {/* Status Toggle Card */}
+     <View className="px-3 py-2 mb-4 rounded-[15px] border-[1px] border-emerald-200 flex-row items-center justify-between bg-emerald-50">
+          <View className="flex-row items-center">
+            <Ionicons name="checkmark-circle-outline" size={20} color="#059669" />
+            <Text className="ml-2 text-base font-medium text-emerald-700">Mark as Completed</Text>
+          </View>
+          <Switch
+            value={completed}
+            onValueChange={(value) => {
+              setCompleted(value);
+              setHasChanged(true);
+            }}
+            trackColor={{ false: "#d1fae5", true: "#059669" }}
+            thumbColor={completed ? "white" : "#059669"}
+          />
+        </View>
+
+      {/* Action Buttons */}
+      <View className="mt-2">
+        {hasChanged && (
+          <TouchableOpacity
+            onPress={handleUpdateTask}
+            className="flex-row items-center justify-center bg-emerald-600 py-4 rounded-2xl mb-3"
+            style={{
+              shadowColor: "#059669",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 4,
+            }}
+          >
+            <Ionicons name="save-outline" size={20} color="white" />
+            <Text className="ml-2 text-white font-semibold text-base">
+              {isEditing ? "Save Changes" : "Update Task"}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        <View className="flex-row" style={{ gap: 12 }}>
+          <TouchableOpacity
+            onPress={() => {
+              if (isEditing) {
+                setEditData({
+                  title: task.title,
+                  description: task.description,
+                  dueDate: new Date(task.dueDate),
+                });
+                setHasChanged(false);
+              }
+              setIsEditing(!isEditing);
+            }}
+            className={`flex-1 flex-row items-center justify-center py-4 rounded-2xl border ${isEditing
+                ? "bg-emerald-100 border-emerald-200"
+                : "bg-emerald-50 border-emerald-200"
+              }`}
+          >
+            <Ionicons
+              name={isEditing ? "close-outline" : "create-outline"}
+              size={20}
+              color="#059669"
+            />
+            <Text className="ml-2 text-emerald-600 font-semibold text-base">
+              {isEditing ? "Cancel" : "Edit"}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-red-50 py-4 rounded-2xl border border-red-200">
+            <Ionicons name="trash-outline" size={20} color="#dc2626" />
+            <Text className="ml-2 text-red-600 font-semibold text-base">Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Custom Date Picker Modal */}
+      <CustomDatePicker
+        visible={showDatePicker}
+        onClose={() => setShowDatePicker(false)}
+        onDateSelect={handleDateSelect}
+        initialDate={editData.dueDate}
+      />
+    </ScrollView>
   );
 }
