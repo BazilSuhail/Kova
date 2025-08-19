@@ -185,7 +185,7 @@ export default function TaskDetailsScreen() {
         >
           {isEditing ? (
             <TextInput
-              className="flex-1 mr-4 px-4 py-3 text-[15px] rounded-[16px] font-bold text-emerald-700 border-[2px] border-emerald-200 bg-emerald-100"
+              className="flex-1 mr-4 px-4 py-3 text-[15px] rounded-[10px] font-bold text-emerald-700 border border-emerald-400"
               value={editData.title}
               onChangeText={(text) => {
                 setEditData({ ...editData, title: text });
@@ -243,7 +243,7 @@ export default function TaskDetailsScreen() {
 
         {isEditing ? (
           <TextInput
-            className="text-sm text-gray-500 border border-emerald-100 rounded-lg p-3 min-h-[80px]"
+            className="text-sm text-gray-500 border border-emerald-400 rounded-lg p-3 min-h-[80px]"
             style={{ lineHeight: 20 }}
             multiline
             value={editData.description}
@@ -263,7 +263,7 @@ export default function TaskDetailsScreen() {
           <Ionicons name="calendar-outline" size={16} color="#059669" />
           {isEditing ? (
             <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-              <Text className="ml-1.5 text-xs font-medium text-emerald-600">
+              <Text className="ml-1.5 text-xs font-medium text-emerald-600 bg-emerald-100  border border-emerald-400 rounded-md p-2">
                 Due: {formatDate(editData.dueDate)}
               </Text>
             </TouchableOpacity>
@@ -312,21 +312,21 @@ export default function TaskDetailsScreen() {
       </Card>
 
       {/* Status Toggle Card */}
-     <View className="px-3 py-2 mb-4 rounded-[15px] border-[1px] border-emerald-200 flex-row items-center justify-between bg-emerald-50">
-          <View className="flex-row items-center">
-            <Ionicons name="checkmark-circle-outline" size={20} color="#059669" />
-            <Text className="ml-2 text-base font-medium text-emerald-700">Mark as Completed</Text>
-          </View>
-          <Switch
-            value={completed}
-            onValueChange={(value) => {
-              setCompleted(value);
-              setHasChanged(true);
-            }}
-            trackColor={{ false: "#d1fae5", true: "#059669" }}
-            thumbColor={completed ? "white" : "#059669"}
-          />
+      <View className="px-3 py-2 mb-4 rounded-[15px] border-[1px] border-emerald-200 flex-row items-center justify-between bg-emerald-50">
+        <View className="flex-row items-center">
+          <Ionicons name="checkmark-circle-outline" size={20} color="#059669" />
+          <Text className="ml-2 text-base font-medium text-emerald-700">Mark as Completed</Text>
         </View>
+        <Switch
+          value={completed}
+          onValueChange={(value) => {
+            setCompleted(value);
+                setHasChanged(!hasChanged);
+          }}
+          trackColor={{ false: "#d1fae5", true: "#059669" }}
+          thumbColor={completed ? "white" : "#059669"}
+        />
+      </View>
 
       {/* Action Buttons */}
       <View className="mt-2">
@@ -363,8 +363,8 @@ export default function TaskDetailsScreen() {
               setIsEditing(!isEditing);
             }}
             className={`flex-1 flex-row items-center justify-center py-4 rounded-2xl border ${isEditing
-                ? "bg-emerald-100 border-emerald-200"
-                : "bg-emerald-50 border-emerald-200"
+              ? "bg-emerald-100 border-emerald-200"
+              : "bg-emerald-50 border-emerald-200"
               }`}
           >
             <Ionicons

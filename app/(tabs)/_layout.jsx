@@ -30,13 +30,7 @@ export default function TabsLayout() {
             backgroundColor: COLORS.cardBackground,
             borderTopWidth: 1, // Increased for clarity
             borderColor: COLORS.tabBarBorder,
-            height: 60,
-            // Optional: Add subtle shadow for depth if needed
-            // elevation: 2,
-            // shadowColor: '#000',
-            // shadowOffset: { width: 0, height: 2 },
-            // shadowOpacity: 0.1,
-            // shadowRadius: 3,
+            height: 60, 
           },
           tabBarIndicatorStyle: {
             backgroundColor: COLORS.indicator, // Use emerald for active indicator

@@ -1,27 +1,26 @@
-import { Stack } from 'expo-router'; 
-import { StatusBar, useColorScheme, View } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as NavigationBar from "expo-navigation-bar";
+import { Stack } from "expo-router";
+import { StatusBar, useColorScheme } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
 import "../global.css";
 
-import * as NavigationBar from 'expo-navigation-bar'; 
-
-NavigationBar.setBackgroundColorAsync('#FFFFFF');
-NavigationBar.setButtonStyleAsync('light');
+// Force nav bar icons to dark (for white background)
+NavigationBar.setButtonStyleAsync("dark");
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme(); 
+  const colorScheme = useColorScheme();
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View className={colorScheme === 'dark' ? 'dark flex-1' : 'flex-1'}>
-        <StatusBar
-          backgroundColor={colorScheme === 'dark' ? '#000' : '#F9FAFB'}
-          barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
-        />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
-      </View>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#fff" }}>
+      {/* White background ensures nav area looks white in Expo Go */}
+      <StatusBar
+        backgroundColor={colorScheme === "dark" ? "#000" : "#fff"}
+        barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
+      />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
     </GestureHandlerRootView>
   );
 }
