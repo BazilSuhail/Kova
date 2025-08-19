@@ -61,6 +61,12 @@ export default function TodoManagerScreen() {
       icon: "camera-outline",
       href: "/assistant/image-to-tasks",
     },
+     {
+      title: "Notes summaires",
+      desc: "Capture tasks from images",
+      icon: "camera-outline",
+      href: "/assistant/notes-summaries",
+    },
     {
       title: "PDF Notes Summarizer",
       desc: "Summarize notes from your PDFs",
