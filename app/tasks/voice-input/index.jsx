@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   AudioModule,
   RecordingPresets,
@@ -11,20 +11,25 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Animated,
   BackHandler,
   Modal,
+  ScrollView,
   StatusBar,
   Text,
+  TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
 
 import AudioVisualizer from '@/components/voice-tasks/AudioVisualizer';
 import RecordingAnimation from '@/components/voice-tasks/RecordingAnimation';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function VoiceInputScreen() {
+  const insets = useSafeAreaInsets()
   const router = useRouter();
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const player = useAudioPlayer();
@@ -37,7 +42,7 @@ export default function VoiceInputScreen() {
   const [playbackTime, setPlaybackTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [recordingUri, setRecordingUri] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false); // Manual playing state
+  const [isPlaying, setIsPlaying] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
 
   const [task, setTask] = useState({
@@ -51,7 +56,6 @@ export default function VoiceInputScreen() {
 
   const timerRef = useRef(null);
   const playbackTimerRef = useRef(null);
-  // Removed buttonScale shared value to avoid reanimated warnings
 
   // Handle hardware back button
   useEffect(() => {
@@ -107,12 +111,6 @@ export default function VoiceInputScreen() {
     };
   }, []);
 
-  // Remove debug logs when not needed
-  // useEffect(() => {
-  //   console.log('🎵 Player state changed - isPlaying:', isPlaying);
-  // }, [isPlaying]);
-
-  // Simple playback timer - just count seconds during playback
   useEffect(() => {
     if (isPlaying && recordingUri) {
       if (playbackTimerRef.current) {
@@ -122,7 +120,6 @@ export default function VoiceInputScreen() {
       playbackTimerRef.current = setInterval(() => {
         setPlaybackTime(prev => {
           const newTime = prev + 1;
-          // Auto-stop when reaching the end
           if (newTime >= duration) {
             setIsPlaying(false);
             player.pause();
@@ -130,7 +127,7 @@ export default function VoiceInputScreen() {
           }
           return newTime;
         });
-      }, 1000); // Update every second
+      }, 1000);
     } else {
       if (playbackTimerRef.current) {
         clearInterval(playbackTimerRef.current);
@@ -167,10 +164,6 @@ export default function VoiceInputScreen() {
   };
 
   const startRecording = async () => {
-    // if (!isPermissionGranted) { 
-    //   return;
-    // }
-
     try {
       setRecordingTime(0);
       if (timerRef.current) {
@@ -182,7 +175,6 @@ export default function VoiceInputScreen() {
       setIsPrepared(true);
       recorder.record();
 
-      // Start recording timer
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
@@ -202,11 +194,9 @@ export default function VoiceInputScreen() {
 
     try {
       if (isPlaying) {
-        // Pause if already playing
         await player.pause();
         setIsPlaying(false);
       } else {
-        // Only replace the audio if it hasn't been loaded yet
         if (!player.playing && playbackTime === 0) {
           await player.replace({ uri: recordingUri });
         }
@@ -214,7 +204,6 @@ export default function VoiceInputScreen() {
         await player.play();
         setIsPlaying(true);
 
-        // If we don't have duration yet, set it from the file
         if (duration === 0 && recordingTime > 0) {
           setDuration(recordingTime);
         }
@@ -225,7 +214,6 @@ export default function VoiceInputScreen() {
       Alert.alert('Error', 'Failed to play recording');
     }
   };
-
 
   const stopRecording = async () => {
     if (!isPrepared || !recorder.isRecording) return;
@@ -241,11 +229,9 @@ export default function VoiceInputScreen() {
         timerRef.current = null;
       }
 
-      // Set duration from recording time and reset playback
       setDuration(recordingTime);
       setPlaybackTime(0);
 
-      // Get file size when recording stops
       if (recordingURI) {
         await getFileSize(recordingURI);
       }
@@ -262,7 +248,6 @@ export default function VoiceInputScreen() {
         await player.pause();
         setIsPlaying(false);
       }
-      // Reset to beginning
       setPlaybackTime(0);
       if (recordingUri) {
         await player.replace({ uri: recordingUri });
@@ -280,7 +265,6 @@ export default function VoiceInputScreen() {
       }
       if (recorder.isRecording) await recorder.stop();
 
-      // Clear all timers
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -316,13 +300,11 @@ export default function VoiceInputScreen() {
   const handleGenerateTask = useCallback(async () => {
     if (!recordingUri) return;
 
-    // Log file size one more time before generating task
     await getFileSize(recordingUri);
 
     setLoading(true);
     setShowVoiceModal(false);
 
-    // Simulate processing voice recording (3 sec)
     setTimeout(() => {
       const dummyTask = {
         title: 'Schedule team meeting',
@@ -384,212 +366,468 @@ export default function VoiceInputScreen() {
     return 'bg-emerald-500';
   };
 
-  // Removed animated style to avoid reanimated warnings
+  // Map category to accent color
+  const getCategoryColor = (category) => {
+    switch (category.toLowerCase()) {
+      case 'work':
+        return { bg: 'bg-blue-100', text: 'text-blue-600' };
+      case 'personal':
+        return { bg: 'bg-purple-100', text: 'text-purple-600' };
+      case 'health':
+        return { bg: 'bg-rose-100', text: 'text-rose-600' };
+      default:
+        return { bg: 'bg-gray-100', text: 'text-gray-600' };
+    }
+  };
 
   return (
-    <>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <View className="flex-1 bg-gray-50">
-        <Modal
-          animationType="fade"
-          transparent={true}
-          visible={showVoiceModal}  
-          onRequestClose={handleCloseModal}
+    <View className="flex-1 bg-gray-50">
+
+      {loading ? (
+        <Animated.View
+          className="flex-1 justify-center items-center px-8 bg-white"
+          style={{ opacity: fadeAnim }}
         >
-          {showVoiceModal && (
-            <StatusBar backgroundColor="#00000066" barStyle="dark-content" />
-          )}
 
-          <View className="flex-1 bg-black/40 justify-center items-center">
+          {/* Loading State */}
+          <View className="items-center">
             <View
-              className={`bg-gray-50 w-[85%] p-5 rounded-3xl ${recordingUri ? 'h-[50%]' : 'h-[60%]'
-                }`}
+              className="w-24 h-24 bg-emerald-50 rounded-3xl items-center justify-center border border-emerald-100"
+              style={{ marginBottom: 24 }}
             >
-              {/* Permission Warning */}
-              {!isPermissionGranted && (
-                <View className="bg-rose-50 border border-rose-200 rounded-[12px] p-4 mb-6">
+              <MaterialCommunityIcons name="brain" size={40} color="#059669" />
+            </View>
+            <Text className="text-2xl font-bold text-gray-900 mb-2">AI is thinking...</Text>
+            <Text
+              className="text-gray-500 text-center mb-8 leading-6 max-w-xs"
+              style={{ marginBottom: 32 }}
+            >
+              Analyzing your request and creating the perfect task structure
+            </Text>
+            <ActivityIndicator size="large" color="#059669" />
+
+            {/* Progress Steps */}
+            <View className="w-full max-w-xs" style={{ marginTop: 32 }}>
+              <View className="flex-row items-center" style={{ marginBottom: 12 }}>
+                <View className="w-2 h-2 bg-emerald-500 rounded-full" style={{ marginRight: 12 }} />
+                <Text className="text-sm text-gray-600">Processing natural language</Text>
+              </View>
+              <View className="flex-row items-center" style={{ marginBottom: 12 }}>
+                <View className="w-2 h-2 bg-emerald-300 rounded-full" style={{ marginRight: 12 }} />
+                <Text className="text-sm text-gray-500">Extracting task details</Text>
+              </View>
+              <View className="flex-row items-center">
+                <View className="w-2 h-2 bg-gray-300 rounded-full" style={{ marginRight: 12 }} />
+                <Text className="text-sm text-gray-400">Generating final task</Text>
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+      ) :
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingTop: insets.top }}
+        >
+          {/* Task Review & Edit Form - Always visible behind modal */}
+          <View className="px-6 pt-5">
+            {/* Header */}
+            <View
+              className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100"
+              style={{ marginBottom: 32 }}
+            >
+              <View className="flex-row items-center">
+                <View className="w-16 h-16 bg-emerald-100 rounded-2xl items-center justify-center" style={{ marginRight: 16 }}>
+                  <Ionicons name="mic" size={32} color="#059669" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xl font-bold text-gray-800">
+                    {task.title ? 'Voice Task Generated' : 'Create Task with Voice'}
+                  </Text>
+                  <Text className="text-gray-500 text-[12px]">
+                    {task.title
+                      ? 'Your voice task has been processed. Review and edit as needed.'
+                      : 'Record a voice note to create a task with AI'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Form Fields */}
+            <View>
+              {/* Title Field */}
+              <View style={{ marginBottom: 24 }}>
+                <View className="flex-row justify-between items-center" style={{ marginBottom: 12 }}>
                   <View className="flex-row items-center">
-                    <Ionicons name="warning" size={20} color="#dc2626" />
-                    <Text className="text-rose-700 font-medium ml-3 flex-1">
-                      Microphone permission required
-                    </Text>
-                  </View>
-                  <Text className="text-rose-600 text-sm mt-2 ml-8">
-                    Enable microphone access in settings
-                  </Text>
-                </View>
-              )}
-
-              {/* Recording Section - Only show when NOT recording and NO recording exists */}
-              {!recordingUri && !recorder.isRecording && (
-                <View className="flex-1 items-center justify-center mb-6">
-                  <View className="relative mb-8 w-24 h-24">
-                    <TouchableOpacity
-                      onPress={handleRecordPress}
-                      disabled={!isPermissionGranted}
-                      className={`w-24 h-24 rounded-full justify-center items-center ${getRecordButtonStyle()}`}
-                      style={{ transform: [{ scale: 1 }] }}
-                    >
-                      <Ionicons
-                        name="mic"
-                        size={32}
-                        color="white"
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  <Text className="text-gray-600 text-center mb-2">
-                    {!isPermissionGranted
-                      ? 'Grant microphone access'
-                      : 'Tap to start recording'}
-                  </Text>
-                </View>
-              )}
-
-              {/* Recording Section - Show during recording with animation */}
-              {recorder.isRecording && (
-                <View className="flex-1 items-center justify-center mb-6">
-                  <View className="relative mb-8 w-24 h-24">
-                    <RecordingAnimation
-                      isRecording={recorder.isRecording}
-                      size={96}
-                    />
-
-                    <TouchableOpacity
-                      onPress={handleRecordPress}
-                      className="w-24 h-24 rounded-full justify-center items-center bg-emerald-500"
-                    >
-                      <Ionicons
-                        name="stop"
-                        size={32}
-                        color="white"
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  <Text className="text-gray-600 text-center mb-2">
-                    Recording... Tap to stop
-                  </Text>
-                  <Text className="text-emerald-600 font-mono text-lg">
-                    {formatTime(recordingTime)}
-                  </Text>
-                </View>
-              )}
-
-              {/* Playback Controls - Show after recording is complete */}
-              {recordingUri && (
-                <View className="flex-1 justify-center">
-                  <View className="bg-emerald-50 rounded-[12px] p-5 mb-6 border border-emerald-200">
-                    {/* Audio Visualizer with integrated time display and progress */}
-                    <View className="mb-4">
-                      {/* <AudioVisualizer
-                        isPlaying={player.playing}
-                        progress={duration > 0 ? (playbackTime / duration) * 100 : 0}
-                        currentTime={playbackTime}
-                        duration={duration}
-                      /> */}
-                      <AudioVisualizer
-                        mode={recorder.isRecording ? 'recording' : 'playback'}
-                        isActive={recorder.isRecording || isPlaying}
-                        currentTime={recorder.isRecording ? recordingTime : playbackTime}
-                        duration={recorder.isRecording ? recordingTime : duration}
-                      />
-
+                    <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
+                      <Ionicons name="bookmark" size={14} color="#059669" />
                     </View>
+                    <Text className="text-gray-800 font-semibold">Title</Text>
+                    <Text className="text-red-400 ml-1">*</Text>
+                  </View>
 
-                    {/* Control Buttons */}
-                    <View className="flex-row justify-center items-center" style={{gap:5}}>
-                      {/* Play/Pause Button */}
-                      {isPlaying ?
-                        <TouchableOpacity
-                          onPress={stopPlayback}
-                          className="w-10 h-10 bg-gray-500 rounded-[12px] justify-center items-center"
-                        >
-                          <Ionicons name="stop" size={20} color="white" />
-                        </TouchableOpacity>
-                        :
-                        <TouchableOpacity
-                          onPress={playRecording}
-                          className="w-12 h-12 bg-emerald-500 rounded-full justify-center items-center"
-                        >
-                          <Ionicons
-                            name={isPlaying ? 'pause' : 'play'}
-                            size={22}
-                            color="white"
-                          />
-                        </TouchableOpacity>
-                      }
+                  {task.title ? (
+                    <View className="items-center">
+                      <View className="flex-row items-center bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">
+                        <Ionicons name="sparkles" size={14} color="#059669" />
+                        <Text className="text-emerald-700 text-sm font-medium ml-2">
+                          Generated by AI
+                        </Text>
+                      </View>
+                    </View>
+                  ) : null}
+                </View>
 
-                      {/* Record Again Button */}
-                      <TouchableOpacity
-                        onPress={resetRecording}
-                        className="py-3 px-4 rounded-[12px] relative overflow-hidden"
+                <TextInput
+                  value={task.title}
+                  onChangeText={(text) => setTask({ ...task, title: text })}
+                  className="bg-white px-4 py-4 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300"
+                  placeholder={task.title ? "Enter task title" : "Task title will appear here"}
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+
+              {/* Description Field */}
+              <View style={{ marginBottom: 24 }}>
+                <View className="flex-row items-center" style={{ marginBottom: 12 }}>
+                  <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
+                    <Ionicons name="document-text" size={14} color="#059669" />
+                  </View>
+                  <Text className="text-gray-800 font-semibold">Description</Text>
+                </View>
+                <TextInput
+                  value={task.description}
+                  onChangeText={(text) => setTask({ ...task, description: text })}
+                  className="bg-white px-4 py-4 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300 min-h-[100px]"
+                  multiline
+                  placeholder={task.description ? "Add more details about your task" : "Description will appear here"}
+                  placeholderTextColor="#9CA3AF"
+                  textAlignVertical="top"
+                />
+              </View>
+
+              {/* Category and Priority Row */}
+              <View className="flex-row" style={{ marginBottom: 24 }}>
+                {/* Category */}
+                <View className="flex-1" style={{ marginRight: 16 }}>
+                  <View className="flex-row items-center" style={{ marginBottom: 12 }}>
+                    <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
+                      <Ionicons name="folder" size={14} color="#059669" />
+                    </View>
+                    <Text className="text-gray-800 font-semibold">Category</Text>
+                  </View>
+                  <View className="relative">
+                    <TextInput
+                      value={task.category}
+                      onChangeText={(text) => setTask({ ...task, category: text })}
+                      className="bg-white px-4 py-4 pr-10 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300"
+                      placeholder={task.category ? "Select category" : "Category will appear here"}
+                      placeholderTextColor="#9CA3AF"
+                    />
+                    <View className="absolute right-3 top-1/2 -mt-2">
+                      <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
+                    </View>
+                  </View>
+                  {/* Category Accent Pill */}
+                  {task.category ? (
+                    <View
+                      className={`mt-2 px-3 py-1 rounded-full ${getCategoryColor(task.category).bg}`}
+                    >
+                      <Text
+                        className={`text-sm font-medium ${getCategoryColor(task.category).text}`}
                       >
-                        <LinearGradient
-                          colors={['#059669', '#10b981']}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          className="absolute inset-0 rounded-[12px]"
-                        />
-                        <View className="flex-row items-center z-10">
-                          <Ionicons name="mic" size={16} color="white" />
-                          <Text className="text-white font-semibold text-sm ml-2">Record Again</Text>
-                        </View>
-                      </TouchableOpacity>
+                        {task.category}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+
+                {/* Priority */}
+                <View className="flex-1">
+                  <View className="flex-row items-center" style={{ marginBottom: 12 }}>
+                    <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
+                      <Ionicons name="flag" size={14} color="#059669" />
+                    </View>
+                    <Text className="text-gray-800 font-semibold">Priority</Text>
+                  </View>
+                  <View className="relative">
+                    <TextInput
+                      value={task.priority}
+                      onChangeText={(text) => setTask({ ...task, priority: text })}
+                      className="bg-white px-4 py-4 pr-10 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300"
+                      placeholder={task.priority ? "Set priority" : "Priority will appear here"}
+                      placeholderTextColor="#9CA3AF"
+                    />
+                    <View className="absolute right-3 top-1/2 -mt-2">
+                      <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
                     </View>
                   </View>
                 </View>
-              )}
+              </View>
 
-              {/* Action Buttons */}
-              <View className="flex-row mt-4">
+              {/* Due Date Field */}
+              <View style={{ marginBottom: 24 }}>
+                <View className="flex-row items-center" style={{ marginBottom: 12 }}>
+                  <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
+                    <Ionicons name="calendar" size={14} color="#059669" />
+                  </View>
+                  <Text className="text-gray-800 font-semibold">Due Date</Text>
+                </View>
                 <TouchableOpacity
-                  className="flex-1 bg-gray-50 py-3 rounded-[12px] items-center border border-gray-200 mr-3"
-                  onPress={handleCloseModal}
+                  className="bg-white px-4 py-4 rounded-xl border border-gray-200 flex-row items-center justify-between"
                 >
-                  <Text className="text-gray-600 text-[14px] font-semibold">Cancel</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handleGenerateTask}
-                  disabled={!recordingUri}
-                  className="flex-1 flex-row items-center justify-center py-3 rounded-[12px] relative"
-                >
-                  {/* Background gradient */}
-                  {recordingUri && (
-                    <LinearGradient
-                      colors={['#10b981', '#059669']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        borderRadius: 12,
-                      }}
-                    />
-                  )}
-
-                  <Ionicons
-                    name="sparkles"
-                    size={16}
-                    color={recordingUri ? 'white' : '#9CA3AF'}
-                  />
                   <Text
-                    className={`ml-2 text-[14px] font-semibold ${recordingUri ? 'text-white' : 'text-gray-400'
-                      }`}
+                    className={`text-base ${task.dueDate ? 'text-gray-800' : 'text-gray-400'}`}
                   >
-                    Generate Task
+                    {task.dueDate ? formatDate(task.dueDate) : 'Due date will appear here'}
                   </Text>
+                  <Ionicons name="calendar-outline" size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Estimated Time Field */}
+              <View style={{ marginBottom: 32 }}>
+                <View className="flex-row items-center" style={{ marginBottom: 12 }}>
+                  <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
+                    <Ionicons name="time" size={14} color="#059669" />
+                  </View>
+                  <Text className="text-gray-800 font-semibold">Estimated Time</Text>
+                </View>
+                <TextInput
+                  value={task.estimatedTime}
+                  onChangeText={(text) => setTask({ ...task, estimatedTime: text })}
+                  className="bg-white px-4 py-4 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300"
+                  placeholder={task.estimatedTime ? "How long will this take?" : "Estimated time will appear here"}
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+            </View>
+
+            {/* Action Buttons */}
+            <View style={{ marginTop: 32 }}>
+              <TouchableOpacity
+                onPress={handleSave}
+                className={`py-4 rounded-xl items-center flex-row justify-center ${task.title ? 'bg-emerald-600' : 'bg-gray-300'
+                  }`}
+                activeOpacity={0.8}
+                style={{ marginBottom: 16 }}
+                disabled={!task.title}
+              >
+                <Ionicons name="checkmark-circle" size={20} color={task.title ? "white" : "#9CA3AF"} />
+                <Text className={`text-base font-semibold ml-2 ${task.title ? 'text-white' : 'text-gray-500'}`}>
+                  {task.title ? 'Save Task' : 'Save (Unavailable)'}
+                </Text>
+              </TouchableOpacity>
+
+              <View className="flex-row">
+                <TouchableOpacity
+                  onPress={handleRegenerate}
+                  className="flex-1 bg-white py-4 rounded-xl items-center flex-row justify-center border border-gray-200"
+                  style={{ marginRight: 12 }}
+                >
+                  <Ionicons name="mic" size={18} color="#6B7280" />
+                  <Text className="text-gray-700 font-medium ml-2">New Voice Task</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleCancel}
+                  className="flex-1 bg-white py-4 rounded-xl items-center flex-row justify-center border border-gray-200"
+                  style={{ marginLeft: 12 }}
+                >
+                  <Ionicons name="close" size={18} color="#6B7280" />
+                  <Text className="text-gray-700 font-medium ml-2">Cancel</Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
-        </Modal>
+        </ScrollView>
+      }
 
-      </View>
-    </>
+      {/* Voice Input Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showVoiceModal}
+        onRequestClose={handleCloseModal}
+      >
+        {showVoiceModal && (
+          <StatusBar backgroundColor="#00000066" barStyle="dark-content" />
+        )}
+
+        <View className="flex-1 bg-black/40 justify-center items-center">
+          <View
+            className={`bg-gray-50 w-[85%] p-5 rounded-3xl ${recordingUri ? 'h-[50%]' : 'h-[60%]'
+              }`}
+          >
+            {/* Permission Warning */}
+            {!isPermissionGranted && (
+              <View className="bg-rose-50 border border-rose-200 rounded-[12px] p-4 mb-6">
+                <View className="flex-row items-center">
+                  <Ionicons name="warning" size={20} color="#dc2626" />
+                  <Text className="text-rose-700 font-medium ml-3 flex-1">
+                    Microphone permission required
+                  </Text>
+                </View>
+                <Text className="text-rose-600 text-sm mt-2 ml-8">
+                  Enable microphone access in settings
+                </Text>
+              </View>
+            )}
+
+            {/* Recording Section - Only show when NOT recording and NO recording exists */}
+            {!recordingUri && !recorder.isRecording && (
+              <View className="flex-1 items-center justify-center mb-6">
+                <View className="relative mb-8 w-24 h-24">
+                  <TouchableOpacity
+                    onPress={handleRecordPress}
+                    disabled={!isPermissionGranted}
+                    className={`w-24 h-24 rounded-full justify-center items-center ${getRecordButtonStyle()}`}
+                  >
+                    <Ionicons
+                      name="mic"
+                      size={32}
+                      color="white"
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <Text className="text-gray-600 text-center mb-2">
+                  {!isPermissionGranted
+                    ? 'Grant microphone access'
+                    : 'Tap to start recording'}
+                </Text>
+              </View>
+            )}
+
+            {/* Recording Section - Show during recording with animation */}
+            {recorder.isRecording && (
+              <View className="flex-1 items-center justify-center mb-6">
+                <View className="relative mb-8 w-24 h-24">
+                  <RecordingAnimation
+                    isRecording={recorder.isRecording}
+                    size={96}
+                  />
+
+                  <TouchableOpacity
+                    onPress={handleRecordPress}
+                    className="w-24 h-24 rounded-full justify-center items-center bg-emerald-500"
+                  >
+                    <Ionicons
+                      name="stop"
+                      size={32}
+                      color="white"
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <Text className="text-gray-600 text-center mb-2">
+                  Recording... Tap to stop
+                </Text>
+                <Text className="text-emerald-600 font-mono text-lg">
+                  {formatTime(recordingTime)}
+                </Text>
+              </View>
+            )}
+
+            {/* Playback Controls - Show after recording is complete */}
+            {recordingUri && (
+              <View className="flex-1 justify-center">
+                <View className="bg-emerald-50 rounded-[12px] p-5 mb-6 border border-emerald-200">
+                  <View className="mb-4">
+                    <AudioVisualizer
+                      mode={recorder.isRecording ? 'recording' : 'playback'}
+                      isActive={recorder.isRecording || isPlaying}
+                      currentTime={recorder.isRecording ? recordingTime : playbackTime}
+                      duration={recorder.isRecording ? recordingTime : duration}
+                    />
+                  </View>
+
+                  <View className="flex-row justify-center items-center" style={{ gap: 5 }}>
+                    {isPlaying ?
+                      <TouchableOpacity
+                        onPress={stopPlayback}
+                        className="w-10 h-10 bg-gray-500 rounded-[12px] justify-center items-center"
+                      >
+                        <Ionicons name="stop" size={20} color="white" />
+                      </TouchableOpacity>
+                      :
+                      <TouchableOpacity
+                        onPress={playRecording}
+                        className="w-12 h-12 bg-emerald-500 rounded-full justify-center items-center"
+                      >
+                        <Ionicons
+                          name={isPlaying ? 'pause' : 'play'}
+                          size={22}
+                          color="white"
+                        />
+                      </TouchableOpacity>
+                    }
+
+                    <TouchableOpacity
+                      onPress={resetRecording}
+                      className="py-3 px-4 rounded-[12px] relative overflow-hidden"
+                    >
+                      <LinearGradient
+                        colors={['#059669', '#10b981']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        className="absolute inset-0 rounded-[12px]"
+                      />
+                      <View className="flex-row items-center z-10">
+                        <Ionicons name="mic" size={16} color="white" />
+                        <Text className="text-white font-semibold text-sm ml-2">Record Again</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Action Buttons */}
+            <View className="flex-row mt-4">
+              <TouchableOpacity
+                className="flex-1 bg-gray-50 py-3 rounded-[12px] items-center border border-gray-200 mr-3"
+                onPress={handleCloseModal}
+              >
+                <Text className="text-gray-600 text-[14px] font-semibold">Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleGenerateTask}
+                disabled={!recordingUri}
+                className="flex-1 flex-row items-center justify-center py-3 rounded-[12px] relative"
+              >
+                {recordingUri && (
+                  <LinearGradient
+                    colors={['#10b981', '#059669']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      borderRadius: 12,
+                    }}
+                  />
+                )}
+
+                <Ionicons
+                  name="sparkles"
+                  size={16}
+                  color={recordingUri ? 'white' : '#9CA3AF'}
+                />
+                <Text
+                  className={`ml-2 text-[14px] font-semibold ${recordingUri ? 'text-white' : 'text-gray-400'
+                    }`}
+                >
+                  Generate Task
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
