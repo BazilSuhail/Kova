@@ -1,12 +1,14 @@
-import { COLORS } from '@/constants/colors';
+// CustomTabBar.js
 import { TAB_CONFIG } from '@/constants/tabConfig';
 import { usePathname, useRouter, useSegments } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import { useMemo } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ActiveIndicator from './ActiveIndicator';
 
 function CustomTabBar() {
+    const { colorScheme } = useColorScheme();
     const router = useRouter();
     const pathname = usePathname();
     const segments = useSegments();
@@ -30,6 +32,12 @@ function CustomTabBar() {
         router.push(tab.path);
     };
 
+    // Dynamic colors based on theme
+    const backgroundColor = colorScheme === 'dark' ? '#1f2937' : '#ffffff'; // gray-800 / white
+    const borderColor = colorScheme === 'dark' ? '#374151' : '#e5e7eb'; // gray-700 / gray-200
+    const textActiveColor = colorScheme === 'dark' ? '#ffffff' : '#111827'; // white / gray-900
+    const textInactiveColor = colorScheme === 'dark' ? '#9ca3af' : '#6b7280'; // gray-400 / gray-500
+
     return (
         <View
             style={{
@@ -37,9 +45,9 @@ function CustomTabBar() {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                backgroundColor: COLORS.cardBackground,
+                backgroundColor,
                 borderTopWidth: 1,
-                borderTopColor: COLORS.tabBarBorder,
+                borderTopColor: borderColor,
                 flexDirection: 'row',
                 paddingTop: 8,
                 paddingBottom: insets.bottom,
@@ -49,8 +57,10 @@ function CustomTabBar() {
         >
             {TAB_CONFIG.map((tab, index) => {
                 const isActive = activeIndex === index;
-                const color = isActive ? COLORS.primary : COLORS.iconInactive;
-                const textColor = isActive ? COLORS.textActive : COLORS.textInactive;
+                const color = isActive 
+                    ? (colorScheme === 'dark' ? '#ecfdf5' : '#10b981') // emerald-400 / emerald-500
+                    : (colorScheme === 'dark' ? '#9ca3af' : '#94a3b8'); // gray-400 / slate-400
+                const textColor = isActive ? textActiveColor : textInactiveColor;
 
                 return (
                     <TouchableOpacity
@@ -78,7 +88,6 @@ function CustomTabBar() {
                             >
                                 {tab.label}
                             </Text>
-
                         </View>
                     </TouchableOpacity>
                 );

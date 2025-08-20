@@ -1,8 +1,10 @@
-import { COLORS } from "@/constants/colors";
+// ActiveIndicator.js
+import { useColorScheme } from 'nativewind';
 import React, { useEffect, useRef } from "react";
 import { Animated } from "react-native";
 
 const ActiveIndicator = ({ isActive }) => {
+  const { colorScheme } = useColorScheme();
   const widthAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -40,7 +42,7 @@ const ActiveIndicator = ({ isActive }) => {
         ],
         width: widthAnim,
         height: 34,
-        backgroundColor: COLORS.indicator,
+        backgroundColor: colorScheme === 'dark' ? '#10b981' : '#d1fae5', // emerald-400 / emerald-500
         borderRadius: 20,
       }}
     />

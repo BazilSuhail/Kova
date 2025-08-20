@@ -1,200 +1,313 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { Alert, ScrollView, Switch, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useColorScheme } from 'nativewind';
+import { Alert, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 
-// Mock user data
+// Mock user data for AI assistant
 const user = {
   name: 'Bazil Suhail',
   email: 'bazilsuhail@example.com',
+  aiAssistantName: 'Nova AI',
+  memberSince: 'March 2024',
+  totalConversations: 1247,
+  favoriteTopics: ['Technology', 'Creative Writing', 'Problem Solving']
 };
 
-export default function SettingsScreen() {
-  const colorScheme = useColorScheme();
-  
-  // State for toggles
-  const [darkMode, setDarkMode] = useState(false);
-  const [notifications, setNotifications] = useState(true);
-  const [offlineMode, setOfflineMode] = useState(false);
-  
-  // Force light mode colors even if system is dark
-  const isDarkMode = colorScheme === 'dark';
-  const backgroundColor = '#f9fafb'; // gray-50
-  const textColor = '#1f2937'; // gray-800
-  const subtitleColor = '#6b7280'; // gray-500
-  const cardBackgroundColor = '#ffffff'; // white
-  const switchTrackColor = { false: '#d1d5db', true: '#059669' }; // gray-300, emerald-600
+// Mock AI assistant stats
+const aiStats = {
+  responsesGenerated: 15420,
+  accuracy: 98.5,
+  userSatisfaction: 4.9,
+  uptime: 99.9
+};
+
+export default function ProfileSettingsScreen() {
+  const { colorScheme, setColorScheme } = useColorScheme();
+
+  const toggleDarkMode = (value) => {
+    setColorScheme(value ? 'dark' : 'light');
+  };
 
   const handleLogout = () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
+      'Sign Out',
+      'Are you sure you want to sign out of your AI assistant?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive' },
+        { text: 'Sign Out', style: 'destructive' },
       ]
     );
   };
 
+  const showComingSoon = (feature) => {
+    Alert.alert(
+      'Coming Soon',
+      `${feature} will be available in the next update!`,
+      [{ text: 'Got it', style: 'default' }]
+    );
+  };
+
   return (
-    <View className="flex-1" style={{ backgroundColor: backgroundColor }}>
+    <View className="flex-1 bg-gray-50 dark:bg-gray-950">
       <ScrollView
-        className="flex-1 pt-12"
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={{ marginBottom: 24 }}>
-          <Text className="text-3xl font-extrabold" style={{ color: textColor }}>Settings</Text>
-          <Text className="text-base" style={{ color: subtitleColor, marginTop: 4 }}>
-            Manage your preferences
-          </Text>
-        </View>
 
-        {/* User Info Card */}
-        <View
-          className="rounded-2xl p-4 mb-6"
-          style={{ 
-            backgroundColor: cardBackgroundColor,
-            shadowColor: '#000', 
-            shadowOffset: { width: 0, height: 1 }, 
-            shadowOpacity: 0.1, 
-            shadowRadius: 3, 
-            elevation: 2 
-          }}
-        >
-          <Text className="text-xl font-semibold" style={{ color: textColor }}>{user.name}</Text>
-          <Text className="text-sm" style={{ color: subtitleColor, marginTop: 2 }}>
-            {user.email}
-          </Text>
-        </View>
+        <View className="px-4 -mt-4">
+          {/* Profile Card */}
+          <View className="bg-white dark:bg-gray-800 rounded-3xl p-6 mb-6 shadow-lg">
+            <View className="flex-row items-center mb-4">
+              <View className="w-16 h-16 bg-emerald-600 rounded-full items-center justify-center mr-4">
+                <Text className="text-white text-xl font-bold">
+                  {user.name.split(' ').map(n => n[0]).join('')}
+                </Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-xl font-bold text-gray-800 dark:text-white">
+                  {user.name}
+                </Text>
+                <Text className="text-sm text-gray-500 dark:text-gray-400">
+                  {user.email}
+                </Text>
+                <View className="flex-row items-center mt-1">
+                  <Ionicons name="time-outline" size={14} color="#6b7280" />
+                  <Text className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                    Member since {user.memberSince}
+                  </Text>
+                </View>
+              </View>
+            </View>
 
-        {/* Settings List */}
-        <View>
-          {/* Dark Mode (Emerald Toggle) */}
-          <StaticSettingItem
+            {/* Stats Row */}
+            <View className="flex-row justify-between bg-gray-50 dark:bg-gray-700 rounded-2xl p-4">
+              <View className="items-center flex-1">
+                <Text className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                  {user.totalConversations}
+                </Text>
+                <Text className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Conversations
+                </Text>
+              </View>
+              <View className="w-px bg-gray-200 dark:bg-gray-600 mx-4" />
+              <View className="items-center flex-1">
+                <Text className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                  {user.favoriteTopics.length}
+                </Text>
+                <Text className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Topics
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* AI Assistant Info */}
+          <View className="bg-white dark:bg-gray-800 rounded-3xl p-6 mb-6 shadow-lg">
+            <View className="flex-row items-center mb-4">
+              <View className="w-12 h-12 bg-emerald-500 rounded-full items-center justify-center mr-3">
+                <Ionicons name="sparkles" size={20} color="white" />
+              </View>
+              <View>
+                <Text className="text-lg font-semibold text-gray-800 dark:text-white">
+                  {user.aiAssistantName}
+                </Text>
+                <Text className="text-sm text-emerald-600 dark:text-emerald-400">
+                  Your Personal AI Assistant
+                </Text>
+              </View>
+            </View>
+
+            {/* AI Stats Grid */}
+            <View className="flex-row flex-wrap justify-between">
+              <StatCard
+                title="Responses"
+                value={aiStats.responsesGenerated.toLocaleString()}
+                icon="chatbubbles-outline"
+              />
+              <StatCard
+                title="Accuracy"
+                value={`${aiStats.accuracy}%`}
+                icon="checkmark-circle-outline"
+              />
+              <StatCard
+                title="Rating"
+                value={`${aiStats.userSatisfaction}/5`}
+                icon="star-outline"
+              />
+              <StatCard
+                title="Uptime"
+                value={`${aiStats.uptime}%`}
+                icon="pulse-outline"
+              />
+            </View>
+          </View>
+
+          {/* Settings Sections */}
+          <Text className="text-lg font-bold text-gray-800 dark:text-white mb-4 px-2">
+            Preferences
+          </Text>
+
+          {/* Appearance Settings */}
+          <SettingItem
             icon="moon"
             label="Dark Mode"
-            value={darkMode}
-            onValueChange={setDarkMode}
+            value={colorScheme === 'dark'}
+            onValueChange={toggleDarkMode}
             type="toggle"
-            color="#059669"
-            textColor={textColor}
-            subtitleColor={subtitleColor}
-            cardBackgroundColor={cardBackgroundColor}
-            switchTrackColor={switchTrackColor}
           />
 
-          {/* Notifications */}
-          <StaticSettingItem
+          <SettingItem
             icon="notifications"
-            label="Notifications"
-            value={notifications}
-            onValueChange={setNotifications}
+            label="Push Notifications"
+            value={true}
             type="toggle"
-            color="#059669"
-            textColor={textColor}
-            subtitleColor={subtitleColor}
-            cardBackgroundColor={cardBackgroundColor}
-            switchTrackColor={switchTrackColor}
           />
 
-          {/* Offline Mode */}
-          <StaticSettingItem
-            icon="cloud-offline"
-            label="Offline Mode"
-            value={offlineMode}
-            onValueChange={setOfflineMode}
+          <SettingItem
+            icon="mic"
+            label="Voice Responses"
+            value={false}
             type="toggle"
-            color="#059669"
-            textColor={textColor}
-            subtitleColor={subtitleColor}
-            cardBackgroundColor={cardBackgroundColor}
-            switchTrackColor={switchTrackColor}
           />
 
-          {/* Language */}
-          <StaticSettingItem
-            icon="language"
-            label="Language"
-            value="English"
+          <Text className="text-lg font-bold text-gray-800 dark:text-white mb-4 mt-6 px-2">
+            AI Configuration
+          </Text>
+
+          <SettingItem
+            icon="flash"
+            label="Response Speed"
+            value="Fast"
             type="option"
-            color="#059669"
-            textColor={textColor}
-            subtitleColor={subtitleColor}
-            cardBackgroundColor={cardBackgroundColor}
+            onPress={() => showComingSoon('Response Speed Settings')}
           />
 
-          {/* Account Settings */}
-          <StaticSettingItem
+          <SettingItem
+            icon="school"
+            label="Learning Mode"
+            value={true}
+            type="toggle"
+          />
+
+          <SettingItem
+            icon="shield-checkmark"
+            label="Safety Filters"
+            value="Standard"
+            type="option"
+            onPress={() => showComingSoon('Safety Filter Settings')}
+          />
+
+          <Text className="text-lg font-bold text-gray-800 dark:text-white mb-4 mt-6 px-2">
+            Account
+          </Text>
+
+          <SettingItem
             icon="person-circle"
             label="Account Settings"
             type="nav"
-            color="#059669"
-            textColor={textColor}
-            subtitleColor={subtitleColor}
-            cardBackgroundColor={cardBackgroundColor}
+            onPress={() => showComingSoon('Account Settings')}
           />
-        </View>
 
-        {/* Logout Button */}
-        <TouchableOpacity
-          onPress={handleLogout}
-          className="mt-8 flex-row items-center justify-center bg-rose-500 py-4 rounded-2xl"
-        >
-          <Ionicons name="log-out-outline" size={20} color="white" />
-          <Text className="text-white font-semibold ml-2">Logout</Text>
-        </TouchableOpacity>
+          <SettingItem
+            icon="card"
+            label="Subscription"
+            value="Pro Plan"
+            type="option"
+            onPress={() => showComingSoon('Subscription Management')}
+          />
+
+          <SettingItem
+            icon="download"
+            label="Export Data"
+            type="nav"
+            onPress={() => showComingSoon('Data Export')}
+          />
+
+          <SettingItem
+            icon="help-circle"
+            label="Help & Support"
+            type="nav"
+            onPress={() => showComingSoon('Help Center')}
+          />
+
+          {/* Logout Button */}
+          <TouchableOpacity
+            onPress={handleLogout}
+            className="mt-8 flex-row items-center justify-center bg-red-500 py-4 rounded-2xl shadow-lg"
+          >
+            <Ionicons name="log-out-outline" size={20} color="white" />
+            <Text className="text-white font-semibold ml-2 text-base">Sign Out</Text>
+          </TouchableOpacity>
+
+          {/* App Version */}
+          <Text className="text-center text-xs text-gray-400 dark:text-gray-500 mt-6">
+            Nova AI v2.1.0 • Build 2024.03.15
+          </Text>
+        </View>
       </ScrollView>
     </View>
   );
 }
 
-function StaticSettingItem({ 
-  icon, 
-  label, 
-  value, 
-  onValueChange,
-  type = 'toggle', 
-  color,
-  textColor,
-  subtitleColor,
-  cardBackgroundColor,
-  switchTrackColor
-}) {
+function StatCard({ title, value, icon }) {
   return (
-    <View
-      className="rounded-2xl px-4 py-4 mb-3 flex-row items-center justify-between"
-      style={{
-        backgroundColor: cardBackgroundColor,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.08,
-        shadowRadius: 2,
-        elevation: 1,
-      }}
+    <View className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-3 mb-3" style={{ width: '48%' }}>
+      <View className="flex-row items-center justify-between">
+        <View>
+          <Text className="text-xs text-gray-500 dark:text-gray-400 mb-1">{title}</Text>
+          <Text className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+            {value}
+          </Text>
+        </View>
+        <Ionicons name={icon} size={20} color="#10b981" />
+      </View>
+    </View>
+  );
+}
+
+function SettingItem({ icon, label, value, onValueChange, type = 'toggle', onPress, color = '#10b981' }) {
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    }
+  };
+
+  return (
+    <TouchableOpacity
+      onPress={type === 'nav' || type === 'option' ? handlePress : undefined}
+      className="flex-row mb-3 items-center justify-between bg-white dark:bg-gray-800 rounded-2xl px-5 py-3 shadow-sm border border-gray-100 dark:border-gray-700"
+      activeOpacity={type === 'nav' || type === 'option' ? 0.7 : 1}
     >
-      {/* Icon + Label */}
-      <View className="flex-row items-center">
-        <Ionicons name={`${icon}-outline`} size={22} color={color} />
-        <Text className="ml-3 text-base font-medium" style={{ color: textColor }}>{label}</Text>
+      <View className="flex-row items-center flex-1">
+        <View className="w-11 h-11 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl items-center justify-center mr-4">
+          <Ionicons name={icon} size={22} color={color} />
+        </View>
+        <Text className="text-base font-semibold text-gray-900 dark:text-white flex-1">
+          {label}
+        </Text>
       </View>
 
-      {/* Right-side Control */}
-      {type === 'toggle' ? (
-        <Switch
-          value={value}
-          onValueChange={onValueChange}
-          trackColor={switchTrackColor}
-          thumbColor="#ffffff"
-        />
-      ) : type === 'option' ? (
-        <Text className="text-sm" style={{ color: subtitleColor }}>{value}</Text>
-      ) : (
-        <Ionicons 
-          name="chevron-forward" 
-          size={20} 
-          color="#94a3b8"
-        />
-      )}
-    </View>
+      <View className="ml-3">
+        {type === 'toggle' ? (
+          <Switch
+            value={value}
+            onValueChange={onValueChange}
+            trackColor={{ false: '#e5e7eb', true: '#10b981' }}
+            thumbColor="#ffffff"
+            ios_backgroundColor="#e5e7eb"
+          />
+        ) : type === 'option' ? (
+          <View className="flex-row items-center">
+            <Text className="text-sm font-medium text-emerald-600 dark:text-emerald-400 mr-2">
+              {value}
+            </Text>
+            <Ionicons name="chevron-forward" size={18} color="#10b981" />
+          </View>
+        ) : (
+          <Ionicons name="chevron-forward" size={18} color="#10b981" />
+        )}
+      </View>
+    </TouchableOpacity>
   );
 }

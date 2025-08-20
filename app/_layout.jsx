@@ -1,14 +1,16 @@
 import * as NavigationBar from "expo-navigation-bar";
 import { Stack } from "expo-router";
-import { StatusBar, useColorScheme } from "react-native";
+import { StatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import "../global.css";
+import { useColorScheme } from "nativewind";
 NavigationBar.setButtonStyleAsync("dark");
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
   console.log(colorScheme)
+
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
