@@ -2,8 +2,9 @@ import TaskCreationModal from '@/components/tasks/TaskCreationModal';
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native'; 
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import SwipeableTaskItem from '@/components/tasks/SwipeableTaskItem';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Mock Task Data
 const tasks = [
@@ -20,6 +21,7 @@ const tasks = [
 ];
 
 export default function TasksScreen() {
+  const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
   const [taskList, setTaskList] = useState(tasks);
 
@@ -42,16 +44,14 @@ export default function TasksScreen() {
     >
       <Link href={`/tasks/${item.id}`} className="mb-4">
         <View
-          className={`flex-row items-center rounded-xl bg-white border-l-4 px-4 py-4 ${
-            item.isCompleted ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300'
-          }`}
+          className={`flex-row items-center rounded-xl bg-white border-l-4 px-4 py-4 ${item.isCompleted ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300'
+            }`}
         >
           {/* Checkbox */}
           <TouchableOpacity className="mr-4">
             <View
-              className={`w-6 h-6 rounded-full items-center justify-center ${
-                item.isCompleted ? 'bg-emerald-500' : 'border-2 border-gray-300'
-              }`}
+              className={`w-6 h-6 rounded-full items-center justify-center ${item.isCompleted ? 'bg-emerald-500' : 'border-2 border-gray-300'
+                }`}
             >
               {item.isCompleted && (
                 <Ionicons name="checkmark" size={16} color="white" />
@@ -62,9 +62,8 @@ export default function TasksScreen() {
           {/* Task Content */}
           <View className="flex-1 min-w-0">
             <Text
-              className={`text-base font-medium ${
-                item.isCompleted ? 'text-emerald-700 line-through' : 'text-gray-800'
-              }`}
+              className={`text-base font-medium ${item.isCompleted ? 'text-emerald-700 line-through' : 'text-gray-800'
+                }`}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -72,20 +71,18 @@ export default function TasksScreen() {
             </Text>
             <View className="flex-row items-center mt-1">
               <View
-                className={`w-2 h-2 rounded-full mr-2 ${
-                  item.category === 'Academics'
+                className={`w-2 h-2 rounded-full mr-2 ${item.category === 'Academics'
                     ? 'bg-amber-400'
                     : item.category === 'Health'
                       ? 'bg-rose-400'
                       : item.category === 'Fitness'
                         ? 'bg-sky-400'
                         : 'bg-purple-400'
-                }`}
+                  }`}
               />
               <Text
-                className={`text-xs ${
-                  item.isCompleted ? 'text-emerald-600' : 'text-gray-500'
-                } capitalize`}
+                className={`text-xs ${item.isCompleted ? 'text-emerald-600' : 'text-gray-500'
+                  } capitalize`}
               >
                 {item.category}
               </Text>
@@ -105,16 +102,14 @@ export default function TasksScreen() {
   const renderSimpleTask = (item) => (
     <View key={item.id} className="mb-4 opacity-50">
       <View
-        className={`flex-row items-center rounded-xl bg-white border-l-4 px-4 py-4 ${
-          item.isCompleted ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300'
-        }`}
+        className={`flex-row items-center rounded-xl bg-white border-l-4 px-4 py-4 ${item.isCompleted ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300'
+          }`}
       >
         {/* Checkbox */}
         <View className="mr-4">
           <View
-            className={`w-6 h-6 rounded-full items-center justify-center ${
-              item.isCompleted ? 'bg-emerald-500' : 'border-2 border-gray-300'
-            }`}
+            className={`w-6 h-6 rounded-full items-center justify-center ${item.isCompleted ? 'bg-emerald-500' : 'border-2 border-gray-300'
+              }`}
           >
             {item.isCompleted && (
               <Ionicons name="checkmark" size={16} color="white" />
@@ -125,9 +120,8 @@ export default function TasksScreen() {
         {/* Task Content */}
         <View className="flex-1 min-w-0">
           <Text
-            className={`text-base font-medium ${
-              item.isCompleted ? 'text-emerald-700 line-through' : 'text-gray-800'
-            }`}
+            className={`text-base font-medium ${item.isCompleted ? 'text-emerald-700 line-through' : 'text-gray-800'
+              }`}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -135,20 +129,18 @@ export default function TasksScreen() {
           </Text>
           <View className="flex-row items-center mt-1">
             <View
-              className={`w-2 h-2 rounded-full mr-2 ${
-                item.category === 'Academics'
+              className={`w-2 h-2 rounded-full mr-2 ${item.category === 'Academics'
                   ? 'bg-amber-400'
                   : item.category === 'Health'
                     ? 'bg-rose-400'
                     : item.category === 'Fitness'
                       ? 'bg-sky-400'
                       : 'bg-purple-400'
-              }`}
+                }`}
             />
             <Text
-              className={`text-xs ${
-                item.isCompleted ? 'text-emerald-600' : 'text-gray-500'
-              } capitalize`}
+              className={`text-xs ${item.isCompleted ? 'text-emerald-600' : 'text-gray-500'
+                } capitalize`}
             >
               {item.category}
             </Text>
@@ -170,7 +162,7 @@ export default function TasksScreen() {
     <View className="flex-1 bg-gray-50">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 20 }}
+        contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 80, paddingHorizontal: 20 }}
         className="bg-gray-50 flex-1"
         scrollEnabled={!modalVisible} // Disable scroll when modal is open
       >
@@ -229,7 +221,7 @@ export default function TasksScreen() {
       {/* Floating Action Button */}
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
-        className="absolute bottom-6 right-6 w-14 h-14 bg-emerald-500 rounded-full items-center justify-center"
+        className="absolute bottom-[85px] right-6 w-14 h-14 bg-emerald-500 rounded-full items-center justify-center"
       >
         <Ionicons name="add" size={28} color="white" />
       </TouchableOpacity>

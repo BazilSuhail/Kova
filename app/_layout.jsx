@@ -4,12 +4,11 @@ import { StatusBar, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import "../global.css";
-
-// Force nav bar icons to dark (for white background)
 NavigationBar.setButtonStyleAsync("dark");
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  console.log(colorScheme)
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>

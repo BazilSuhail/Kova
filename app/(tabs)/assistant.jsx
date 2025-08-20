@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
-import { SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TodoManagerScreen() {
+  const insets = useSafeAreaInsets();
   // Sample task data
   const tasks = [
     {
@@ -50,18 +52,12 @@ export default function TodoManagerScreen() {
   // AI Assistant options
   const aiOptions = [
     {
-      title: "Checklist Generator",
-      desc: "Turn goals into actionable checklists",
-      icon: "list-outline",
-      href: "/assistant/create-sub-tasks",
-    },
-    {
       title: "Quick Add from Camera",
       desc: "Capture tasks from images",
       icon: "camera-outline",
       href: "/assistant/image-to-tasks",
     },
-     {
+    {
       title: "Notes summaires",
       desc: "Capture tasks from images",
       icon: "camera-outline",
@@ -145,11 +141,9 @@ export default function TodoManagerScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
-
+    <View className="flex-1 bg-[#F6F7F8]">
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 10 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: insets.top }}
         showsVerticalScrollIndicator={false}
       >
         {/* Main Title */}
@@ -245,14 +239,6 @@ export default function TodoManagerScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        className="absolute bottom-6 right-6 w-14 h-14 bg-emerald-500 rounded-full items-center justify-center"
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={28} color="white" />
-      </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 }

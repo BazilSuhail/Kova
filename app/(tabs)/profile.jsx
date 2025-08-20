@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Alert, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, ScrollView, Switch, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 // Mock user data
 const user = {
@@ -8,8 +9,20 @@ const user = {
 };
 
 export default function SettingsScreen() {
-  // Temporarily disable dark mode — removed useColorScheme
-  const isDarkMode = false; // Placeholder, not used
+  const colorScheme = useColorScheme();
+  
+  // State for toggles
+  const [darkMode, setDarkMode] = useState(false);
+  const [notifications, setNotifications] = useState(true);
+  const [offlineMode, setOfflineMode] = useState(false);
+  
+  // Force light mode colors even if system is dark
+  const isDarkMode = colorScheme === 'dark';
+  const backgroundColor = '#f9fafb'; // gray-50
+  const textColor = '#1f2937'; // gray-800
+  const subtitleColor = '#6b7280'; // gray-500
+  const cardBackgroundColor = '#ffffff'; // white
+  const switchTrackColor = { false: '#d1d5db', true: '#059669' }; // gray-300, emerald-600
 
   const handleLogout = () => {
     Alert.alert(
@@ -23,26 +36,33 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1" style={{ backgroundColor: backgroundColor }}>
       <ScrollView
         className="flex-1 pt-12"
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
       >
         {/* Header */}
         <View style={{ marginBottom: 24 }}>
-          <Text className="text-3xl font-extrabold text-gray-800">Settings</Text>
-          <Text className="text-base text-gray-500" style={{ marginTop: 4 }}>
+          <Text className="text-3xl font-extrabold" style={{ color: textColor }}>Settings</Text>
+          <Text className="text-base" style={{ color: subtitleColor, marginTop: 4 }}>
             Manage your preferences
           </Text>
         </View>
 
         {/* User Info Card */}
         <View
-          className="bg-white rounded-2xl p-4 mb-6"
-          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 }}
+          className="rounded-2xl p-4 mb-6"
+          style={{ 
+            backgroundColor: cardBackgroundColor,
+            shadowColor: '#000', 
+            shadowOffset: { width: 0, height: 1 }, 
+            shadowOpacity: 0.1, 
+            shadowRadius: 3, 
+            elevation: 2 
+          }}
         >
-          <Text className="text-xl font-semibold text-gray-800">{user.name}</Text>
-          <Text className="text-sm text-gray-500" style={{ marginTop: 2 }}>
+          <Text className="text-xl font-semibold" style={{ color: textColor }}>{user.name}</Text>
+          <Text className="text-sm" style={{ color: subtitleColor, marginTop: 2 }}>
             {user.email}
           </Text>
         </View>
@@ -53,27 +73,42 @@ export default function SettingsScreen() {
           <StaticSettingItem
             icon="moon"
             label="Dark Mode"
-            value={false}
+            value={darkMode}
+            onValueChange={setDarkMode}
             type="toggle"
-            color="#059669" // emerald-600
+            color="#059669"
+            textColor={textColor}
+            subtitleColor={subtitleColor}
+            cardBackgroundColor={cardBackgroundColor}
+            switchTrackColor={switchTrackColor}
           />
 
           {/* Notifications */}
           <StaticSettingItem
             icon="notifications"
             label="Notifications"
-            value={true}
+            value={notifications}
+            onValueChange={setNotifications}
             type="toggle"
             color="#059669"
+            textColor={textColor}
+            subtitleColor={subtitleColor}
+            cardBackgroundColor={cardBackgroundColor}
+            switchTrackColor={switchTrackColor}
           />
 
           {/* Offline Mode */}
           <StaticSettingItem
             icon="cloud-offline"
             label="Offline Mode"
-            value={false}
+            value={offlineMode}
+            onValueChange={setOfflineMode}
             type="toggle"
             color="#059669"
+            textColor={textColor}
+            subtitleColor={subtitleColor}
+            cardBackgroundColor={cardBackgroundColor}
+            switchTrackColor={switchTrackColor}
           />
 
           {/* Language */}
@@ -83,6 +118,9 @@ export default function SettingsScreen() {
             value="English"
             type="option"
             color="#059669"
+            textColor={textColor}
+            subtitleColor={subtitleColor}
+            cardBackgroundColor={cardBackgroundColor}
           />
 
           {/* Account Settings */}
@@ -91,6 +129,9 @@ export default function SettingsScreen() {
             label="Account Settings"
             type="nav"
             color="#059669"
+            textColor={textColor}
+            subtitleColor={subtitleColor}
+            cardBackgroundColor={cardBackgroundColor}
           />
         </View>
 
@@ -107,11 +148,23 @@ export default function SettingsScreen() {
   );
 }
 
-function StaticSettingItem({ icon, label, value, type = 'toggle', color }) {
+function StaticSettingItem({ 
+  icon, 
+  label, 
+  value, 
+  onValueChange,
+  type = 'toggle', 
+  color,
+  textColor,
+  subtitleColor,
+  cardBackgroundColor,
+  switchTrackColor
+}) {
   return (
     <View
-      className="flex-row items-center justify-between bg-white rounded-2xl px-4 py-4 mb-3"
+      className="rounded-2xl px-4 py-4 mb-3 flex-row items-center justify-between"
       style={{
+        backgroundColor: cardBackgroundColor,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.08,
@@ -122,20 +175,25 @@ function StaticSettingItem({ icon, label, value, type = 'toggle', color }) {
       {/* Icon + Label */}
       <View className="flex-row items-center">
         <Ionicons name={`${icon}-outline`} size={22} color={color} />
-        <Text className="ml-3 text-base font-medium text-gray-800">{label}</Text>
+        <Text className="ml-3 text-base font-medium" style={{ color: textColor }}>{label}</Text>
       </View>
 
       {/* Right-side Control */}
       {type === 'toggle' ? (
         <Switch
           value={value}
-          trackColor={{ false: '#d1d5db', true: color }}
+          onValueChange={onValueChange}
+          trackColor={switchTrackColor}
           thumbColor="#ffffff"
         />
       ) : type === 'option' ? (
-        <Text className="text-sm text-gray-500">{value}</Text>
+        <Text className="text-sm" style={{ color: subtitleColor }}>{value}</Text>
       ) : (
-        <Ionicons name="chevron-forward" size={20} color="#94a3b8" /> // slate-400
+        <Ionicons 
+          name="chevron-forward" 
+          size={20} 
+          color="#94a3b8"
+        />
       )}
     </View>
   );
