@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useColorScheme } from 'nativewind';
-import { Alert, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StatusBar, Switch, Text, TouchableOpacity, View } from 'react-native';
 
 // Mock user data for AI assistant
 const user = {
@@ -54,8 +54,41 @@ export default function ProfileSettingsScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
+        <StatusBar
+          backgroundColor={colorScheme === "dark" ? "#030712" : "#f9fafb"}
+          barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
+        />
 
-        <View className="px-4 -mt-4">
+        <View className="relative">
+          <LinearGradient
+            colors={
+              colorScheme === "dark"
+                ? ['#030712', '#065f46'] // dark to emerald
+                : ['#ffffff', '#d1fae5'] // light to emerald
+            }
+            className="px-6 pt-16 pb-20 rounded-b-[22px] overflow-hidden" // increased paddingBottom and borderRadius
+          >
+            {/* Optional subtle overlay for depth */}
+            <View className="absolute inset-0 bg-black/5 dark:bg-white/5 rounded-b-[32px]" />
+
+            <View className="flex-row items-center justify-between relative z-10">
+              <View>
+                <Text className="text-3xl font-extrabold text-emerald-800 dark:text-emerald-100">
+                  Profile & Settings
+                </Text>
+                <Text className="text-base text-emerald-700 dark:text-emerald-300 mt-2">
+                  Manage your AI assistant experience
+                </Text>
+              </View>
+
+              <View className="w-14 h-14 bg-emerald-500 rounded-full items-center justify-center shadow-lg shadow-emerald-800/30">
+                <Ionicons name="person" size={28} color="white" />
+              </View>
+            </View>
+          </LinearGradient>
+        </View>
+
+        <View className="px-4 -mt-10">
           {/* Profile Card */}
           <View className="bg-white dark:bg-gray-800 rounded-3xl p-6 mb-6 shadow-lg">
             <View className="flex-row items-center mb-4">
