@@ -1,5 +1,5 @@
 import CustomTabBar from '@/components/bottom-tab-bar/CustomTabBar';
-import { COLORS } from '@/constants/colors';
+import { COLORS } from '@/constants/color';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { withLayoutContext } from 'expo-router';
 import { Dimensions, View } from 'react-native';
