@@ -91,7 +91,7 @@ export default function HomeScreen() {
       >
         <ScrollView
           className="flex-1"
-          style={{ paddingTop: insets.top + 20 }}
+          style={{ paddingTop: insets.top }}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: insets.bottom+20 }}
         >

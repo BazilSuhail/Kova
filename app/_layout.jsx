@@ -12,7 +12,7 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       {/* White background ensures nav area looks white in Expo Go */}
       <StatusBar
         backgroundColor={colorScheme === "dark" ? "#000" : "#fff"}

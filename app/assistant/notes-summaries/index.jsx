@@ -158,7 +158,7 @@ export default function PdfSummariesScreen() {
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingHorizontal: 20, paddingTop: insets.top + 20 }}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingTop: insets.top + 20 }}
       >
         {/* Header Section */}
         <View className="px-6 pb-6">
