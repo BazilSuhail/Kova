@@ -1,12 +1,14 @@
-import { View, ScrollView, Text } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { DayCell } from "./DayCell";
 
 const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export const CalendarGrid = ({ days, openModal, getCategoryColor }) => (
-  <View className="flex-1 bg-slate-50 dark:bg-transparent">
+export function CalendarGrid ({ days, openModal, getCategoryColor }) {
+  
+ return(
+   <View className="flex-1">
     {/* Weekday Headers */}
-    <View className="flex-row mb-2 px-2">
+    <View className="flex-row mb-2 p">
       {WEEK_DAYS.map((day, index) => (
         <View
           key={`weekday-${index}`}
@@ -34,4 +36,5 @@ export const CalendarGrid = ({ days, openModal, getCategoryColor }) => (
       </View>
     </ScrollView>
   </View>
-);
+ )
+};

@@ -1,4 +1,4 @@
-import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { View, Text, TouchableOpacity } from "react-native";
 import { ViewTypeButton } from "./ViewTypeButton";
 
