@@ -333,7 +333,7 @@ export default function ModernAssistantScreen() {
         <AssistantHeader colorScheme={colorScheme} setColorScheme={setColorScheme} />
 
         {/* AI Tips Section */}
-        <View className="mt-6 bg-emerald-50 to-blue-50 dark:bg-emerald-900/20 mb-5 rounded-3xl p-5 border border-emerald-200 dark:border-emerald-800">
+        <View className="mt-5 mb-10 bg-emerald-50 to-blue-50 dark:bg-emerald-900/20 rounded-3xl p-5 border border-emerald-200 dark:border-emerald-800">
           <View className="flex-row items-center mb-3">
             <View className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 items-center justify-center mr-3">
               <Ionicons name="bulb-outline" size={20} color="#059669" />
@@ -350,13 +350,11 @@ export default function ModernAssistantScreen() {
               Learn more productivity tips →
             </Text>
           </TouchableOpacity>
-        </View>
-        {/* Statistics Overview */}
-        <StatisticsOverview tasks={tasks} />
+        </View> 
 
         {/* AI Assistant Section */}
         <View className="mb-6">
-          <View className="flex-row justify-between items-center mb-4">
+          <View className="flex-row  px-1 justify-between items-center mb-4">
             <Text className="text-xl font-bold text-gray-900 dark:text-white">
               What can I help you with?
             </Text>

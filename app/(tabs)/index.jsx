@@ -51,10 +51,10 @@ const dashboardData = {
 };
 
 // Statistics Component
-const StatisticsOverview = ({ stats }) => { 
+const StatisticsOverview = ({ stats }) => {
 
   return (
-    <View className="bg-white dark:bg-gray-800 rounded-3xl p-5 mb-6 border border-gray-100 dark:border-gray-700">
+    <View className="bg-white dark:bg-gray-800 rounded-3xl mx-4 p-5 mb-6 border border-gray-100 dark:border-gray-700">
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-lg font-bold text-gray-900 dark:text-white">
           Today's Overview
@@ -75,7 +75,7 @@ const StatisticsOverview = ({ stats }) => {
             Completed
           </Text>
         </View>
-        
+
         <View className="items-center">
           <Text className="text-2xl font-bold text-orange-500">
             {stats.completed}
@@ -84,7 +84,7 @@ const StatisticsOverview = ({ stats }) => {
             Pending
           </Text>
         </View>
-        
+
         <View className="items-center">
           <Text className="text-2xl font-bold text-blue-600">
             {stats.completed}
@@ -93,7 +93,7 @@ const StatisticsOverview = ({ stats }) => {
             Total
           </Text>
         </View>
-        
+
         <View className="items-center">
           <Text className="text-2xl font-bold text-purple-600">
             {stats.length}
@@ -118,7 +118,7 @@ const HomeHeader = ({ currentTime, getGreeting, colorScheme, setColorScheme }) =
   };
 
   return (
-    <View className="px-6 mb-8">
+    <View className="px-4 mb-8">
       <View className="flex-row justify-between items-start">
         <View className="flex-1">
           <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -131,19 +131,19 @@ const HomeHeader = ({ currentTime, getGreeting, colorScheme, setColorScheme }) =
             </Text>
           </View>
         </View>
-        
+
         <View className="flex-row items-center">
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}
             className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mr-3 shadow-sm"
           >
-            <Ionicons 
-              name={colorScheme === 'dark' ? "sunny" : "moon"} 
-              size={18} 
+            <Ionicons
+              name={colorScheme === 'dark' ? "sunny" : "moon"}
+              size={18}
               className="text-emerald-600 dark:text-emerald-400"
             />
           </TouchableOpacity>
-          
+
           <TouchableOpacity>
             <LinearGradient
               colors={['#10b981', '#059669']}
@@ -158,68 +158,9 @@ const HomeHeader = ({ currentTime, getGreeting, colorScheme, setColorScheme }) =
   );
 };
 
-// Enhanced Stats Card Component
-function StatsCard({ number, label, icon, color, style }) {
-  const getColorConfig = (color) => {
-    switch (color) {
-      case 'emerald':
-        return {
-          bg: 'bg-emerald-100 dark:bg-emerald-900/30',
-          iconBg: '#10b981',
-          textColor: 'text-emerald-700 dark:text-emerald-400',
-          numberColor: 'text-emerald-600 dark:text-emerald-400'
-        };
-      case 'amber':
-        return {
-          bg: 'bg-amber-100 dark:bg-amber-900/30',
-          iconBg: '#f59e0b',
-          textColor: 'text-amber-700 dark:text-amber-400',
-          numberColor: 'text-amber-600 dark:text-amber-400'
-        };
-      case 'rose':
-        return {
-          bg: 'bg-rose-100 dark:bg-rose-900/30',
-          iconBg: '#fb7185',
-          textColor: 'text-rose-700 dark:text-rose-400',
-          numberColor: 'text-rose-600 dark:text-rose-400'
-        };
-      default:
-        return {
-          bg: 'bg-gray-100 dark:bg-gray-800',
-          iconBg: '#64748b',
-          textColor: 'text-gray-700 dark:text-gray-400',
-          numberColor: 'text-gray-600 dark:text-gray-300'
-        };
-    }
-  };
-
-  const colorConfig = getColorConfig(color);
-
-  return (
-    <View 
-      className={`${colorConfig.bg} rounded-2xl p-4 border border-white/50 dark:border-gray-700/50`}
-      style={style}
-    >
-      <View className="flex-row items-center justify-between mb-2">
-        <Text className={`text-2xl font-bold ${colorConfig.numberColor}`}>
-          {number}
-        </Text>
-        <View 
-          className="w-10 h-10 rounded-2xl items-center justify-center"
-          style={{ backgroundColor: colorConfig.iconBg }}
-        >
-          <Ionicons name={icon} size={18} color="white" />
-        </View>
-      </View>
-      <Text className="text-sm font-medium text-gray-600 dark:text-gray-400">
-        {label}
-      </Text>
-    </View>
-  );
-}
 
 // Enhanced Task Item Component
-function TaskItem({ colorScheme,task, isFirst, isLast, onPress, isSelected }) {
+function TaskItem({ colorScheme, task, isFirst, isLast, onPress, isSelected }) {
   const getCategoryColor = (category) => {
     const colors = {
       'academics': '#f59e0b',
@@ -250,23 +191,21 @@ function TaskItem({ colorScheme,task, isFirst, isLast, onPress, isSelected }) {
   return (
     <Pressable
       onPress={onPress}
-      className={`px-5 py-4 ${
-        task.completed 
-          ? 'bg-emerald-50 dark:bg-emerald-900/20' 
+      className={`px-5 py-4 ${task.completed
+          ? 'bg-emerald-50 dark:bg-emerald-900/20'
           : 'bg-white dark:bg-gray-800'
-      } ${isSelected ? 'bg-gray-50 dark:bg-gray-700' : ''}`}
+        } ${isSelected ? 'bg-gray-50 dark:bg-gray-700' : ''}`}
       style={[
         roundedStyle,
         !isLast && { borderBottomWidth: 1, borderBottomColor: colorScheme === 'dark' ? '#374151' : '#f1f5f9' }
       ]}
     >
       <View className="flex-row items-center">
-        <TouchableOpacity 
-          className={`w-6 h-6 rounded-full border-2 items-center justify-center mr-4 ${
-            task.completed 
-              ? 'bg-emerald-600 border-emerald-600' 
+        <TouchableOpacity
+          className={`w-6 h-6 rounded-full border-2 items-center justify-center mr-4 ${task.completed
+              ? 'bg-emerald-600 border-emerald-600'
               : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700'
-          }`}
+            }`}
         >
           {task.completed && (
             <Ionicons name="checkmark" size={14} color="white" />
@@ -275,12 +214,11 @@ function TaskItem({ colorScheme,task, isFirst, isLast, onPress, isSelected }) {
 
         <View className="flex-1">
           <View className="flex-row items-center justify-between mb-2">
-            <Text 
-              className={`text-base font-semibold ${
-                task.completed 
-                  ? 'text-emerald-700 dark:text-emerald-400 line-through opacity-70' 
+            <Text
+              className={`text-base font-semibold ${task.completed
+                  ? 'text-emerald-700 dark:text-emerald-400 line-through opacity-70'
                   : 'text-gray-900 dark:text-white'
-              }`}
+                }`}
             >
               {task.title}
             </Text>
@@ -288,22 +226,22 @@ function TaskItem({ colorScheme,task, isFirst, isLast, onPress, isSelected }) {
               {task.dueTime}
             </Text>
           </View>
-          
+
           <View className="flex-row items-center justify-between">
-            <View 
+            <View
               className="px-3 py-1.5 rounded-full mr-3"
               style={{ backgroundColor: `${getCategoryColor(task.category)}20` }}
             >
-              <Text 
+              <Text
                 className="text-xs font-semibold"
                 style={{ color: getCategoryColor(task.category) }}
               >
                 {task.category}
               </Text>
             </View>
-            
+
             <View className="flex-row items-center">
-              <View 
+              <View
                 className="w-2 h-2 rounded-full mr-2"
                 style={{ backgroundColor: getPriorityColor(task.priority) }}
               />
@@ -318,23 +256,41 @@ function TaskItem({ colorScheme,task, isFirst, isLast, onPress, isSelected }) {
   );
 }
 
-// Enhanced Quick Action Card Component
-function QuickActionCard({ action, style }) {
+// Quick Actions Component
+const QuickActions = ({ isDark }) => {
+  const actions = [
+    { id: 'voice', icon: 'mic-outline', label: 'Voice Task', color: '#3b82f6', bg: '#dbeafe' },
+    { id: 'scan', icon: 'scan-outline', label: 'Scan Text', color: '#8b5cf6', bg: '#f3e8ff' },
+    { id: 'schedule', icon: 'calendar-outline', label: 'Schedule', color: '#f59e0b', bg: '#fef3c7' },
+    { id: 'ai', icon: 'sparkles-outline', label: 'AI Help', color: '#10b981', bg: '#d1fae5' }
+  ];
+
   return (
-    <TouchableOpacity activeOpacity={0.7} style={style}>
-      <View className="bg-white dark:bg-gray-800 rounded-2xl p-4 items-center shadow-sm border border-gray-100 dark:border-gray-700">
-        <View 
-          className={`w-14 h-14 rounded-2xl items-center justify-center mb-3 ${action.bgColor}`}
-        >
-          <Ionicons name={action.icon} size={24} style={{ color: action.color }} />
-        </View>
-        <Text className="text-sm font-semibold text-gray-900 dark:text-white text-center">
-          {action.title}
-        </Text>
+    <View className="mb-6 mx-4">
+      <Text className="text-lg font-bold text-gray-900 dark:text-white mb-3">
+        Quick Actions
+      </Text>
+      <View className="flex-row justify-between">
+        {actions.map((action) => (
+          <View
+            key={action.id} 
+            className="items-center"
+          >
+            <View
+              className="w-16 h-16 rounded-2xl items-center justify-center mb-2"
+              style={{ backgroundColor: isDark ? action.color +'20': action.bg }}
+            >
+              <Ionicons name={action.icon} size={24} color={action.color} />
+            </View>
+            <Text className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+              {action.label}
+            </Text>
+          </View>
+        ))}
       </View>
-    </TouchableOpacity>
+    </View>
   );
-}
+};
 
 // Enhanced Activity Item Component
 function ActivityItem({ activity, isLast }) {
@@ -351,10 +307,10 @@ function ActivityItem({ activity, isLast }) {
   const iconConfig = getActivityIcon(activity.type);
 
   return (
-    <View 
+    <View
       className="px-5 py-4"
       style={[
-        { 
+        {
           borderBottomLeftRadius: isLast ? 16 : 0,
           borderBottomRightRadius: isLast ? 16 : 0,
         },
@@ -362,13 +318,13 @@ function ActivityItem({ activity, isLast }) {
       ]}
     >
       <View className="flex-row items-center">
-        <View 
+        <View
           className="w-10 h-10 rounded-2xl items-center justify-center mr-4"
           style={{ backgroundColor: `${iconConfig.color}20` }}
         >
           <Ionicons name={iconConfig.icon} size={18} style={{ color: iconConfig.color }} />
         </View>
-        
+
         <View className="flex-1">
           <Text className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
             {activity.action}
@@ -377,7 +333,7 @@ function ActivityItem({ activity, isLast }) {
             {activity.time}
           </Text>
         </View>
-        
+
         <Feather name="chevron-right" size={16} className="text-gray-400 dark:text-gray-500" />
       </View>
     </View>
@@ -387,7 +343,7 @@ function ActivityItem({ activity, isLast }) {
 // AI Insights Component
 const AIInsights = ({ insights }) => {
   return (
-    <View className="px-6 mb-6">
+    <View className="px-4 mb-6">
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-xl font-bold text-gray-900 dark:text-white">
           AI Insights
@@ -398,25 +354,25 @@ const AIInsights = ({ insights }) => {
           </Text>
         </TouchableOpacity>
       </View>
-      
-      <View className="flex-row">
+
+      <View className="flex-row justify-between items-center">
         {insights.map((insight, index) => (
-          <View 
+          <View
             key={index}
             className="flex-1 bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm"
             style={{ marginRight: index < insights.length - 1 ? 8 : 0 }}
           >
             <View className="items-center">
-              <View 
-                className="w-12 h-12 rounded-2xl items-center justify-center mb-3"
+              <View
+                className="w-12 h-12 rounded-2xl items-center justify-center mb-4"
                 style={{ backgroundColor: `${insight.color}20` }}
               >
                 <MaterialIcons name={insight.icon} size={20} style={{ color: insight.color }} />
               </View>
-              <Text className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+              <Text className="text-[14px] font-bold text-gray-900 dark:text-white mb-2">
                 {insight.value}
               </Text>
-              <Text className="text-xs text-gray-600 dark:text-gray-400 text-center">
+              <Text className="text-[10px] text-gray-600 dark:text-gray-400 text-center">
                 {insight.title}
               </Text>
             </View>
@@ -437,7 +393,7 @@ export default function ModernHomeScreen() {
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-    
+
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -451,7 +407,7 @@ export default function ModernHomeScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-    
+
     return () => clearInterval(timer);
   }, []);
 
@@ -463,7 +419,7 @@ export default function ModernHomeScreen() {
   };
 
   return (
-    <View className="flex-1 bg-gray-50 dark:bg-gray-900">
+    <View className="flex-1 bg-gray-50 dark:bg-gray-950">
       <Animated.View
         style={{
           flex: 1,
@@ -478,7 +434,7 @@ export default function ModernHomeScreen() {
           contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
         >
           {/* Header */}
-          <HomeHeader 
+          <HomeHeader
             currentTime={currentTime}
             getGreeting={getGreeting}
             colorScheme={colorScheme}
@@ -492,27 +448,10 @@ export default function ModernHomeScreen() {
           <AIInsights insights={dashboardData.insights} />
 
           {/* Quick Actions */}
-          <View className="px-6 mb-6">
-            <Text className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Quick Actions
-            </Text>
-            <View className="flex-row flex-wrap -mx-2">
-              {dashboardData.quickActions.map((action, index) => (
-                <QuickActionCard
-                  key={action.id}
-                  action={action}
-                  style={{ 
-                    marginHorizontal: 8,
-                    marginBottom: 16,
-                    width: (Dimensions.get('window').width - 64) / 2 - 8
-                  }}
-                />
-              ))}
-            </View>
-          </View>
+          <QuickActions isDark={colorScheme}/>
 
           {/* My Tasks */}
-          <View className="px-6 mb-6">
+          <View className="px-4 mb-6">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-xl font-bold text-gray-900 dark:text-white">
                 Today's Tasks
@@ -523,7 +462,7 @@ export default function ModernHomeScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-            
+
             <View className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
               {dashboardData.tasks.map((task, index) => (
                 <TaskItem
@@ -539,7 +478,7 @@ export default function ModernHomeScreen() {
           </View>
 
           {/* Recent Activity */}
-          <View className="px-6 mb-6">
+          <View className="px-4 mb-6">
             <Text className="text-xl font-bold text-gray-900 dark:text-white mb-4">
               Recent Activity
             </Text>
@@ -553,7 +492,7 @@ export default function ModernHomeScreen() {
               ))}
             </View>
           </View>
-        </ScrollView> 
+        </ScrollView>
       </Animated.View>
     </View>
   );
