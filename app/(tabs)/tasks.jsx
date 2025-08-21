@@ -211,7 +211,7 @@ export default function TasksScreen() {
       onDelete={handleDeleteTask}
     >
       <Link href={`/tasks/${item.id}`} className="mb-3">
-        <View className="bg-white dark:bg-gray-800 rounded-2xl px-4 py-4 border border-gray-100 dark:border-gray-700">
+        <View className="bg-white dark:bg-gray-900 w-full rounded-2xl px-4 py-4 border border-gray-100 dark:border-gray-700">
           <View className="flex-row items-center">
             {/* Checkbox */}
             <TouchableOpacity className="mr-4">
@@ -281,7 +281,7 @@ export default function TasksScreen() {
 
   // Render simple task (when modal is open)
   const renderSimpleTask = (item) => (
-    <View key={item.id} className="mb-3 opacity-50">
+    <View key={item.id} className="mb-3">
       <View className="bg-white dark:bg-gray-800 rounded-2xl px-4 py-4 border border-gray-100 dark:border-gray-700">
         <View className="flex-row items-center">
           <View className="mr-4">
@@ -351,10 +351,9 @@ export default function TasksScreen() {
     <View className="flex-1 bg-gray-50 dark:bg-gray-950">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ 
-          paddingTop: insets.top + 10, 
+        contentContainerStyle={{  
           paddingBottom: insets.bottom + 100, 
-          paddingHorizontal: 20 
+          paddingHorizontal: 15
         }}
         scrollEnabled={!modalVisible}
       >

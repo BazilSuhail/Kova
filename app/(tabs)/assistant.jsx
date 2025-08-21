@@ -323,8 +323,7 @@ export default function ModernAssistantScreen() {
     <View className="flex-1 bg-gray-50 dark:bg-gray-950">
       <ScrollView
         contentContainerStyle={{ 
-          paddingHorizontal: 15, 
-          paddingTop: insets.top,
+          paddingHorizontal: 15,  
           paddingBottom: insets.bottom + 20
         }}
         showsVerticalScrollIndicator={false}

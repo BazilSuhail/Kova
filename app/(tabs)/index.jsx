@@ -118,7 +118,7 @@ const HomeHeader = ({ currentTime, getGreeting, colorScheme, setColorScheme }) =
   };
 
   return (
-    <View className="px-4 mb-8">
+    <View className="px-4 mb-8 ">
       <View className="flex-row justify-between items-start">
         <View className="flex-1">
           <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -192,8 +192,8 @@ function TaskItem({ colorScheme, task, isFirst, isLast, onPress, isSelected }) {
     <Pressable
       onPress={onPress}
       className={`px-5 py-4 ${task.completed
-          ? 'bg-emerald-50 dark:bg-emerald-900/20'
-          : 'bg-white dark:bg-gray-800'
+        ? 'bg-emerald-50 dark:bg-emerald-900/20'
+        : 'bg-white dark:bg-gray-800'
         } ${isSelected ? 'bg-gray-50 dark:bg-gray-700' : ''}`}
       style={[
         roundedStyle,
@@ -203,8 +203,8 @@ function TaskItem({ colorScheme, task, isFirst, isLast, onPress, isSelected }) {
       <View className="flex-row items-center">
         <TouchableOpacity
           className={`w-6 h-6 rounded-full border-2 items-center justify-center mr-4 ${task.completed
-              ? 'bg-emerald-600 border-emerald-600'
-              : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700'
+            ? 'bg-emerald-600 border-emerald-600'
+            : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700'
             }`}
         >
           {task.completed && (
@@ -216,8 +216,8 @@ function TaskItem({ colorScheme, task, isFirst, isLast, onPress, isSelected }) {
           <View className="flex-row items-center justify-between mb-2">
             <Text
               className={`text-base font-semibold ${task.completed
-                  ? 'text-emerald-700 dark:text-emerald-400 line-through opacity-70'
-                  : 'text-gray-900 dark:text-white'
+                ? 'text-emerald-700 dark:text-emerald-400 line-through opacity-70'
+                : 'text-gray-900 dark:text-white'
                 }`}
             >
               {task.title}
@@ -266,79 +266,27 @@ const QuickActions = ({ isDark }) => {
   ];
 
   return (
-    <View className="mb-6 mx-4">
-      <Text className="text-lg font-bold text-gray-900 dark:text-white mb-3">
-        Quick Actions
-      </Text>
-      <View className="flex-row justify-between">
-        {actions.map((action) => (
+    <View className="mb-6 mx-4 flex-row justify-between">
+      {actions.map((action) => (
+        <View
+          key={action.id}
+          className="items-center"
+        >
           <View
-            key={action.id} 
-            className="items-center"
+            className="w-20 h-20 rounded-2xl items-center justify-center mb-2"
+            style={{ backgroundColor: isDark ? action.color + '20' : action.bg }}
           >
-            <View
-              className="w-16 h-16 rounded-2xl items-center justify-center mb-2"
-              style={{ backgroundColor: isDark ? action.color +'20': action.bg }}
-            >
-              <Ionicons name={action.icon} size={24} color={action.color} />
-            </View>
-            <Text className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {action.label}
-            </Text>
+            <Ionicons name={action.icon} size={25} color={action.color} />
           </View>
-        ))}
-      </View>
+          <Text className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+            {action.label}
+          </Text>
+        </View>
+      ))}
     </View>
   );
 };
 
-// Enhanced Activity Item Component
-function ActivityItem({ activity, isLast }) {
-  const getActivityIcon = (type) => {
-    const configs = {
-      'completed': { icon: 'checkmark-circle', color: '#10b981' },
-      'added': { icon: 'add-circle', color: '#3b82f6' },
-      'focus': { icon: 'flash', color: '#f59e0b' },
-      'updated': { icon: 'pencil-outline', color: '#8b5cf6' }
-    };
-    return configs[type] || { icon: 'information-circle', color: '#64748b' };
-  };
-
-  const iconConfig = getActivityIcon(activity.type);
-
-  return (
-    <View
-      className="px-5 py-4"
-      style={[
-        {
-          borderBottomLeftRadius: isLast ? 16 : 0,
-          borderBottomRightRadius: isLast ? 16 : 0,
-        },
-        !isLast && { borderBottomWidth: 1, borderBottomColor: '#f1f5f9' }
-      ]}
-    >
-      <View className="flex-row items-center">
-        <View
-          className="w-10 h-10 rounded-2xl items-center justify-center mr-4"
-          style={{ backgroundColor: `${iconConfig.color}20` }}
-        >
-          <Ionicons name={iconConfig.icon} size={18} style={{ color: iconConfig.color }} />
-        </View>
-
-        <View className="flex-1">
-          <Text className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-            {activity.action}
-          </Text>
-          <Text className="text-xs text-gray-600 dark:text-gray-400">
-            {activity.time}
-          </Text>
-        </View>
-
-        <Feather name="chevron-right" size={16} className="text-gray-400 dark:text-gray-500" />
-      </View>
-    </View>
-  );
-}
 
 // AI Insights Component
 const AIInsights = ({ insights }) => {
@@ -419,7 +367,7 @@ export default function ModernHomeScreen() {
   };
 
   return (
-    <View className="flex-1 bg-gray-50 dark:bg-gray-950">
+    <View className="flex-1 pt-4 bg-gray-50 dark:bg-gray-950">
       <Animated.View
         style={{
           flex: 1,
@@ -429,9 +377,9 @@ export default function ModernHomeScreen() {
       >
         <ScrollView
           className="flex-1"
-          style={{ paddingTop: insets.top + 10 }}
+          style={{}}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
         >
           {/* Header */}
           <HomeHeader
@@ -448,7 +396,7 @@ export default function ModernHomeScreen() {
           <AIInsights insights={dashboardData.insights} />
 
           {/* Quick Actions */}
-          <QuickActions isDark={colorScheme}/>
+          <QuickActions isDark={colorScheme} />
 
           {/* My Tasks */}
           <View className="px-4 mb-6">
@@ -477,21 +425,7 @@ export default function ModernHomeScreen() {
             </View>
           </View>
 
-          {/* Recent Activity */}
-          <View className="px-4 mb-6">
-            <Text className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Recent Activity
-            </Text>
-            <View className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-              {dashboardData.recentActivity.map((activity, index) => (
-                <ActivityItem
-                  key={index}
-                  activity={activity}
-                  isLast={index === dashboardData.recentActivity.length - 1}
-                />
-              ))}
-            </View>
-          </View>
+
         </ScrollView>
       </Animated.View>
     </View>

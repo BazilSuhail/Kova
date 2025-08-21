@@ -8,10 +8,8 @@ import { useColorScheme } from "nativewind";
 NavigationBar.setButtonStyleAsync("dark");
 
 export default function RootLayout() {
-  const { colorScheme, setColorScheme } = useColorScheme();
-  console.log(colorScheme)
-
-
+  const { colorScheme } = useColorScheme();
+  //console.log(colorScheme)
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       {/* White background ensures nav area looks white in Expo Go */}
