@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Alert, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useColorScheme } from 'nativewind';
 
 // Mock task data
 const initialTask = {
@@ -22,18 +23,7 @@ const initialTask = {
 };
 
 const Card = ({ children, style = {} }) => (
-  <View style={{
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-    ...style
-  }}>
+  <View className="bg-white dark:bg-gray-800 rounded-2xl p-5 mb-4 shadow-sm dark:shadow-gray-900/20 border border-gray-100 dark:border-gray-700">
     {children}
   </View>
 );
@@ -43,42 +33,37 @@ const PriorityBadge = ({ priority }) => {
   const getPriorityClasses = (priority) => {
     switch (priority?.toLowerCase()) {
       case "high":
-        return "bg-red-100 border border-red-300";
+        return "bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700";
       case "medium":
-        return "bg-yellow-100 border border-yellow-300";
+        return "bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700";
       case "low":
-        return "bg-blue-100 border border-blue-300";
+        return "bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700";
       default:
-        return "bg-gray-100 border border-gray-300";
+        return "bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600";
     }
   };
 
   const getTextClasses = (priority) => {
     switch (priority?.toLowerCase()) {
       case "high":
-        return "text-red-700";
+        return "text-red-700 dark:text-red-400";
       case "medium":
-        return "text-yellow-700";
+        return "text-yellow-700 dark:text-yellow-400";
       case "low":
-        return "text-blue-700";
+        return "text-blue-700 dark:text-blue-400";
       default:
-        return "text-gray-500";
+        return "text-gray-500 dark:text-gray-400";
     }
   };
 
   return (
-    <View
-      className={`px-3 py-1.5 rounded-full self-start ${getPriorityClasses(priority)}`}
-    >
-      <Text
-        className={`text-[10px] font-semibold uppercase tracking-[0.5px] ${getTextClasses(priority)}`}
-      >
+    <View className={`px-3 py-1.5 rounded-full self-start ${getPriorityClasses(priority)}`}>
+      <Text className={`text-[10px] font-semibold uppercase tracking-[0.5px] ${getTextClasses(priority)}`}>
         {priority} Priority
       </Text>
     </View>
   );
 };
-
 
 // Progress Bar Component
 const ProgressBar = ({ completed, total }) => {
@@ -86,38 +71,29 @@ const ProgressBar = ({ completed, total }) => {
 
   return (
     <View>
-      <View style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8
-      }}>
-        <Text style={{ fontSize: 14, fontWeight: '500', color: '#6B7280' }}>
+      <View className="flex-row justify-between items-center mb-2">
+        <Text className="text-sm font-medium text-gray-600 dark:text-gray-300">
           Progress
         </Text>
-        <Text style={{ fontSize: 14, fontWeight: '600', color: '#059669' }}>
+        <Text className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
           {completed}/{total} completed
         </Text>
       </View>
-      <View style={{
-        height: 8,
-        backgroundColor: '#E5E7EB',
-        borderRadius: 4,
-        overflow: 'hidden'
-      }}>
-        <View style={{
-          height: '100%',
-          width: `${progress}%`,
-          backgroundColor: '#059669',
-          borderRadius: 4
-        }} />
+      <View className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <View 
+          className="h-full bg-emerald-500 rounded-full"
+          style={{ width: `${progress}%` }}
+        />
       </View>
     </View>
   );
 };
 
 export default function TaskDetailsScreen() {
-  const insets = useSafeAreaInsets()
+  const insets = useSafeAreaInsets();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   const [task, setTask] = useState(initialTask);
   const [completed, setCompleted] = useState(task.isCompleted);
   const [checklist, setChecklist] = useState(task.checklist);
@@ -173,53 +149,50 @@ export default function TaskDetailsScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-gray-50"
-      contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingHorizontal: 20, paddingTop: insets.top + 20 }}
+      className="flex-1 bg-gray-50 dark:bg-gray-950"
+      contentContainerStyle={{ 
+        paddingBottom: insets.bottom + 40, 
+        paddingHorizontal: 20, 
+        paddingTop: insets.top + 20 
+      }}
       showsVerticalScrollIndicator={false}
     >
       {/* Header */}
       <View className="mb-6">
-        <View
-          className="flex-row justify-between items-start mb-3"
-          style={{ gap: 12 }}
-        >
+        <View className="flex-row justify-between items-start mb-3" style={{ gap: 12 }}>
           {isEditing ? (
             <TextInput
-              className="flex-1 mr-4 px-4 py-3 text-[15px] rounded-[10px] font-bold text-emerald-700 border border-emerald-400"
+              className="flex-1 mr-4 px-4 py-3 text-lg font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-400 dark:border-emerald-600 rounded-lg bg-white dark:bg-gray-800"
               value={editData.title}
               onChangeText={(text) => {
                 setEditData({ ...editData, title: text });
                 setHasChanged(true);
               }}
               placeholder="Task title"
+              placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
               multiline
             />
           ) : (
             <View className="flex-1">
-              <Text className="text-[20px] font-bold text-gray-900 leading-9">
+              <Text className="text-xl font-bold text-gray-900 dark:text-white leading-7">
                 {task.title}
               </Text>
             </View>
           )}
 
-          <TouchableOpacity
-            className="w-10 h-10 rounded-full bg-white items-center justify-center"
-            style={{
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.08,
-              shadowRadius: 4,
-              elevation: 2,
-            }}
-          >
-            <Ionicons name="bookmark-outline" size={20} color="#059669" />
+          <TouchableOpacity className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 items-center justify-center shadow-sm dark:shadow-gray-900/20 border border-gray-200 dark:border-gray-700">
+            <Ionicons 
+              name="bookmark-outline" 
+              size={20} 
+              color={isDark ? "#34D399" : "#059669"} 
+            />
           </TouchableOpacity>
         </View>
 
-        <View className="flex-row items-center border-t-[2px] border-gray-200 pt-6">
+        <View className="flex-row items-center border-t border-gray-200 dark:border-gray-700 pt-4">
           <View className="flex-row items-center" style={{ gap: 12 }}>
-            <View className="bg-emerald-100 px-3 py-1.5 rounded-full">
-              <Text className="text-emerald-600 text-sm font-semibold">
+            <View className="bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full">
+              <Text className="text-emerald-600 dark:text-emerald-400 text-sm font-semibold">
                 {task.category}
               </Text>
             </View>
@@ -227,7 +200,6 @@ export default function TaskDetailsScreen() {
           </View>
         </View>
       </View>
-
 
       {/* Progress Card */}
       <Card>
@@ -237,13 +209,19 @@ export default function TaskDetailsScreen() {
       {/* Description Card */}
       <Card>
         <View className="flex-row items-center mb-3">
-          <Ionicons name="document-text-outline" size={20} color="#059669" />
-          <Text className="ml-2 text-base font-semibold text-gray-900">Description</Text>
+          <Ionicons 
+            name="document-text-outline" 
+            size={20} 
+            color={isDark ? "#34D399" : "#059669"} 
+          />
+          <Text className="ml-2 text-base font-semibold text-gray-900 dark:text-white">
+            Description
+          </Text>
         </View>
 
         {isEditing ? (
           <TextInput
-            className="text-sm text-gray-500 border border-emerald-400 rounded-lg p-3 min-h-[80px]"
+            className="text-sm text-gray-700 dark:text-gray-300 border border-emerald-400 dark:border-emerald-600 rounded-lg p-3 min-h-[80px] bg-white dark:bg-gray-800"
             style={{ lineHeight: 20 }}
             multiline
             value={editData.description}
@@ -252,23 +230,28 @@ export default function TaskDetailsScreen() {
               setHasChanged(true);
             }}
             placeholder="Add a description..."
+            placeholderTextColor={isDark ? "#4B5563" : "#9CA3AF"}
           />
         ) : (
-          <Text className="text-sm text-gray-500" style={{ lineHeight: 20 }}>
+          <Text className="text-sm text-gray-600 dark:text-gray-300" style={{ lineHeight: 20 }}>
             {task.description}
           </Text>
         )}
 
-        <View className="flex-row items-center mt-4 pt-4 border-t border-emerald-50">
-          <Ionicons name="calendar-outline" size={16} color="#059669" />
+        <View className="flex-row items-center mt-4 pt-4 border-t border-emerald-100 dark:border-emerald-900/30">
+          <Ionicons 
+            name="calendar-outline" 
+            size={16} 
+            color={isDark ? "#34D399" : "#059669"} 
+          />
           {isEditing ? (
             <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-              <Text className="ml-1.5 text-xs font-medium text-emerald-600 bg-emerald-100  border border-emerald-400 rounded-md p-2">
+              <Text className="ml-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-400 dark:border-emerald-600 rounded-md px-2 py-1">
                 Due: {formatDate(editData.dueDate)}
               </Text>
             </TouchableOpacity>
           ) : (
-            <Text className="ml-1.5 text-xs text-emerald-600">
+            <Text className="ml-1.5 text-xs text-emerald-600 dark:text-emerald-400">
               Due: {formatDate(task.dueDate)}
             </Text>
           )}
@@ -279,10 +262,16 @@ export default function TaskDetailsScreen() {
       <Card>
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center">
-            <Ionicons name="list-outline" size={20} color="#059669" />
-            <Text className="ml-2 text-base font-semibold text-gray-900">Checklist</Text>
+            <Ionicons 
+              name="list-outline" 
+              size={20} 
+              color={isDark ? "#34D399" : "#059669"} 
+            />
+            <Text className="ml-2 text-base font-semibold text-gray-900 dark:text-white">
+              Checklist
+            </Text>
           </View>
-          <Text className="text-xs text-emerald-600">
+          <Text className="text-xs text-emerald-600 dark:text-emerald-400">
             {completedItems} of {checklist.length}
           </Text>
         </View>
@@ -291,20 +280,25 @@ export default function TaskDetailsScreen() {
           <TouchableOpacity
             key={item.id}
             onPress={() => toggleChecklistItem(item.id)}
-            className={`flex-row items-center px-3 py-3 rounded-xl border ${item.done ? "bg-emerald-50 border-emerald-200" : "border-transparent"
-              }`}
+            className={`flex-row items-center px-3 py-3 rounded-xl ${
+              item.done 
+                ? "bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800" 
+                : "border-transparent"
+            }`}
             style={{ marginBottom: index < checklist.length - 1 ? 8 : 0 }}
           >
-            <View
-              className={`w-5 h-5 rounded-full items-center justify-center mr-3 border-2 ${item.done ? "bg-emerald-600 border-emerald-600" : "border-gray-300"
-                }`}
-            >
+            <View className={`w-5 h-5 rounded-full items-center justify-center mr-3 border-2 ${
+              item.done 
+                ? "bg-emerald-500 border-emerald-500" 
+                : "border-gray-300 dark:border-gray-600"
+            }`}>
               {item.done && <Ionicons name="checkmark" size={12} color="white" />}
             </View>
-            <Text
-              className={`flex-1 text-sm ${item.done ? "text-emerald-600 line-through" : "text-gray-700"
-                }`}
-            >
+            <Text className={`flex-1 text-sm ${
+              item.done 
+                ? "text-emerald-600 dark:text-emerald-400 line-through" 
+                : "text-gray-700 dark:text-gray-300"
+            }`}>
               {item.title}
             </Text>
           </TouchableOpacity>
@@ -312,19 +306,25 @@ export default function TaskDetailsScreen() {
       </Card>
 
       {/* Status Toggle Card */}
-      <View className="px-3 py-2 mb-4 rounded-[15px] border-[1px] border-emerald-200 flex-row items-center justify-between bg-emerald-50">
+      <View className="px-4 py-3 mb-4 rounded-xl border border-emerald-200 dark:border-emerald-800 flex-row items-center justify-between bg-emerald-50 dark:bg-emerald-900/20">
         <View className="flex-row items-center">
-          <Ionicons name="checkmark-circle-outline" size={20} color="#059669" />
-          <Text className="ml-2 text-base font-medium text-emerald-700">Mark as Completed</Text>
+          <Ionicons 
+            name="checkmark-circle-outline" 
+            size={20} 
+            color={isDark ? "#34D399" : "#059669"} 
+          />
+          <Text className="ml-2 text-base font-medium text-emerald-700 dark:text-emerald-400">
+            Mark as Completed
+          </Text>
         </View>
         <Switch
           value={completed}
           onValueChange={(value) => {
             setCompleted(value);
-                setHasChanged(!hasChanged);
+            setHasChanged(!hasChanged);
           }}
-          trackColor={{ false: "#d1fae5", true: "#059669" }}
-          thumbColor={completed ? "white" : "#059669"}
+          trackColor={{ false: isDark ? "#1F2937" : "#d1fae5", true: "#059669" }}
+          thumbColor={completed ? "white" : (isDark ? "#34D399" : "#059669")}
         />
       </View>
 
@@ -333,14 +333,7 @@ export default function TaskDetailsScreen() {
         {hasChanged && (
           <TouchableOpacity
             onPress={handleUpdateTask}
-            className="flex-row items-center justify-center bg-emerald-600 py-4 rounded-2xl mb-3"
-            style={{
-              shadowColor: "#059669",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
-              elevation: 4,
-            }}
+            className="flex-row items-center justify-center bg-emerald-500 py-4 rounded-2xl mb-3 shadow-sm dark:shadow-emerald-900/30"
           >
             <Ionicons name="save-outline" size={20} color="white" />
             <Text className="ml-2 text-white font-semibold text-base">
@@ -362,24 +355,27 @@ export default function TaskDetailsScreen() {
               }
               setIsEditing(!isEditing);
             }}
-            className={`flex-1 flex-row items-center justify-center py-4 rounded-2xl border ${isEditing
-              ? "bg-emerald-100 border-emerald-200"
-              : "bg-emerald-50 border-emerald-200"
-              }`}
+            className={`flex-1 flex-row items-center justify-center py-4 rounded-2xl border ${
+              isEditing
+                ? "bg-emerald-100 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-700"
+                : "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800"
+            }`}
           >
             <Ionicons
               name={isEditing ? "close-outline" : "create-outline"}
               size={20}
-              color="#059669"
+              color={isDark ? "#34D399" : "#059669"}
             />
-            <Text className="ml-2 text-emerald-600 font-semibold text-base">
+            <Text className="ml-2 font-semibold text-base dark:text-emerald-400 text-emerald-600">
               {isEditing ? "Cancel" : "Edit"}
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-red-50 py-4 rounded-2xl border border-red-200">
-            <Ionicons name="trash-outline" size={20} color="#dc2626" />
-            <Text className="ml-2 text-red-600 font-semibold text-base">Delete</Text>
+          <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-red-50 dark:bg-red-900/20 py-4 rounded-2xl border border-red-200 dark:border-red-800">
+            <Ionicons name="trash-outline" size={20} color={isDark ? "#F87171" : "#dc2626"} />
+            <Text className="ml-2 font-semibold text-base text-red-600 dark:text-red-400">
+              Delete
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
