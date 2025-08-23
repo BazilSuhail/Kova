@@ -5,9 +5,9 @@ import { LineChart } from 'react-native-chart-kit';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-const TaskProgressChart = ({ 
-  tasks = [], 
-  title = "Task Progress", 
+const TaskProgressChart = ({
+  tasks = [],
+  title = "Task Progress",
   isDark
 }) => {
   const [chartWidth, setChartWidth] = useState(screenWidth);
@@ -18,20 +18,20 @@ const TaskProgressChart = ({
 
     // Group tasks by date for line chart
     const tasksByDate = tasks.reduce((acc, task) => {
-      const date = new Date(task.dueDate).toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric' 
+      const date = new Date(task.dueDate).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
       });
-      
+
       if (!acc[date]) {
         acc[date] = { completed: 0, total: 0 };
       }
-      
+
       acc[date].total += 1;
       if (task.isCompleted) {
         acc[date].completed += 1;
       }
-      
+
       return acc;
     }, {});
 
@@ -141,18 +141,18 @@ const TaskProgressChart = ({
 
   if (!tasks || tasks.length === 0) {
     return (
-      <View 
-        className={`mx-4 mb-6 p-6 rounded-3xl ${isDark === 'dark' ? 'bg-gray-800' : 'bg-white'} border ${isDark === 'dark' ? 'border-gray-700' : 'border-gray-100'}`}
+      <View
+        className={`mb-6 p-6 rounded-3xl ${isDark === 'dark' ? 'bg-gray-800' : 'bg-white'} border ${isDark === 'dark' ? 'border-gray-700' : 'border-gray-100'}`}
         onLayout={(event) => {
           const { width } = event.nativeEvent.layout;
           setChartWidth(width);
         }}
       >
         <View className="items-center">
-          <Ionicons 
-            name="analytics-outline" 
-            size={48} 
-            color={isDark === 'dark' ? '#6b7280' : '#9ca3af'} 
+          <Ionicons
+            name="analytics-outline"
+            size={48}
+            color={isDark === 'dark' ? '#6b7280' : '#9ca3af'}
           />
           <Text className={`text-lg font-semibold mt-3 ${isDark === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
             No tasks to display
@@ -167,7 +167,7 @@ const TaskProgressChart = ({
 
   return (
     <View
-      className={`mx-4 mb-6 rounded-3xl ${isDark === 'dark' ? 'bg-gray-800' : 'bg-white'} border ${isDark === 'dark' ? 'border-gray-700' : 'border-gray-100'} shadow-sm`}
+      className={`mb-6 rounded-3xl ${isDark === 'dark' ? 'bg-gray-800' : 'bg-white'} border ${isDark === 'dark' ? 'border-gray-700' : 'border-gray-100'} shadow-sm`}
       onLayout={(event) => {
         const { width } = event.nativeEvent.layout;
         setChartWidth(width);

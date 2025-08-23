@@ -16,8 +16,7 @@ import {
   View
 } from "react-native";
 
-const { width } = Dimensions.get("window");
-
+ 
 const COLORS = { 
   work: "#047857",        // emerald-700 - Dark green for work
   career: "#059669",      // emerald-600 - Medium-dark green for career

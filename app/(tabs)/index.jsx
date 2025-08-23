@@ -1,10 +1,9 @@
-import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import TaskProgressChart from "@/components/charts/TaskProgressChart";
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Animated,
-  Dimensions,
   Pressable,
   ScrollView,
   Text,
@@ -12,9 +11,6 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import TaskProgressChart from "@/components/charts/TaskProgressChart"
-const { width } = Dimensions.get("window");
-
 
 const dummyTasks = [
   {
@@ -104,11 +100,50 @@ const dashboardData = {
   ]
 };
 
-// Statistics Component
-const StatisticsOverview = ({ stats }) => {
+// Welcome Section Component
+const WelcomeSection = ({ colorScheme, setColorScheme }) => {
+  const currentHour = new Date().getHours();
+  let greeting = 'Good Morning';
+  if (currentHour >= 12 && currentHour < 17) greeting = 'Good Afternoon';
+  else if (currentHour >= 17) greeting = 'Good Evening';
 
   return (
-    <View className="bg-white dark:bg-gray-800 rounded-3xl mx-4 p-5 mb-6 border border-gray-100 dark:border-gray-700">
+    <View className="mb-6 mt-5">
+      <View className="flex-row justify-between items-center mb-4">
+        <View>
+          <Text className="text-3xl font-bold text-gray-900 dark:text-white">
+            {greeting}! 👋
+          </Text>
+          <Text className="text-gray-600 dark:text-gray-400 mt-1">
+            Let's make today productive
+          </Text>
+        </View>
+
+        <View className="flex-row items-center">
+          <TouchableOpacity className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mr-3">
+            <Ionicons name="notifications-outline" size={20} color={colorScheme === 'dark' ? '#9ca3af' : '#6b7280'} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}
+            className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+          >
+            <Ionicons
+              name={colorScheme === 'dark' ? "sunny" : "moon"}
+              size={18}
+              color="#059669"
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+// Statistics Component
+const StatisticsOverview = ({ stats }) => {
+  return (
+    <View className="bg-white dark:bg-gray-800 rounded-3xl p-5 mb-6 border border-gray-100 dark:border-gray-700">
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-lg font-bold text-gray-900 dark:text-white">
           Today's Overview
@@ -132,7 +167,7 @@ const StatisticsOverview = ({ stats }) => {
 
         <View className="items-center">
           <Text className="text-2xl font-bold text-orange-500">
-            {stats.completed}
+            {stats.pending}
           </Text>
           <Text className="text-xs text-gray-600 dark:text-gray-400 mt-1">
             Pending
@@ -141,7 +176,7 @@ const StatisticsOverview = ({ stats }) => {
 
         <View className="items-center">
           <Text className="text-2xl font-bold text-blue-600">
-            {stats.completed}
+            {stats.total}
           </Text>
           <Text className="text-xs text-gray-600 dark:text-gray-400 mt-1">
             Total
@@ -150,7 +185,7 @@ const StatisticsOverview = ({ stats }) => {
 
         <View className="items-center">
           <Text className="text-2xl font-bold text-purple-600">
-            {stats.length}
+            {stats.projects}
           </Text>
           <Text className="text-xs text-gray-600 dark:text-gray-400 mt-1">
             Projects
@@ -161,60 +196,8 @@ const StatisticsOverview = ({ stats }) => {
   );
 };
 
-// Enhanced Header Component
-const HomeHeader = ({ currentTime, getGreeting, colorScheme, setColorScheme }) => {
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
-
-  return (
-    <View className="px-4 mb-8 mt-[25px]">
-      <View className="flex-row justify-between items-start">
-        <View className="flex-1">
-          <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            {getGreeting()}
-          </Text>
-          <View className="flex-row items-center">
-            <Feather name="clock" size={14} className="text-gray-500 dark:text-gray-400 mr-2" />
-            <Text className="text-sm text-gray-600 dark:text-gray-400">
-              {formatTime(currentTime)} • Your AI is ready to help
-            </Text>
-          </View>
-        </View>
-
-        <View className="flex-row items-center">
-          <TouchableOpacity
-            onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}
-            className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mr-3 shadow-sm"
-          >
-            <Ionicons
-              name={colorScheme === 'dark' ? "sunny" : "moon"}
-              size={18}
-              className="text-emerald-600 dark:text-emerald-400"
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity>
-            <LinearGradient
-              colors={['#10b981', '#059669']}
-              className="w-12 h-12 rounded-2xl items-center justify-center shadow-sm"
-            >
-              <Ionicons name="person" size={22} color="white" />
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  );
-};
-
-
-// Enhanced Task Item Component
-function TaskItem({ colorScheme, task, isFirst, isLast, onPress, isSelected }) {
+// Task Item Component
+function TaskItem({ task, isFirst, isLast, onPress, isSelected, colorScheme }) {
   const getCategoryColor = (category) => {
     const colors = {
       'academics': '#f59e0b',
@@ -245,7 +228,7 @@ function TaskItem({ colorScheme, task, isFirst, isLast, onPress, isSelected }) {
   return (
     <Pressable
       onPress={onPress}
-      className={`px-5 py-4 ${task.completed
+      className={`px-4 py-4 ${task.completed
         ? 'bg-emerald-50 dark:bg-emerald-900/20'
         : 'bg-white dark:bg-gray-800'
         } ${isSelected ? 'bg-gray-50 dark:bg-gray-700' : ''}`}
@@ -320,14 +303,15 @@ const QuickActions = ({ isDark }) => {
   ];
 
   return (
-    <View className="mb-6 mx-4 flex-row justify-between">
+    <View className="mb-6 flex-row justify-between">
       {actions.map((action) => (
         <View
           key={action.id}
           className="items-center"
+          style={{gap:4}}
         >
           <View
-            className="h-20 w-24 rounded-2xl items-center justify-center mb-2"
+            className="h-20 w-20 rounded-2xl items-center justify-center mb-2"
             style={{ backgroundColor: isDark ? action.color + '20' : action.bg }}
           >
             <Ionicons name={action.icon} size={25} color={action.color} />
@@ -341,11 +325,10 @@ const QuickActions = ({ isDark }) => {
   );
 };
 
-
 // AI Insights Component
 const AIInsights = ({ insights }) => {
   return (
-    <View className="px-4 mb-6">
+    <View className="mb-6">
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-xl font-bold text-gray-900 dark:text-white">
           AI Insights
@@ -385,77 +368,102 @@ const AIInsights = ({ insights }) => {
   );
 };
 
-export default function ModernHomeScreen() {
-  const insets = useSafeAreaInsets();
-  const { colorScheme, setColorScheme } = useColorScheme();
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const [slideAnim] = useState(new Animated.Value(50));
+// Animated Section Wrapper
+const AnimatedSection = ({ children, delay }) => {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-
     Animated.parallel([
-      Animated.timing(fadeAnim, {
+      Animated.timing(opacity, {
         toValue: 1,
-        duration: 1000,
+        duration: 500,
+        delay,
         useNativeDriver: true,
       }),
-      Animated.spring(slideAnim, {
+      Animated.timing(translateY, {
         toValue: 0,
-        tension: 70,
-        friction: 10,
+        duration: 500,
+        delay,
         useNativeDriver: true,
       }),
     ]).start();
+  }, [delay]);
 
-    return () => clearInterval(timer);
-  }, []);
+  return (
+    <Animated.View
+      style={{
+        opacity,
+        transform: [{ translateY }],
+      }}
+    >
+      {children}
+    </Animated.View>
+  );
+};
 
-  const getGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+// Main Screen Component
+export default function ModernHomeScreen() {
+  const insets = useSafeAreaInsets();
+  const { colorScheme, setColorScheme } = useColorScheme();
+  const [selectedTask, setSelectedTask] = useState(null);
+
+  // Mock data - replace with real data
+  const dashboardData = {
+    todayStats: {
+      completed: 65,
+      pending: 12,
+      total: 77,
+      projects: 5
+    },
+    tasks: [
+      { id: 1, title: 'Complete project proposal', completed: false, dueTime: '10:00 AM', category: 'work', priority: 'high' },
+      { id: 2, title: 'Gym session', completed: true, dueTime: '6:00 PM', category: 'fitness', priority: 'medium' },
+      { id: 3, title: 'Read 30 pages', completed: false, dueTime: '9:00 PM', category: 'personal', priority: 'low' },
+    ],
+    insights: [
+      { title: 'Productivity', value: '87%', icon: 'show-chart', color: '#10b981' },
+      { title: 'Focus Time', value: '4.2h', icon: 'timer', color: '#3b82f6' },
+      { title: 'Tasks Done', value: '18/24', icon: 'check-circle', color: '#8b5cf6' },
+    ]
   };
 
   return (
     <View className="flex-1 bg-gray-50 dark:bg-gray-950">
-      <Animated.View
-        style={{
-          flex: 1,
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{  
+          paddingBottom: insets.bottom + 80,
+          paddingHorizontal: 15 
         }}
       >
-        <ScrollView
-          className="flex-1"
-          style={{}}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
-        >
-          {/* Header */}
-          <HomeHeader
-            currentTime={currentTime}
-            getGreeting={getGreeting}
+        <AnimatedSection delay={0}>
+          <WelcomeSection  
             colorScheme={colorScheme}
             setColorScheme={setColorScheme}
           />
+        </AnimatedSection>
 
-          {/* Statistics Overview */}
-          <StatisticsOverview stats={dashboardData.todayStats} colorScheme={colorScheme} />
-          <TaskProgressChart tasks={dummyTasks} title="Weekly Task Progress" isDark={colorScheme} />
+        <AnimatedSection delay={200}>
+          <StatisticsOverview stats={dashboardData.todayStats} />
+        </AnimatedSection>
 
+        
+ <AnimatedSection delay={250}>
+   <TaskProgressChart tasks={dummyTasks} title="Weekly Task Progress" isDark={colorScheme} />
+        </AnimatedSection>
 
-          {/* AI Insights */}
+        <AnimatedSection delay={400}>
           <AIInsights insights={dashboardData.insights} />
+        </AnimatedSection>
 
-          {/* Quick Actions */}
+        <AnimatedSection delay={600}>
           <QuickActions isDark={colorScheme} />
+        </AnimatedSection>
 
-          {/* My Tasks */}
-          <View className="px-4 mb-6">
+        <AnimatedSection delay={800}>
+          <View className="mb-6">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-xl font-bold text-gray-900 dark:text-white">
                 Today's Tasks
@@ -467,7 +475,7 @@ export default function ModernHomeScreen() {
               </TouchableOpacity>
             </View>
 
-            <View className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <View className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700">
               {dashboardData.tasks.map((task, index) => (
                 <TaskItem
                   key={task.id}
@@ -476,14 +484,13 @@ export default function ModernHomeScreen() {
                   isLast={index === dashboardData.tasks.length - 1}
                   onPress={() => setSelectedTask(selectedTask?.id === task.id ? null : task)}
                   isSelected={selectedTask?.id === task.id}
+                  colorScheme={colorScheme}
                 />
               ))}
             </View>
           </View>
-
-
-        </ScrollView>
-      </Animated.View>
+        </AnimatedSection>
+      </ScrollView>
     </View>
   );
 }

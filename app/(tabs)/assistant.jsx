@@ -8,18 +8,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Task Card Component
 const TaskCard = ({ task }) => {
   const progressPercent = (task.completed / task.total) * 100;
-  
+
   return (
     <Link href={task.href} asChild>
       <TouchableOpacity activeOpacity={0.7} className="mb-4">
         <View className="bg-white dark:bg-gray-800 rounded-3xl p-5 border border-gray-100 dark:border-gray-700">
           {/* Header */}
           <View className="flex-row justify-between items-center mb-3">
-            <View 
+            <View
               className="px-3 py-1.5 rounded-full"
               style={{ backgroundColor: `${task.color}20` }}
             >
-              <Text 
+              <Text
                 className="text-xs font-semibold uppercase tracking-wider"
                 style={{ color: task.color }}
               >
@@ -53,7 +53,7 @@ const TaskCard = ({ task }) => {
                   }}
                 />
               </View>
-              
+
               {/* Progress Text */}
               <Text className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">
                 {Math.round(progressPercent)}% complete
@@ -78,13 +78,13 @@ const AIOptionCard = ({ option, index }) => {
       <Link href={option.href} asChild>
         <TouchableOpacity activeOpacity={0.7}>
           <View className="bg-white dark:bg-gray-800 rounded-3xl p-4 border border-gray-100 dark:border-gray-700">
-            <View 
+            <View
               className={`w-14 h-14 rounded-2xl items-center justify-center mb-4 ${option.bgColor || ''}`}
               style={option.bgColorStyle ? { backgroundColor: option.bgColorStyle } : {}}
             >
-              <Ionicons 
-                name={option.icon} 
-                size={24} 
+              <Ionicons
+                name={option.icon}
+                size={24}
                 color={option.iconColor || "#059669"}
               />
             </View>
@@ -104,11 +104,11 @@ const AIOptionCard = ({ option, index }) => {
 // Quick Action Item Component
 const QuickActionItem = ({ icon, title, description, color, bgColor, bgColorStyle, isLast = false }) => {
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       activeOpacity={0.7}
       className={`flex-row items-center py-4 ${!isLast ? 'border-b border-gray-100 dark:border-gray-700' : ''}`}
     >
-      <View 
+      <View
         className={`w-12 h-12 rounded-2xl items-center justify-center mr-4 ${bgColor}`}
         style={bgColorStyle ? { backgroundColor: bgColorStyle } : {}}
       >
@@ -129,99 +129,8 @@ const QuickActionItem = ({ icon, title, description, color, bgColor, bgColorStyl
   );
 };
 
-// Statistics Component
-const StatisticsOverview = ({ tasks }) => {
-  const totalTasks = tasks.reduce((sum, task) => sum + task.total, 0);
-  const completedTasks = tasks.reduce((sum, task) => sum + task.completed, 0);
-  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  const pendingTasks = totalTasks - completedTasks;
 
-  return (
-    <View className="bg-white dark:bg-gray-800 rounded-3xl p-5 mb-6 border border-gray-100 dark:border-gray-700">
-      <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-lg font-bold text-gray-900 dark:text-white">
-          Today's Overview
-        </Text>
-        <View className="bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 rounded-full">
-          <Text className="text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
-            {completionRate}% Done
-          </Text>
-        </View>
-      </View>
 
-      <View className="flex-row justify-between">
-        <View className="items-center">
-          <Text className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-            {completedTasks}
-          </Text>
-          <Text className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Completed
-          </Text>
-        </View>
-        
-        <View className="items-center">
-          <Text className="text-2xl font-bold text-orange-500">
-            {pendingTasks}
-          </Text>
-          <Text className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Pending
-          </Text>
-        </View>
-        
-        <View className="items-center">
-          <Text className="text-2xl font-bold text-blue-600">
-            {totalTasks}
-          </Text>
-          <Text className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Total
-          </Text>
-        </View>
-        
-        <View className="items-center">
-          <Text className="text-2xl font-bold text-purple-600">
-            {tasks.length}
-          </Text>
-          <Text className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Projects
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-};
-
-// Header Component
-const AssistantHeader = ({ colorScheme, setColorScheme }) => {
-  return (
-    <View className="flex-row justify-between items-center mb-6">
-      <View>
-        <Text className="text-3xl font-bold text-gray-900 dark:text-white">
-          AI Assistant
-        </Text>
-        <Text className="text-base text-gray-600 dark:text-gray-400 mt-1">
-          Let me help you manage your tasks
-        </Text>
-      </View>
-      
-      <View className="flex-row items-center">
-        <TouchableOpacity className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mr-3">
-          <Feather name="search" size={20} color="#9ca3af" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}
-          className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
-        >
-          <Ionicons 
-            name={colorScheme === 'dark' ? "sunny" : "moon"} 
-            size={18} 
-            color="#059669"
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
 
 export default function ModernAssistantScreen() {
   const insets = useSafeAreaInsets();
@@ -322,14 +231,23 @@ export default function ModernAssistantScreen() {
   return (
     <View className="flex-1 bg-gray-50 dark:bg-gray-950">
       <ScrollView
-        contentContainerStyle={{ 
-          paddingHorizontal: 15,  
+        contentContainerStyle={{
+          paddingHorizontal: 15,
           paddingBottom: insets.bottom + 20
         }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <AssistantHeader colorScheme={colorScheme} setColorScheme={setColorScheme} />
+        <View className="flex-row mt-5 justify-between items-center mb-6">
+          <View>
+            <Text className="text-3xl font-bold text-gray-900 dark:text-white">
+              AI Assistant
+            </Text>
+            <Text className="text-[12px] text-gray-600 dark:text-gray-400 mt-1">
+              Let me help you manage your tasks
+            </Text>
+          </View>
+        </View>
 
         {/* AI Tips Section */}
         <View className="mt-5 mb-10 bg-emerald-50 to-blue-50 dark:bg-emerald-900/20 rounded-3xl p-5 border border-emerald-200 dark:border-emerald-800">
@@ -337,11 +255,11 @@ export default function ModernAssistantScreen() {
             <View className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 items-center justify-center mr-3">
               <Ionicons name="bulb-outline" size={20} color="#059669" />
             </View>
-            <Text className="text-lg font-bold text-gray-900 dark:text-white">
+            <Text className="text-lg font-bold text-emerald-800 dark:text-white">
               AI Tip of the Day
             </Text>
           </View>
-          <Text className="text-gray-700 dark:text-gray-300 leading-6">
+          <Text className="text-gray-700 text-[13px] dark:text-gray-300 leading-5">
             Try breaking down large tasks into smaller, manageable chunks. This makes them less overwhelming and easier to track progress!
           </Text>
           <TouchableOpacity className="mt-3">
@@ -349,7 +267,7 @@ export default function ModernAssistantScreen() {
               Learn more productivity tips →
             </Text>
           </TouchableOpacity>
-        </View> 
+        </View>
 
         {/* AI Assistant Section */}
         <View className="mb-6">

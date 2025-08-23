@@ -35,7 +35,7 @@ function CustomTabBar() {
     // Dynamic colors based on theme
     const backgroundColor = colorScheme === 'dark' ? '#1f2937' : '#ffffff'; // gray-800 / white
     const borderColor = colorScheme === 'dark' ? '#374151' : '#e5e7eb'; // gray-700 / gray-200
-    const textActiveColor = colorScheme === 'dark' ? '#ffffff' : '#111827'; // white / gray-900
+    const textActiveColor = colorScheme === 'dark' ? '#ffffff' : '#059669'; // white / gray-900
     const textInactiveColor = colorScheme === 'dark' ? '#9ca3af' : '#6b7280'; // gray-400 / gray-500
 
     return (

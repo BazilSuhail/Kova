@@ -35,8 +35,8 @@ const TaskFilter = ({ activeFilter, onFilterChange, taskCounts, isDark }) => {
           key={filter.id}
           onPress={() => onFilterChange(filter.id)}
           className={`flex-1 flex-row items-center justify-center py-3 px-4 rounded-xl ${activeFilter === filter.id
-              ? 'bg-emerald-500'
-              : 'bg-transparent'
+            ? 'bg-emerald-500'
+            : 'bg-transparent'
             }`}
         >
           <Ionicons
@@ -46,18 +46,18 @@ const TaskFilter = ({ activeFilter, onFilterChange, taskCounts, isDark }) => {
             style={{ marginRight: 6 }}
           />
           <Text className={`font-medium ${activeFilter === filter.id
-              ? 'text-white'
-              : 'text-gray-600 dark:text-gray-400'
+            ? 'text-white'
+            : 'text-gray-600 dark:text-gray-400'
             }`}>
             {filter.label}
           </Text>
           <View className={`ml-2 px-2 py-0.5 rounded-full ${activeFilter === filter.id
-              ? 'bg-emerald-400'
-              : 'bg-gray-100 dark:bg-gray-700'
+            ? 'bg-emerald-400'
+            : 'bg-gray-100 dark:bg-gray-700'
             }`}>
             <Text className={`text-xs font-semibold ${activeFilter === filter.id
-                ? 'text-white'
-                : 'text-gray-600 dark:text-gray-400'
+              ? 'text-white'
+              : 'text-gray-600 dark:text-gray-400'
               }`}>
               {filter.count}
             </Text>
@@ -213,8 +213,8 @@ export default function TasksScreen() {
             <TouchableOpacity className="mr-4">
               <View
                 className={`w-6 h-6 rounded-full items-center justify-center ${item.isCompleted
-                    ? 'bg-emerald-500'
-                    : 'border-2 border-gray-300 dark:border-gray-600'
+                  ? 'bg-emerald-500'
+                  : 'border-2 border-gray-300 dark:border-gray-600'
                   }`}
               >
                 {item.isCompleted && (
@@ -228,8 +228,8 @@ export default function TasksScreen() {
               <View className="flex-row items-center mb-2">
                 <Text
                   className={`text-base font-medium flex-1 ${item.isCompleted
-                      ? 'text-gray-500 dark:text-gray-400 line-through'
-                      : 'text-gray-900 dark:text-white'
+                    ? 'text-gray-500 dark:text-gray-400 line-through'
+                    : 'text-gray-900 dark:text-white'
                     }`}
                   numberOfLines={1}
                   ellipsizeMode="tail"
@@ -281,8 +281,8 @@ export default function TasksScreen() {
           <View className="mr-4">
             <View
               className={`w-6 h-6 rounded-full items-center justify-center ${item.isCompleted
-                  ? 'bg-emerald-500'
-                  : 'border-2 border-gray-300 dark:border-gray-600'
+                ? 'bg-emerald-500'
+                : 'border-2 border-gray-300 dark:border-gray-600'
                 }`}
             >
               {item.isCompleted && (
@@ -295,8 +295,8 @@ export default function TasksScreen() {
             <View className="flex-row items-center mb-2">
               <Text
                 className={`text-base font-medium flex-1 ${item.isCompleted
-                    ? 'text-gray-500 dark:text-gray-400 line-through'
-                    : 'text-gray-900 dark:text-white'
+                  ? 'text-gray-500 dark:text-gray-400 line-through'
+                  : 'text-gray-900 dark:text-white'
                   }`}
                 numberOfLines={1}
               >
@@ -413,13 +413,13 @@ export default function TasksScreen() {
       </ScrollView>
 
       {/* Floating Action Button */}
-      <View className={`absolute bottom-${insets.bottom + 70} right-6`}>
+      <View className={`absolute right-5`} style={{ bottom: insets.bottom+45 }}>
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
           className="w-14 h-14 bg-emerald-500 rounded-full items-center justify-center"
           style={{
-            elevation: 0, // Remove Android shadow
-            shadowOpacity: 0, // Remove iOS shadow
+            elevation: 0,
+            shadowOpacity: 0, 
           }}
         >
           <Ionicons name="add" size={28} color="white" />

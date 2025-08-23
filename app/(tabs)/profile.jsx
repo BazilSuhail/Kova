@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useColorScheme } from 'nativewind';
 import { Alert, ScrollView, StatusBar, Switch, Text, TouchableOpacity, View } from 'react-native';
@@ -23,6 +24,7 @@ const aiStats = {
 
 export default function ProfileSettingsScreen() {
   const { colorScheme, setColorScheme } = useColorScheme();
+  const isFocused = useIsFocused(); // 👈 detect if profile tab is active
 
   const toggleDarkMode = (value) => {
     setColorScheme(value ? 'dark' : 'light');
@@ -54,12 +56,18 @@ export default function ProfileSettingsScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        <StatusBar backgroundColor={colorScheme === "dark" ? "#030712" : "#f3f4f6"} />
-       
+        {/* <StatusBar backgroundColor={colorScheme === "dark" ? "#030712" : "#f3f4f6"} /> */}
+        {isFocused && (
+          <StatusBar
+            backgroundColor={colorScheme === "dark" ? "#030712" : "#f3f4f6"}
+            barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
+          />
+        )}
+
         <LinearGradient
           colors={
             colorScheme === "dark"
-              ? ['#000000','#000000', '#030712', '#022c22', '#047857']
+              ? ['#000000', '#000000', '#030712', '#022c22', '#047857']
               : ['#ffffff', '#d1fae5']
           }
           className="px-6 pt-16 pb-20 rounded-b-[22px] overflow-hidden" // increased paddingBottom and borderRadius
