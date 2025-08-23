@@ -1,207 +1,196 @@
-import { Ionicons } from '@expo/vector-icons';
-import React, { useMemo } from 'react';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import React, { useState } from 'react';
 import { Dimensions, Text, View } from 'react-native';
-import { LineChart } from 'react-native-gifted-charts';
+import { LineChart } from 'react-native-chart-kit';
 
-const TaskProgressChart = ({ tasks = [], title = "Task Completion Trend", isDark = false }) => {
-  const screenWidth = Dimensions.get('window').width;
+const { width: screenWidth } = Dimensions.get('window');
 
-  // Process tasks data to create chart data
-  const { chartData, stats } = useMemo(() => {
-    if (!tasks || tasks.length === 0) {
-      return {
-        chartData: [{ value: 0, label: 'No Data', labelTextStyle: { color: isDark ? '#9ca3af' : '#6b7280', fontSize: 10 } }],
-        stats: { totalTasks: 0, completedTasks: 0, completionRate: 0, activeDays: 0 }
-      };
-    }
+const TaskProgressChart = ({ 
+  tasks = [], 
+  title = "Task Progress", 
+  isDark
+}) => {
+  const [chartWidth, setChartWidth] = useState(screenWidth);
 
-    // Group tasks by date and calculate completion rate
+  // Process tasks data for line chart
+  const processTasksData = () => {
+    if (!tasks || tasks.length === 0) return null;
+
+    // Group tasks by date for line chart
     const tasksByDate = tasks.reduce((acc, task) => {
-      const dateStr = task.createdAt ? 
-        new Date(task.createdAt).toISOString().split('T')[0] : 
-        task.dueDate || new Date().toISOString().split('T')[0];
+      const date = new Date(task.dueDate).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
       
-      if (!acc[dateStr]) {
-        acc[dateStr] = { total: 0, completed: 0 };
+      if (!acc[date]) {
+        acc[date] = { completed: 0, total: 0 };
       }
       
-      acc[dateStr].total += 1;
+      acc[date].total += 1;
       if (task.isCompleted) {
-        acc[dateStr].completed += 1;
+        acc[date].completed += 1;
       }
       
       return acc;
     }, {});
 
-    // Sort dates and get last 7 days of data
-    const sortedDates = Object.keys(tasksByDate).sort().slice(-7);
-    
-    if (sortedDates.length === 0) {
-      return {
-        chartData: [{ value: 0, label: 'Today', labelTextStyle: { color: isDark ? '#9ca3af' : '#6b7280', fontSize: 10 } }],
-        stats: { totalTasks: tasks.length, completedTasks: 0, completionRate: 0, activeDays: 0 }
-      };
-    }
-
-    const completionData = sortedDates.map((date, index) => {
-      const dayData = tasksByDate[date];
-      const completionRate = dayData.total > 0 ? (dayData.completed / dayData.total) * 100 : 0;
-      const dateObj = new Date(date);
-      const label = dateObj.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric' 
-      });
-
-      return {
-        value: completionRate,
-        label: label,
-        labelTextStyle: { 
-          color: isDark ? '#9ca3af' : '#6b7280', 
-          fontSize: 10 
-        },
-        dataPointText: `${Math.round(completionRate)}%`,
-        textShiftY: -10,
-        textShiftX: 0,
-        textColor: isDark ? '#10b981' : '#059669',
-        textFontSize: 10
-      };
-    });
-
-    // Ensure we have at least 2 data points
-    if (completionData.length === 1) {
-      completionData.unshift({
-        value: 0,
-        label: 'Prev',
-        labelTextStyle: { color: isDark ? '#9ca3af' : '#6b7280', fontSize: 10 },
-        hideDataPoint: true
-      });
-    }
-
-    // Calculate overall stats
-    const totalTasks = tasks.length;
-    const completedTasks = tasks.filter(task => task.isCompleted).length;
-    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-    const activeDays = sortedDates.length;
+    const dates = Object.keys(tasksByDate).sort();
+    const completedData = dates.map(date => tasksByDate[date].completed);
+    const totalData = dates.map(date => tasksByDate[date].total);
 
     return {
-      chartData: completionData,
-      stats: { totalTasks, completedTasks, completionRate, activeDays }
+      dates,
+      completedData,
+      totalData,
+      tasksByDate
     };
-  }, [tasks, isDark]);
-
-  // Get trend direction
-  const getTrend = () => {
-    if (chartData.length < 2) return 'stable';
-    
-    const visibleData = chartData.filter(item => !item.hideDataPoint);
-    if (visibleData.length < 2) return 'stable';
-    
-    const lastValue = visibleData[visibleData.length - 1].value;
-    const previousValue = visibleData[visibleData.length - 2].value;
-    
-    if (lastValue > previousValue) return 'up';
-    if (lastValue < previousValue) return 'down';
-    return 'stable';
   };
 
-  const trend = getTrend();
-  const trendIcon = trend === 'up' ? 'trending-up' : trend === 'down' ? 'trending-down' : 'remove';
-  const trendColor = trend === 'up' ? '#10b981' : trend === 'down' ? '#ef4444' : '#6b7280';
+  // Calculate overall stats
+  const getStats = () => {
+    const completed = tasks.filter(task => task.isCompleted).length;
+    const total = tasks.length;
+    const pending = total - completed;
+    const completionRate = total > 0 ? (completed / total) * 100 : 0;
+
+    return { completed, total, pending, completionRate };
+  };
+
+  const stats = getStats();
+  const chartData = processTasksData();
+
+  // Color scheme based on dark mode
+  const colors = {
+    primary: isDark === 'dark' ? '#10b981' : '#059669',
+    secondary: isDark === 'dark' ? '#6b7280' : '#9ca3af',
+    background: isDark === 'dark' ? '#1f2937' : '#ffffff',
+    text: isDark === 'dark' ? '#f9fafb' : '#111827',
+    border: isDark === 'dark' ? '#374151' : '#e5e7eb',
+    accent: isDark === 'dark' ? '#34d399' : '#10b981',
+    warning: isDark === 'dark' ? '#fbbf24' : '#f59e0b',
+    error: isDark === 'dark' ? '#f87171' : '#ef4444',
+  };
+
+  // Chart configuration
+  const chartConfig = {
+    backgroundColor: colors.background,
+    backgroundGradientFrom: colors.background,
+    backgroundGradientTo: colors.background,
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(16, 185, 129, ${opacity})`,
+    labelColor: (opacity = 1) => colors.text.replace('1)', `${opacity})`),
+    style: {
+      borderRadius: 16,
+    },
+    propsForDots: {
+      r: "4",
+      strokeWidth: "2",
+      stroke: colors.primary,
+      fill: colors.primary,
+    },
+    propsForBackgroundLines: {
+      strokeDasharray: "",
+      stroke: colors.border,
+      strokeWidth: 1,
+    },
+    fillShadowGradient: colors.primary,
+    fillShadowGradientOpacity: 0.1,
+  };
+
+  const renderLineChart = () => {
+    if (!chartData) return null;
+
+    const data = {
+      labels: chartData.dates.slice(-10), // Last 7 days
+      datasets: [
+        {
+          data: chartData.completedData.slice(-7),
+          color: (opacity = 1) => `rgba(16, 185, 129, ${opacity})`,
+          strokeWidth: 3,
+        },
+        {
+          data: chartData.totalData.slice(-7),
+          color: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
+          strokeWidth: 2,
+          withDots: false,
+        }
+      ],
+      legend: ["Completed", "Total Tasks"]
+    };
+
+    return (
+      <LineChart
+        data={data}
+        width={chartWidth}
+        height={200}
+        chartConfig={chartConfig}
+        bezier
+        style={{
+          marginVertical: 8,
+          borderRadius: 16,
+        }}
+        withInnerLines={false}
+        withOuterLines={false}
+        withVerticalLines={false}
+        withHorizontalLines={true}
+        segments={4}
+      />
+    );
+  };
+
+  if (!tasks || tasks.length === 0) {
+    return (
+      <View 
+        className={`mx-4 mb-6 p-6 rounded-3xl ${isDark === 'dark' ? 'bg-gray-800' : 'bg-white'} border ${isDark === 'dark' ? 'border-gray-700' : 'border-gray-100'}`}
+        onLayout={(event) => {
+          const { width } = event.nativeEvent.layout;
+          setChartWidth(width);
+        }}
+      >
+        <View className="items-center">
+          <Ionicons 
+            name="analytics-outline" 
+            size={48} 
+            color={isDark === 'dark' ? '#6b7280' : '#9ca3af'} 
+          />
+          <Text className={`text-lg font-semibold mt-3 ${isDark === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+            No tasks to display
+          </Text>
+          <Text className={`text-sm mt-1 ${isDark === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+            Add some tasks to see your progress
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
-    <View className="bg-white dark:bg-gray-800 rounded-3xl p-5 mb-6 border mx-3 border-gray-100 dark:border-gray-700">
+    <View
+      className={`mx-4 mb-6 rounded-3xl ${isDark === 'dark' ? 'bg-gray-800' : 'bg-white'} border ${isDark === 'dark' ? 'border-gray-700' : 'border-gray-100'} shadow-sm`}
+      onLayout={(event) => {
+        const { width } = event.nativeEvent.layout;
+        setChartWidth(width);
+      }}
+    >
       {/* Header */}
-      <View className="flex-row justify-between items-center mb-4">
-        <View className="flex-1">
-          <Text className="text-lg font-bold text-gray-900 dark:text-white mb-1">
-            {title}
-          </Text>
-          <View className="flex-row items-center">
-            <Ionicons name={trendIcon} size={16} color={trendColor} />
-            <Text className="text-sm text-gray-600 dark:text-gray-400 ml-1">
-              {trend === 'up' ? 'Improving' : trend === 'down' ? 'Declining' : 'Stable'} trend
+      <View className="flex-row justify-between items-center p-5 pb-2">
+        <View className="flex-row items-center">
+          <View className={`w-10 h-10 rounded-xl items-center justify-center mr-3 ${isDark === 'dark' ? 'bg-emerald-900/30' : 'bg-emerald-100'}`}>
+            <MaterialIcons name="analytics" size={20} color={isDark === 'dark' ? '#34d399' : '#059669'} />
+          </View>
+          <View>
+            <Text className={`text-lg font-bold ${isDark === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              {title}
             </Text>
           </View>
-        </View>
-        
-        <View className="items-end">
-          <Text className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-            {stats.completionRate}%
-          </Text>
-          <Text className="text-xs text-gray-500 dark:text-gray-400">
-            Overall
-          </Text>
         </View>
       </View>
 
       {/* Chart */}
-      <View className="mb-4">
-        {chartData[0].label === 'No Data' ? (
-          <View className="h-48 items-center justify-center">
-            <Ionicons name="analytics-outline" size={48} color={isDark ? '#4b5563' : '#d1d5db'} />
-            <Text className="text-gray-400 dark:text-gray-500 mt-2">
-              No task data available
-            </Text>
-          </View>
-        ) : (
-          <LineChart
-            data={chartData}
-            width={250}
-            height={150}
-            // Emerald color scheme
-            color="#10b981"
-            color1="#10b981"
-            color2="#059669"
-            dataPointsColor="#10b981"
-            dataPointsRadius={6}
-            dataPointsWidth={2}
-            dataPointsColor1="#ffffff"
-            textColor1={isDark ? '#9ca3af' : '#6b7280'}
-            // Styling
-            thickness={3}
-            curved
-            isAnimated
-            animationDuration={1200}
-            // Grid and axes
-            showVerticalLines={false}
-            showHorizontalLines={true}
-            horizontalLinesColor={isDark ? '#374151' : '#f3f4f6'}
-            yAxisColor={isDark ? '#4b5563' : '#d1d5db'}
-            xAxisColor={isDark ? '#4b5563' : '#d1d5db'}
-            yAxisTextStyle={{ color: isDark ? '#9ca3af' : '#6b7280', fontSize: 11 }}
-            xAxisLabelTextStyle={{ color: isDark ? '#9ca3af' : '#6b7280', fontSize: 10 }}
-            // Area under curve
-            areaChart
-            startFillColor="#10b981"
-            endFillColor="#10b981"
-            startOpacity={0.2}
-            endOpacity={0.05}
-            // Data points
-            hideDataPoints={false}
-            showDataPointOnPress
-            stripHeight={200}
-            stripColor={isDark ? '#374151' : '#f9fafb'}
-            stripOpacity={0.5}
-            // Y-axis range
-            yAxisOffset={0}
-            maxValue={100}
-            noOfSections={4}
-            // Styling
-            backgroundColor="transparent"
-            initialSpacing={20}
-            endSpacing={20}
-            spacing={Math.max(40, (screenWidth - 120) / Math.max(1, chartData.length - 1))}
-            // Labels
-            showXAxisIndices={false}
-            showYAxisIndices={false}
-            hideYAxisText={false}
-            yAxisSide="left"
-            rotateLabel={false}
-            hideOrigin={false}
-          />
-        )}
+      <View className="flex-1 my-3">
+        {renderLineChart()}
       </View>
- 
     </View>
   );
 };

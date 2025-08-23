@@ -327,7 +327,7 @@ const QuickActions = ({ isDark }) => {
           className="items-center"
         >
           <View
-            className="w-20 h-20 rounded-2xl items-center justify-center mb-2"
+            className="h-20 w-24 rounded-2xl items-center justify-center mb-2"
             style={{ backgroundColor: isDark ? action.color + '20' : action.bg }}
           >
             <Ionicons name={action.icon} size={25} color={action.color} />
@@ -445,8 +445,7 @@ export default function ModernHomeScreen() {
 
           {/* Statistics Overview */}
           <StatisticsOverview stats={dashboardData.todayStats} colorScheme={colorScheme} />
-          
-          <TaskProgressChart tasks={dummyTasks} title="Weekly Task Progress" isDark={false} />
+          <TaskProgressChart tasks={dummyTasks} title="Weekly Task Progress" isDark={colorScheme} />
 
 
           {/* AI Insights */}
