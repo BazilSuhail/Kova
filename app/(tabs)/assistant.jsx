@@ -233,33 +233,37 @@ export default function ModernAssistantScreen() {
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 15,
-          paddingBottom: insets.bottom + 20
+          paddingBottom: insets.bottom + 50
         }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View className="flex-row mt-5 justify-between items-center mb-6">
+        <View className="flex-row mt-5 justify-between items-center mb-4">
           <View>
-            <Text className="text-3xl font-bold text-gray-900 dark:text-white">
+            <Text className="text-3xl font-bold text-emerald-700 dark:text-white">
               AI Assistant
             </Text>
-            <Text className="text-[12px] text-gray-600 dark:text-gray-400 mt-1">
+            <Text className="text-[12px] text-emerald-700 dark:text-gray-400 mt-1">
               Let me help you manage your tasks
             </Text>
           </View>
+
+          <TouchableOpacity className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mr-3">
+            <Feather name="search" size={23} color="#9ca3af" />
+          </TouchableOpacity>
         </View>
 
         {/* AI Tips Section */}
-        <View className="mt-5 mb-10 bg-emerald-50 to-blue-50 dark:bg-emerald-900/20 rounded-3xl p-5 border border-emerald-200 dark:border-emerald-800">
+        <View className="mt-2 mb-10 bg-emerald-50 to-blue-50 dark:bg-emerald-900/20 rounded-3xl p-5 border border-emerald-200 dark:border-emerald-800">
           <View className="flex-row items-center mb-3">
-            <View className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 items-center justify-center mr-3">
-              <Ionicons name="bulb-outline" size={20} color="#059669" />
+            <View className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 items-center justify-center mr-3">
+              <Ionicons name="bulb-outline" size={17} color="#059669" />
             </View>
-            <Text className="text-lg font-bold text-emerald-800 dark:text-white">
+            <Text className="text-lg font-bold text-emerald-600 dark:text-white">
               AI Tip of the Day
             </Text>
           </View>
-          <Text className="text-gray-700 text-[13px] dark:text-gray-300 leading-5">
+          <Text className="text-emerald-800 font-[500] text-[12.5px] dark:text-gray-300 leading-5">
             Try breaking down large tasks into smaller, manageable chunks. This makes them less overwhelming and easier to track progress!
           </Text>
           <TouchableOpacity className="mt-3">
@@ -268,6 +272,8 @@ export default function ModernAssistantScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        <View className='w-full h-[3px] bg-gray-200 dark:bg-gray-800 rounded-2xl mb-6' />
 
         {/* AI Assistant Section */}
         <View className="mb-6">

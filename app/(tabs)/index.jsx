@@ -111,10 +111,10 @@ const WelcomeSection = ({ colorScheme, setColorScheme }) => {
     <View className="mb-6 mt-5">
       <View className="flex-row justify-between items-center mb-4">
         <View>
-          <Text className="text-3xl font-bold text-gray-900 dark:text-white">
-            {greeting}! 👋
+          <Text className="text-3xl font-bold text-emerald-700 dark:text-white">
+            {greeting}!
           </Text>
-          <Text className="text-gray-600 dark:text-gray-400 mt-1">
+          <Text className="text-emerald-700 text-[12px] dark:text-gray-400 mt-1">
             Let's make today productive
           </Text>
         </View>
@@ -308,7 +308,7 @@ const QuickActions = ({ isDark }) => {
         <View
           key={action.id}
           className="items-center"
-          style={{gap:4}}
+          style={{ gap: 4 }}
         >
           <View
             className="h-20 w-20 rounded-2xl items-center justify-center mb-2"
@@ -344,7 +344,7 @@ const AIInsights = ({ insights }) => {
         {insights.map((insight, index) => (
           <View
             key={index}
-            className="flex-1 bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm"
+            className="flex-1 bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700"
             style={{ marginRight: index < insights.length - 1 ? 8 : 0 }}
           >
             <View className="items-center">
@@ -433,13 +433,13 @@ export default function ModernHomeScreen() {
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{  
+        contentContainerStyle={{
           paddingBottom: insets.bottom + 80,
-          paddingHorizontal: 15 
+          paddingHorizontal: 15
         }}
       >
         <AnimatedSection delay={0}>
-          <WelcomeSection  
+          <WelcomeSection
             colorScheme={colorScheme}
             setColorScheme={setColorScheme}
           />
@@ -449,10 +449,13 @@ export default function ModernHomeScreen() {
           <StatisticsOverview stats={dashboardData.todayStats} />
         </AnimatedSection>
 
-        
- <AnimatedSection delay={250}>
-   <TaskProgressChart tasks={dummyTasks} title="Weekly Task Progress" isDark={colorScheme} />
+
+        <AnimatedSection delay={250}>
+          <TaskProgressChart tasks={dummyTasks} title="Weekly Task Progress" isDark={colorScheme} />
         </AnimatedSection>
+
+
+        <View className='w-full h-[3px] bg-gray-200 rounded-2xl mb-6' />
 
         <AnimatedSection delay={400}>
           <AIInsights insights={dashboardData.insights} />
@@ -461,6 +464,9 @@ export default function ModernHomeScreen() {
         <AnimatedSection delay={600}>
           <QuickActions isDark={colorScheme} />
         </AnimatedSection>
+
+
+                <View className='w-full h-[3px] bg-gray-200 rounded-2xl mb-6' />
 
         <AnimatedSection delay={800}>
           <View className="mb-6">

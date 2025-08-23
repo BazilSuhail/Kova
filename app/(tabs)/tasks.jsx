@@ -29,7 +29,7 @@ const TaskFilter = ({ activeFilter, onFilterChange, taskCounts, isDark }) => {
   ];
 
   return (
-    <View className="flex-row mb-6 bg-white dark:bg-gray-800 rounded-2xl p-2">
+    <View className="flex-row mb-6 bg-white dark:bg-gray-800 rounded-2xl p-2 border-[2px] border-gray-100">
       {filters.map((filter) => (
         <TouchableOpacity
           key={filter.id}
@@ -69,7 +69,7 @@ const TaskFilter = ({ activeFilter, onFilterChange, taskCounts, isDark }) => {
 };
 
 // Welcome Section Component
-const WelcomeSection = ({ completedTasks, totalTasks, isDark, colorScheme, setColorScheme }) => {
+const ProgressCard = ({ completedTasks, totalTasks }) => {
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   const currentHour = new Date().getHours();
   let greeting = 'Good Morning';
@@ -78,35 +78,6 @@ const WelcomeSection = ({ completedTasks, totalTasks, isDark, colorScheme, setCo
 
   return (
     <View className="mb-6">
-      {/* Header with theme toggle */}
-      <View className="flex-row justify-between items-center mb-4">
-        <View>
-          <Text className="text-3xl font-bold text-gray-900 dark:text-white">
-            {greeting}! 👋
-          </Text>
-          <Text className="text-gray-600 dark:text-gray-400 mt-1">
-            Let's make today productive
-          </Text>
-        </View>
-
-        <View className="flex-row items-center">
-          <TouchableOpacity className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mr-3">
-            <Ionicons name="notifications-outline" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}
-            className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
-          >
-            <Ionicons
-              name={colorScheme === 'dark' ? "sunny" : "moon"}
-              size={18}
-              color="#059669"
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-
       {/* Progress Card */}
       <View className="bg-emerald-50 dark:bg-emerald-900/20 rounded-3xl p-5 border border-emerald-200 dark:border-emerald-800">
         <View className="flex-row justify-between items-center mb-3">
@@ -344,13 +315,43 @@ export default function TasksScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: insets.bottom + 100,
+          paddingBottom: insets.bottom + 40,
           paddingHorizontal: 15
         }}
         scrollEnabled={!modalVisible}
       >
+
+        <View className="flex-row justify-between items-center my-5">
+          <View>
+            <Text className="text-3xl font-bold text-emerald-700 dark:text-white">
+              My Tasks
+            </Text>
+            <Text className="text-emerald-700 text-[12px] dark:text-gray-400 mt-1">
+              Manage your tasks efficiently
+            </Text>
+          </View>
+
+          <View className="flex-row items-center">
+            <TouchableOpacity className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mr-3">
+              <Ionicons name="notifications-outline" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}
+              className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+            >
+              <Ionicons
+                name={colorScheme === 'dark' ? "sunny" : "moon"}
+                size={18}
+                color="#059669"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+
         {/* Welcome Section */}
-        <WelcomeSection
+        <ProgressCard
           completedTasks={completedTasks}
           totalTasks={totalTasks}
           isDark={isDark}
@@ -413,13 +414,13 @@ export default function TasksScreen() {
       </ScrollView>
 
       {/* Floating Action Button */}
-      <View className={`absolute right-5`} style={{ bottom: insets.bottom+45 }}>
+      <View className={`absolute right-5`} style={{ bottom: insets.bottom + 45 }}>
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
           className="w-14 h-14 bg-emerald-500 rounded-full items-center justify-center"
           style={{
             elevation: 0,
-            shadowOpacity: 0, 
+            shadowOpacity: 0,
           }}
         >
           <Ionicons name="add" size={28} color="white" />

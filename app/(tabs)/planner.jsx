@@ -9,15 +9,14 @@ import BottomSheet from "entity-bottom-sheet";
 import { useColorScheme } from "nativewind";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  Dimensions,
+  ActivityIndicator, 
   ScrollView,
   Text,
   View
 } from "react-native";
 
- 
-const COLORS = { 
+
+const COLORS = {
   work: "#047857",        // emerald-700 - Dark green for work
   career: "#059669",      // emerald-600 - Medium-dark green for career
   health: "#10b981",      // emerald-500 - Medium green for health
@@ -326,27 +325,27 @@ export default function ModernPlannerScreen() {
 
   return (
     <View className="flex-1 bg-gray-50 dark:bg-gray-950">
-    <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header */}
-      <PlannerHeader
-        currentDate={currentDate}
-        viewType={viewType}
-        setViewType={setViewType}
-        navigatePeriod={navigatePeriod}
-        goToToday={goToToday}
-        getHeaderTitle={getHeaderTitle}
-        colorScheme={colorScheme}
-        setColorScheme={setColorScheme}
-      />
-    
+        <PlannerHeader
+          currentDate={currentDate}
+          viewType={viewType}
+          setViewType={setViewType}
+          navigatePeriod={navigatePeriod}
+          goToToday={goToToday}
+          getHeaderTitle={getHeaderTitle}
+          colorScheme={colorScheme}
+          setColorScheme={setColorScheme}
+        />
 
-       {/* Task Statistics - Only show on day view or when viewing today */}
-      {(viewType === "day" || isToday(currentDate)) && (
-        <TaskStats tasks={todayTasks} />
-      )}
 
-      {/* Calendar Content */}
-       <View className="flex-1 mx-4 bg-white dark:bg-gray-800 rounded-3xl py-8 mb-4">
+        {/* Task Statistics - Only show on day view or when viewing today */}
+        {(viewType === "day" || isToday(currentDate)) && (
+          <TaskStats tasks={todayTasks} />
+        )}
+
+        {/* Calendar Content */}
+        <View className="flex-1 mx-4 bg-white dark:bg-gray-800 rounded-3xl py-8 mb-4">
           {viewType === "day" ? (
             <DayView day={days[0]} getCategoryColor={getCategoryColor} />
           ) : (
@@ -357,7 +356,7 @@ export default function ModernPlannerScreen() {
             />
           )}
         </View>
-    </ScrollView>
+      </ScrollView>
 
       {/* Bottom Sheet Modal */}
       <BottomSheet
@@ -386,4 +385,3 @@ export default function ModernPlannerScreen() {
     </View>
   );
 }
- 
