@@ -12,8 +12,62 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
+import TaskProgressChart from "@/components/charts/TaskProgressChart"
 const { width } = Dimensions.get("window");
+
+
+const dummyTasks = [
+  {
+    id: 1,
+    title: "Finish project report",
+    createdAt: "2025-08-29T10:15:00Z",
+    dueDate: "2025-08-30",
+    isCompleted: true,
+  },
+  {
+    id: 2,
+    title: "Team meeting",
+    createdAt: "2025-08-29T12:30:00Z",
+    dueDate: "2025-08-29",
+    isCompleted: false,
+  },
+  {
+    id: 3,
+    title: "Code review",
+    createdAt: "2025-08-30T09:00:00Z",
+    dueDate: "2025-08-30",
+    isCompleted: true,
+  },
+  {
+    id: 4,
+    title: "Fix UI bugs",
+    createdAt: "2025-08-31T14:20:00Z",
+    dueDate: "2025-09-01",
+    isCompleted: false,
+  },
+  {
+    id: 5,
+    title: "Write unit tests",
+    createdAt: "2025-09-01T11:45:00Z",
+    dueDate: "2025-09-01",
+    isCompleted: true,
+  },
+  {
+    id: 6,
+    title: "Deploy app update",
+    createdAt: "2025-09-02T08:00:00Z",
+    dueDate: "2025-09-02",
+    isCompleted: true,
+  },
+  {
+    id: 7,
+    title: "Plan sprint tasks",
+    createdAt: "2025-09-03T10:30:00Z",
+    dueDate: "2025-09-03",
+    isCompleted: false,
+  },
+];
+
 
 const dashboardData = {
   tasks: [
@@ -118,7 +172,7 @@ const HomeHeader = ({ currentTime, getGreeting, colorScheme, setColorScheme }) =
   };
 
   return (
-    <View className="px-4 mb-8 ">
+    <View className="px-4 mb-8 mt-[25px]">
       <View className="flex-row justify-between items-start">
         <View className="flex-1">
           <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -367,7 +421,7 @@ export default function ModernHomeScreen() {
   };
 
   return (
-    <View className="flex-1 pt-4 bg-gray-50 dark:bg-gray-950">
+    <View className="flex-1 bg-gray-50 dark:bg-gray-950">
       <Animated.View
         style={{
           flex: 1,
@@ -391,6 +445,9 @@ export default function ModernHomeScreen() {
 
           {/* Statistics Overview */}
           <StatisticsOverview stats={dashboardData.todayStats} colorScheme={colorScheme} />
+          
+          <TaskProgressChart tasks={dummyTasks} title="Weekly Task Progress" isDark={false} />
+
 
           {/* AI Insights */}
           <AIInsights insights={dashboardData.insights} />

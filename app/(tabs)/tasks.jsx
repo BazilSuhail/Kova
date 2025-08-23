@@ -1,11 +1,11 @@
+import SwipeableTaskItem from '@/components/tasks/SwipeableTaskItem';
 import TaskCreationModal from '@/components/tasks/TaskCreationModal';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import SwipeableTaskItem from '@/components/tasks/SwipeableTaskItem';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from 'nativewind';
 
 // Mock Task Data with dates
 const tasks = [
@@ -34,35 +34,31 @@ const TaskFilter = ({ activeFilter, onFilterChange, taskCounts, isDark }) => {
         <TouchableOpacity
           key={filter.id}
           onPress={() => onFilterChange(filter.id)}
-          className={`flex-1 flex-row items-center justify-center py-3 px-4 rounded-xl ${
-            activeFilter === filter.id 
-              ? 'bg-emerald-500' 
+          className={`flex-1 flex-row items-center justify-center py-3 px-4 rounded-xl ${activeFilter === filter.id
+              ? 'bg-emerald-500'
               : 'bg-transparent'
-          }`}
+            }`}
         >
-          <Ionicons 
-            name={filter.icon} 
-            size={18} 
-            color={activeFilter === filter.id ? '#ffffff' : (isDark ? '#9ca3af' : '#6b7280')} 
+          <Ionicons
+            name={filter.icon}
+            size={18}
+            color={activeFilter === filter.id ? '#ffffff' : (isDark ? '#9ca3af' : '#6b7280')}
             style={{ marginRight: 6 }}
           />
-          <Text className={`font-medium ${
-            activeFilter === filter.id 
-              ? 'text-white' 
+          <Text className={`font-medium ${activeFilter === filter.id
+              ? 'text-white'
               : 'text-gray-600 dark:text-gray-400'
-          }`}>
+            }`}>
             {filter.label}
           </Text>
-          <View className={`ml-2 px-2 py-0.5 rounded-full ${
-            activeFilter === filter.id 
-              ? 'bg-emerald-400' 
+          <View className={`ml-2 px-2 py-0.5 rounded-full ${activeFilter === filter.id
+              ? 'bg-emerald-400'
               : 'bg-gray-100 dark:bg-gray-700'
-          }`}>
-            <Text className={`text-xs font-semibold ${
-              activeFilter === filter.id 
-                ? 'text-white' 
-                : 'text-gray-600 dark:text-gray-400'
             }`}>
+            <Text className={`text-xs font-semibold ${activeFilter === filter.id
+                ? 'text-white'
+                : 'text-gray-600 dark:text-gray-400'
+              }`}>
               {filter.count}
             </Text>
           </View>
@@ -92,19 +88,19 @@ const WelcomeSection = ({ completedTasks, totalTasks, isDark, colorScheme, setCo
             Let's make today productive
           </Text>
         </View>
-        
+
         <View className="flex-row items-center">
           <TouchableOpacity className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mr-3">
             <Ionicons name="notifications-outline" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}
             className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
           >
-            <Ionicons 
-              name={colorScheme === 'dark' ? "sunny" : "moon"} 
-              size={18} 
+            <Ionicons
+              name={colorScheme === 'dark' ? "sunny" : "moon"}
+              size={18}
               color="#059669"
             />
           </TouchableOpacity>
@@ -127,7 +123,7 @@ const WelcomeSection = ({ completedTasks, totalTasks, isDark, colorScheme, setCo
             {completedTasks}/{totalTasks}
           </Text>
         </View>
-        
+
         <View className="h-3 bg-emerald-100 dark:bg-emerald-800 rounded-full overflow-hidden">
           <View
             className="h-full bg-emerald-500 rounded-full"
@@ -141,7 +137,7 @@ const WelcomeSection = ({ completedTasks, totalTasks, isDark, colorScheme, setCo
     </View>
   );
 };
- 
+
 
 // Priority Icon Component
 const PriorityIcon = ({ priority }) => {
@@ -150,9 +146,9 @@ const PriorityIcon = ({ priority }) => {
     medium: { icon: 'flag-outline', color: '#f59e0b' },
     low: { icon: 'flag-outline', color: '#6b7280' }
   };
-  
+
   const { icon, color } = config[priority] || config.low;
-  
+
   return <Ionicons name={icon} size={12} color={color} />;
 };
 
@@ -160,7 +156,7 @@ export default function TasksScreen() {
   const insets = useSafeAreaInsets();
   const { colorScheme, setColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  
+
   const [modalVisible, setModalVisible] = useState(false);
   const [taskList, setTaskList] = useState(tasks);
   const [activeFilter, setActiveFilter] = useState('all');
@@ -181,7 +177,7 @@ export default function TasksScreen() {
   // Calculate stats
   const completedTasks = filteredTasks.filter(task => task.isCompleted).length;
   const totalTasks = filteredTasks.length;
-  
+
   const taskCounts = {
     all: taskList.length,
     today: taskList.filter(task => task.dueDate === today).length
@@ -196,7 +192,7 @@ export default function TasksScreen() {
   const getCategoryColor = (category) => {
     const colors = {
       'Work': '#3b82f6',
-      'Health': '#ef4444', 
+      'Health': '#ef4444',
       'Fitness': '#06b6d4',
       'Personal': '#8b5cf6'
     };
@@ -216,11 +212,10 @@ export default function TasksScreen() {
             {/* Checkbox */}
             <TouchableOpacity className="mr-4">
               <View
-                className={`w-6 h-6 rounded-full items-center justify-center ${
-                  item.isCompleted 
-                    ? 'bg-emerald-500' 
+                className={`w-6 h-6 rounded-full items-center justify-center ${item.isCompleted
+                    ? 'bg-emerald-500'
                     : 'border-2 border-gray-300 dark:border-gray-600'
-                }`}
+                  }`}
               >
                 {item.isCompleted && (
                   <Ionicons name="checkmark" size={16} color="white" />
@@ -232,11 +227,10 @@ export default function TasksScreen() {
             <View className="flex-1">
               <View className="flex-row items-center mb-2">
                 <Text
-                  className={`text-base font-medium flex-1 ${
-                    item.isCompleted 
-                      ? 'text-gray-500 dark:text-gray-400 line-through' 
+                  className={`text-base font-medium flex-1 ${item.isCompleted
+                      ? 'text-gray-500 dark:text-gray-400 line-through'
                       : 'text-gray-900 dark:text-white'
-                  }`}
+                    }`}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
@@ -246,7 +240,7 @@ export default function TasksScreen() {
                   <PriorityIcon priority={item.priority} />
                 </View>
               </View>
-              
+
               <View className="flex-row items-center">
                 <View
                   className="w-2 h-2 rounded-full mr-2"
@@ -267,10 +261,10 @@ export default function TasksScreen() {
 
             {/* Menu Button */}
             <TouchableOpacity className="ml-4 p-2">
-              <Ionicons 
-                name="ellipsis-horizontal" 
-                size={20} 
-                color={isDark ? '#6b7280' : '#9ca3af'} 
+              <Ionicons
+                name="ellipsis-horizontal"
+                size={20}
+                color={isDark ? '#6b7280' : '#9ca3af'}
               />
             </TouchableOpacity>
           </View>
@@ -286,11 +280,10 @@ export default function TasksScreen() {
         <View className="flex-row items-center">
           <View className="mr-4">
             <View
-              className={`w-6 h-6 rounded-full items-center justify-center ${
-                item.isCompleted 
-                  ? 'bg-emerald-500' 
+              className={`w-6 h-6 rounded-full items-center justify-center ${item.isCompleted
+                  ? 'bg-emerald-500'
                   : 'border-2 border-gray-300 dark:border-gray-600'
-              }`}
+                }`}
             >
               {item.isCompleted && (
                 <Ionicons name="checkmark" size={16} color="white" />
@@ -301,11 +294,10 @@ export default function TasksScreen() {
           <View className="flex-1">
             <View className="flex-row items-center mb-2">
               <Text
-                className={`text-base font-medium flex-1 ${
-                  item.isCompleted 
-                    ? 'text-gray-500 dark:text-gray-400 line-through' 
+                className={`text-base font-medium flex-1 ${item.isCompleted
+                    ? 'text-gray-500 dark:text-gray-400 line-through'
                     : 'text-gray-900 dark:text-white'
-                }`}
+                  }`}
                 numberOfLines={1}
               >
                 {item.title}
@@ -314,7 +306,7 @@ export default function TasksScreen() {
                 <PriorityIcon priority={item.priority} />
               </View>
             </View>
-            
+
             <View className="flex-row items-center">
               <View
                 className="w-2 h-2 rounded-full mr-2"
@@ -334,10 +326,10 @@ export default function TasksScreen() {
           </View>
 
           <View className="ml-4 p-2">
-            <Ionicons 
-              name="ellipsis-horizontal" 
-              size={20} 
-              color={isDark ? '#6b7280' : '#9ca3af'} 
+            <Ionicons
+              name="ellipsis-horizontal"
+              size={20}
+              color={isDark ? '#6b7280' : '#9ca3af'}
             />
           </View>
         </View>
@@ -351,23 +343,23 @@ export default function TasksScreen() {
     <View className="flex-1 bg-gray-50 dark:bg-gray-950">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{  
-          paddingBottom: insets.bottom + 100, 
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + 100,
           paddingHorizontal: 15
         }}
         scrollEnabled={!modalVisible}
       >
         {/* Welcome Section */}
-        <WelcomeSection 
-          completedTasks={completedTasks} 
-          totalTasks={totalTasks} 
+        <WelcomeSection
+          completedTasks={completedTasks}
+          totalTasks={totalTasks}
           isDark={isDark}
           colorScheme={colorScheme}
           setColorScheme={setColorScheme}
-        /> 
+        />
 
         {/* Task Filter */}
-        <TaskFilter 
+        <TaskFilter
           activeFilter={activeFilter}
           onFilterChange={setActiveFilter}
           taskCounts={taskCounts}
@@ -402,8 +394,8 @@ export default function TasksScreen() {
               {activeFilter === 'today' ? 'No tasks for today!' : 'No tasks yet'}
             </Text>
             <Text className="text-gray-400 dark:text-gray-500 text-center">
-              {activeFilter === 'today' 
-                ? 'Enjoy your free time or create a new task' 
+              {activeFilter === 'today'
+                ? 'Enjoy your free time or create a new task'
                 : 'Create your first task to get started'
               }
             </Text>
@@ -421,7 +413,7 @@ export default function TasksScreen() {
       </ScrollView>
 
       {/* Floating Action Button */}
-      <View className="absolute bottom-12 right-6">
+      <View className={`absolute bottom-${insets.bottom + 70} right-6`}>
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
           className="w-14 h-14 bg-emerald-500 rounded-full items-center justify-center"
