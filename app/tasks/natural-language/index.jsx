@@ -2,6 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import BottomSheet from 'entity-bottom-sheet';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -14,7 +15,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useColorScheme } from 'nativewind';
+
+import { getCategoryColor } from '@/constants/getCategoryColor';
 
 // Custom Header for BottomSheet
 const PromptModalHeader = () => (
@@ -135,37 +137,6 @@ export default function NaturalLanguageTaskScreen() {
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
-
-  // Map category to accent color
-  const getCategoryColor = (category) => {
-    switch (category.toLowerCase()) {
-      case 'academics':
-        return {
-          bg: isDark ? 'bg-amber-900/30' : 'bg-amber-100',
-          text: isDark ? 'text-amber-400' : 'text-amber-600'
-        };
-      case 'health':
-        return {
-          bg: isDark ? 'bg-rose-900/30' : 'bg-rose-100',
-          text: isDark ? 'text-rose-400' : 'text-rose-600'
-        };
-      case 'fitness':
-        return {
-          bg: isDark ? 'bg-sky-900/30' : 'bg-sky-100',
-          text: isDark ? 'text-sky-400' : 'text-sky-600'
-        };
-      case 'personal':
-        return {
-          bg: isDark ? 'bg-purple-900/30' : 'bg-purple-100',
-          text: isDark ? 'text-purple-400' : 'text-purple-600'
-        };
-      default:
-        return {
-          bg: isDark ? 'bg-gray-700' : 'bg-gray-100',
-          text: isDark ? 'text-gray-300' : 'text-gray-600'
-        };
-    }
   };
 
   return (
@@ -540,7 +511,7 @@ export default function NaturalLanguageTaskScreen() {
               <View className='w-full h-[2px] bg-gray-200 dark:bg-gray-700 rounded-2xl mb-6' />
 
               {/* Action Buttons */}
-           
+
               <View className="flex-row" style={{ gap: 8 }}>
                 <TouchableOpacity
                   onPress={handleSave}

@@ -548,7 +548,7 @@ export default function VoiceInputScreen() {
                   <TextInput
                     value={task.category}
                     onChangeText={(text) => setTask({ ...task, category: text })}
-                    className={`px-4 py- rounded-xl text-base border border-gray-200 dark:border-gray-700 ${task.category
+                    className={`px-4 py-4 rounded-xl text-base border border-gray-200 dark:border-gray-700 ${task.category
                         ? `${getCategoryColor(task.category, colorScheme === 'dark').bg} ${getCategoryColor(task.category, colorScheme === 'dark').text}`
                         : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white'
                       }`}
