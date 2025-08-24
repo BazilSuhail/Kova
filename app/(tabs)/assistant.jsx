@@ -190,7 +190,7 @@ export default function ModernAssistantScreen() {
       title: "Smart Notes Summaries",
       desc: "Summaries of documents",
       icon: "calendar-outline",
-      href: "/assistant/smart-scheduling",
+      href: "/assistant/notes-summaries",
       bgColorStyle: "#ffedd5",
       iconColor: "#f97316"
     },
