@@ -8,7 +8,9 @@ import {
 } from 'expo-audio';
 import * as FileSystem from 'expo-file-system';
 import { LinearGradient } from 'expo-linear-gradient';
+
 import { useRouter } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -26,9 +28,11 @@ import {
 
 import AudioVisualizer from '@/components/voice-tasks/AudioVisualizer';
 import RecordingAnimation from '@/components/voice-tasks/RecordingAnimation';
+import { getCategoryColor } from '@/constants/getCategoryColor';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function VoiceInputScreen() {
+  const { colorScheme } = useColorScheme()
   const insets = useSafeAreaInsets()
   const router = useRouter();
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
@@ -366,67 +370,69 @@ export default function VoiceInputScreen() {
     return 'bg-emerald-500';
   };
 
-  // Map category to accent color
-  const getCategoryColor = (category) => {
-    switch (category.toLowerCase()) {
-      case 'work':
-        return { bg: 'bg-blue-100', text: 'text-blue-600' };
-      case 'personal':
-        return { bg: 'bg-purple-100', text: 'text-purple-600' };
-      case 'health':
-        return { bg: 'bg-rose-100', text: 'text-rose-600' };
-      default:
-        return { bg: 'bg-gray-100', text: 'text-gray-600' };
-    }
-  };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-gray-50 dark:bg-gray-900">
       {/* Main StatusBar - Always present except when modal is shown */}
       {!showVoiceModal && (
-        <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
+        <StatusBar
+          barStyle={colorScheme === 'dark' ? "light-content" : "dark-content"}
+          backgroundColor={colorScheme === 'dark' ? "#111827" : "#F3F4F6"}
+        />
       )}
 
       {loading ? (
         <Animated.View
-          className="flex-1 justify-center items-center px-8"
+          className="flex-1 justify-center items-center px-8 bg-white dark:bg-gray-900"
           style={{ opacity: fadeAnim }}
         >
           {/* Loading State */}
           <View className="items-center">
             <View
-              className="w-24 h-24 bg-emerald-50 rounded-3xl items-center justify-center border border-emerald-100"
+              className="w-24 h-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-3xl items-center justify-center border border-emerald-100 dark:border-emerald-800"
               style={{ marginBottom: 24 }}
             >
-              <MaterialCommunityIcons name="brain" size={40} color="#059669" />
+              <MaterialCommunityIcons
+                name="brain"
+                size={40}
+                color={colorScheme === 'dark' ? "#34D399" : "#059669"}
+              />
             </View>
-            <Text className="text-2xl font-bold text-gray-900 mb-2">AI is thinking...</Text>
+            <Text className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              AI is thinking...
+            </Text>
             <Text
-              className="text-gray-500 text-center mb-8 leading-6 max-w-xs"
+              className="text-gray-500 dark:text-gray-400 text-center mb-8 leading-6 max-w-xs"
               style={{ marginBottom: 32 }}
             >
               Analyzing your request and creating the perfect task structure
             </Text>
-            <ActivityIndicator size="large" color="#059669" />
+            <ActivityIndicator size="large" color={colorScheme === 'dark' ? "#34D399" : "#059669"} />
 
             {/* Progress Steps */}
             <View className="w-full max-w-xs" style={{ marginTop: 32 }}>
               <View className="flex-row items-center" style={{ marginBottom: 12 }}>
                 <View className="w-2 h-2 bg-emerald-500 rounded-full" style={{ marginRight: 12 }} />
-                <Text className="text-sm text-gray-600">Processing natural language</Text>
+                <Text className="text-sm text-gray-600 dark:text-gray-300">
+                  Processing natural language
+                </Text>
               </View>
               <View className="flex-row items-center" style={{ marginBottom: 12 }}>
-                <View className="w-2 h-2 bg-emerald-300 rounded-full" style={{ marginRight: 12 }} />
-                <Text className="text-sm text-gray-500">Extracting task details</Text>
+                <View className="w-2 h-2 bg-emerald-300 dark:bg-emerald-600 rounded-full" style={{ marginRight: 12 }} />
+                <Text className="text-sm text-gray-500 dark:text-gray-400">
+                  Extracting task details
+                </Text>
               </View>
               <View className="flex-row items-center">
-                <View className="w-2 h-2 bg-gray-300 rounded-full" style={{ marginRight: 12 }} />
-                <Text className="text-sm text-gray-400">Generating final task</Text>
+                <View className="w-2 h-2 bg-gray-300 dark:bg-gray-600 rounded-full" style={{ marginRight: 12 }} />
+                <Text className="text-sm text-gray-400 dark:text-gray-500">
+                  Generating final task
+                </Text>
               </View>
             </View>
           </View>
         </Animated.View>
-      ) :
+      ) : (
         <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
@@ -436,18 +442,22 @@ export default function VoiceInputScreen() {
           <View className="px-6 pt-5">
             {/* Header */}
             <View
-              className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100"
+              className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-6 border border-emerald-100 dark:border-emerald-800"
               style={{ marginBottom: 32 }}
             >
               <View className="flex-row items-center">
-                <View className="w-16 h-16 bg-emerald-100 rounded-2xl items-center justify-center" style={{ marginRight: 16 }}>
-                  <Ionicons name="mic" size={32} color="#059669" />
+                <View className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl items-center justify-center" style={{ marginRight: 16 }}>
+                  <Ionicons
+                    name="mic"
+                    size={32}
+                    color={colorScheme === 'dark' ? "#34D399" : "#059669"}
+                  />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-xl font-bold text-gray-800">
+                  <Text className="text-xl font-bold text-gray-800 dark:text-white">
                     {task.title ? 'Voice Task Generated' : 'Create Task with Voice'}
                   </Text>
-                  <Text className="text-gray-500 text-[12px]">
+                  <Text className="text-gray-500 dark:text-gray-400 text-[12px]">
                     {task.title
                       ? 'Your voice task has been processed. Review and edit as needed.'
                       : 'Record a voice note to create a task with AI'}
@@ -462,18 +472,26 @@ export default function VoiceInputScreen() {
               <View style={{ marginBottom: 24 }}>
                 <View className="flex-row justify-between items-center" style={{ marginBottom: 12 }}>
                   <View className="flex-row items-center">
-                    <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                      <Ionicons name="bookmark" size={14} color="#059669" />
+                    <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
+                      <Ionicons
+                        name="bookmark"
+                        size={14}
+                        color={colorScheme === 'dark' ? "#34D399" : "#059669"}
+                      />
                     </View>
-                    <Text className="text-gray-800 font-semibold">Title</Text>
+                    <Text className="text-gray-800 dark:text-white font-semibold">Title</Text>
                     <Text className="text-red-400 ml-1">*</Text>
                   </View>
 
                   {task.title ? (
                     <View className="items-center">
-                      <View className="flex-row items-center bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">
-                        <Ionicons name="sparkles" size={14} color="#059669" />
-                        <Text className="text-emerald-700 text-sm font-medium ml-2">
+                      <View className="flex-row items-center bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-full border border-emerald-100 dark:border-emerald-800">
+                        <Ionicons
+                          name="sparkles"
+                          size={14}
+                          color={colorScheme === 'dark' ? "#34D399" : "#059669"}
+                        />
+                        <Text className="text-emerald-700 dark:text-emerald-400 text-sm font-medium ml-2">
                           Generated by AI
                         </Text>
                       </View>
@@ -484,27 +502,31 @@ export default function VoiceInputScreen() {
                 <TextInput
                   value={task.title}
                   onChangeText={(text) => setTask({ ...task, title: text })}
-                  className="bg-white px-4 py-4 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300"
+                  className="bg-white dark:bg-gray-800 px-4 py-4 rounded-xl text-base text-gray-800 dark:text-white border border-gray-200 dark:border-gray-700 focus:border-emerald-300 dark:focus:border-emerald-500"
                   placeholder={task.title ? "Enter task title" : "Task title will appear here"}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"}
                 />
               </View>
 
               {/* Description Field */}
               <View style={{ marginBottom: 24 }}>
                 <View className="flex-row items-center" style={{ marginBottom: 12 }}>
-                  <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                    <Ionicons name="document-text" size={14} color="#059669" />
+                  <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
+                    <Ionicons
+                      name="document-text"
+                      size={14}
+                      color={colorScheme === 'dark' ? "#34D399" : "#059669"}
+                    />
                   </View>
-                  <Text className="text-gray-800 font-semibold">Description</Text>
+                  <Text className="text-gray-800 dark:text-white font-semibold">Description</Text>
                 </View>
                 <TextInput
                   value={task.description}
                   onChangeText={(text) => setTask({ ...task, description: text })}
-                  className="bg-white px-4 py-4 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300 min-h-[100px]"
+                  className="bg-white dark:bg-gray-800 px-4 py-4 rounded-xl text-base text-gray-800 dark:text-white border border-gray-200 dark:border-gray-700 focus:border-emerald-300 dark:focus:border-emerald-500 min-h-[100px]"
                   multiline
                   placeholder={task.description ? "Add more details about your task" : "Description will appear here"}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"}
                   textAlignVertical="top"
                 />
               </View>
@@ -514,55 +536,53 @@ export default function VoiceInputScreen() {
                 {/* Category */}
                 <View className="flex-1" style={{ marginRight: 16 }}>
                   <View className="flex-row items-center" style={{ marginBottom: 12 }}>
-                    <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                      <Ionicons name="folder" size={14} color="#059669" />
+                    <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
+                      <Ionicons
+                        name="folder"
+                        size={14}
+                        color={colorScheme === 'dark' ? "#34D399" : "#059669"}
+                      />
                     </View>
-                    <Text className="text-gray-800 font-semibold">Category</Text>
+                    <Text className="text-gray-800 dark:text-white font-semibold">Category</Text>
                   </View>
-                  <View className="relative">
-                    <TextInput
-                      value={task.category}
-                      onChangeText={(text) => setTask({ ...task, category: text })}
-                      className="bg-white px-4 py-4 pr-10 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300"
-                      placeholder={task.category ? "Select category" : "Category will appear here"}
-                      placeholderTextColor="#9CA3AF"
-                    />
-                    <View className="absolute right-3 top-1/2 -mt-2">
-                      <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
-                    </View>
-                  </View>
-                  {/* Category Accent Pill */}
-                  {task.category ? (
-                    <View
-                      className={`mt-2 px-3 py-1 rounded-full ${getCategoryColor(task.category).bg}`}
-                    >
-                      <Text
-                        className={`text-sm font-medium ${getCategoryColor(task.category).text}`}
-                      >
-                        {task.category}
-                      </Text>
-                    </View>
-                  ) : null}
+                  <TextInput
+                    value={task.category}
+                    onChangeText={(text) => setTask({ ...task, category: text })}
+                    className={`px-4 py- rounded-xl text-base border border-gray-200 dark:border-gray-700 ${task.category
+                        ? `${getCategoryColor(task.category, colorScheme === 'dark').bg} ${getCategoryColor(task.category, colorScheme === 'dark').text}`
+                        : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white'
+                      }`}
+                    placeholder="Work, Personal ..."
+                    placeholderTextColor={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"}
+                  />
                 </View>
 
                 {/* Priority */}
                 <View className="flex-1">
                   <View className="flex-row items-center" style={{ marginBottom: 12 }}>
-                    <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                      <Ionicons name="flag" size={14} color="#059669" />
+                    <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
+                      <Ionicons
+                        name="flag"
+                        size={14}
+                        color={colorScheme === 'dark' ? "#34D399" : "#059669"}
+                      />
                     </View>
-                    <Text className="text-gray-800 font-semibold">Priority</Text>
+                    <Text className="text-gray-800 dark:text-white font-semibold">Priority</Text>
                   </View>
                   <View className="relative">
                     <TextInput
                       value={task.priority}
                       onChangeText={(text) => setTask({ ...task, priority: text })}
-                      className="bg-white px-4 py-4 pr-10 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300"
+                      className="bg-white dark:bg-gray-800 px-4 py-4 pr-10 rounded-xl text-base text-gray-800 dark:text-white border border-gray-200 dark:border-gray-700 focus:border-emerald-300 dark:focus:border-emerald-500"
                       placeholder={task.priority ? "Set priority" : "Priority will appear here"}
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"}
                     />
                     <View className="absolute right-3 top-1/2 -mt-2">
-                      <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
+                      <Ionicons
+                        name="chevron-down"
+                        size={16}
+                        color={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"}
+                      />
                     </View>
                   </View>
                 </View>
@@ -571,79 +591,102 @@ export default function VoiceInputScreen() {
               {/* Due Date Field */}
               <View style={{ marginBottom: 24 }}>
                 <View className="flex-row items-center" style={{ marginBottom: 12 }}>
-                  <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                    <Ionicons name="calendar" size={14} color="#059669" />
+                  <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
+                    <Ionicons
+                      name="calendar"
+                      size={14}
+                      color={colorScheme === 'dark' ? "#34D399" : "#059669"}
+                    />
                   </View>
-                  <Text className="text-gray-800 font-semibold">Due Date</Text>
+                  <Text className="text-gray-800 dark:text-white font-semibold">Due Date</Text>
                 </View>
                 <TouchableOpacity
-                  className="bg-white px-4 py-4 rounded-xl border border-gray-200 flex-row items-center justify-between"
+                  className="bg-white dark:bg-gray-800 px-4 py-4 rounded-xl border border-gray-200 dark:border-gray-700 flex-row items-center justify-between"
                 >
                   <Text
-                    className={`text-base ${task.dueDate ? 'text-gray-800' : 'text-gray-400'}`}
+                    className={`text-base ${task.dueDate
+                      ? 'text-gray-800 dark:text-white'
+                      : (colorScheme === 'dark' ? 'text-gray-500' : 'text-gray-400')}`}
                   >
                     {task.dueDate ? formatDate(task.dueDate) : 'Due date will appear here'}
                   </Text>
-                  <Ionicons name="calendar-outline" size={20} color="#9CA3AF" />
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"}
+                  />
                 </TouchableOpacity>
               </View>
 
               {/* Estimated Time Field */}
               <View style={{ marginBottom: 32 }}>
                 <View className="flex-row items-center" style={{ marginBottom: 12 }}>
-                  <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                    <Ionicons name="time" size={14} color="#059669" />
+                  <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
+                    <Ionicons
+                      name="time"
+                      size={14}
+                      color={colorScheme === 'dark' ? "#34D399" : "#059669"}
+                    />
                   </View>
-                  <Text className="text-gray-800 font-semibold">Estimated Time</Text>
+                  <Text className="text-gray-800 dark:text-white font-semibold">Estimated Time</Text>
                 </View>
                 <TextInput
                   value={task.estimatedTime}
                   onChangeText={(text) => setTask({ ...task, estimatedTime: text })}
-                  className="bg-white px-4 py-4 rounded-xl text-base text-gray-800 border border-gray-200 focus:border-emerald-300"
+                  className="bg-white dark:bg-gray-800 px-4 py-4 rounded-xl text-base text-gray-800 dark:text-white border border-gray-200 dark:border-gray-700 focus:border-emerald-300 dark:focus:border-emerald-500"
                   placeholder={task.estimatedTime ? "How long will this take?" : "Estimated time will appear here"}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"}
                 />
               </View>
             </View>
 
+            <View className='w-full h-[2px] bg-gray-200 dark:bg-gray-700 rounded-2xl mb-6' />
+
             {/* Action Buttons */}
-            <View style={{ marginTop: 32 }}>
+            <View className="flex-row" style={{ gap: 8 }}>
               <TouchableOpacity
                 onPress={handleSave}
-                className={`py-4 rounded-xl items-center flex-row justify-center ${task.title ? 'bg-emerald-600' : 'bg-gray-300'
-                  }`}
+                className="bg-emerald-600 flex-1 py-3 rounded-xl items-center flex-row justify-center"
                 activeOpacity={0.8}
-                style={{ marginBottom: 16 }}
                 disabled={!task.title}
               >
-                <Ionicons name="checkmark-circle" size={20} color={task.title ? "white" : "#9CA3AF"} />
-                <Text className={`text-base font-semibold ml-2 ${task.title ? 'text-white' : 'text-gray-500'}`}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={task.title ? "white" : (colorScheme === 'dark' ? "#9CA3AF" : "#6B7280")}
+                />
+                <Text className={`text-base font-semibold ml-2 ${task.title ? 'text-white' : (colorScheme === 'dark' ? 'text-gray-500' : 'text-gray-400')}`}>
                   {task.title ? 'Save Task' : 'Save (Unavailable)'}
                 </Text>
               </TouchableOpacity>
 
-              <View className="flex-row">
-                <TouchableOpacity
-                  onPress={handleRegenerate}
-                  className="flex-1 bg-white py-4 rounded-xl items-center flex-row justify-center border border-gray-200"
-                  style={{ marginRight: 12 }}
-                >
-                  <Ionicons name="mic" size={18} color="#6B7280" />
-                  <Text className="text-gray-700 font-medium ml-2">New Voice Task</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleCancel}
-                  className="flex-1 bg-white py-4 rounded-xl items-center flex-row justify-center border border-gray-200"
-                  style={{ marginLeft: 12 }}
-                >
-                  <Ionicons name="close" size={18} color="#6B7280" />
-                  <Text className="text-gray-700 font-medium ml-2">Cancel</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                onPress={handleCancel}
+                className="bg-white dark:bg-gray-800 py-3 px-4 rounded-xl items-center flex-row justify-center border border-gray-200 dark:border-gray-700"
+              >
+                <Ionicons
+                  name="close"
+                  size={18}
+                  color={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"}
+                />
+                <Text className="text-gray-700 dark:text-gray-300 font-medium">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleRegenerate}
+                className="bg-white dark:bg-gray-800 p-3 rounded-xl items-center flex-row justify-center border border-gray-200 dark:border-gray-700"
+              >
+                <Ionicons
+                  name="refresh"
+                  size={23}
+                  color={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"}
+                />
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
-      }
+      )}
 
       {/* Voice Input Modal */}
       <Modal
@@ -652,22 +695,28 @@ export default function VoiceInputScreen() {
         visible={showVoiceModal}
         onRequestClose={handleCloseModal}
       >
-        <StatusBar backgroundColor="#00000066" barStyle="dark-content" />
-        <View className="flex-1 bg-black/40 justify-center items-center">
+        <StatusBar
+          backgroundColor={colorScheme === 'dark' ? "#00000099" : "#00000066"}
+          barStyle={colorScheme === 'dark' ? "light-content" : "dark-content"}
+        />
+        <View className="flex-1 bg-black/40 dark:bg-black/60 justify-center items-center">
           <View
-            className={`bg-gray-50 w-[85%] p-5 rounded-3xl ${recordingUri ? 'h-[50%]' : 'h-[60%]'
-              }`}
+            className={`bg-gray-50 dark:bg-gray-800 w-[85%] p-5 rounded-3xl ${recordingUri ? 'h-[50%]' : 'h-[60%]'}`}
           >
             {/* Permission Warning */}
             {!isPermissionGranted && (
-              <View className="bg-rose-50 border border-rose-200 rounded-[12px] p-4 mb-6">
+              <View className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-[12px] p-4 mb-6">
                 <View className="flex-row items-center">
-                  <Ionicons name="warning" size={20} color="#dc2626" />
-                  <Text className="text-rose-700 font-medium ml-3 flex-1">
+                  <Ionicons
+                    name="warning"
+                    size={20}
+                    color={colorScheme === 'dark' ? "#F87171" : "#dc2626"}
+                  />
+                  <Text className="text-rose-700 dark:text-rose-400 font-medium ml-3 flex-1">
                     Microphone permission required
                   </Text>
                 </View>
-                <Text className="text-rose-600 text-sm mt-2 ml-8">
+                <Text className="text-rose-600 dark:text-rose-500 text-sm mt-2 ml-8">
                   Enable microphone access in settings
                 </Text>
               </View>
@@ -690,7 +739,7 @@ export default function VoiceInputScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <Text className="text-gray-600 text-center mb-2">
+                <Text className="text-gray-600 dark:text-gray-400 text-center mb-2">
                   {!isPermissionGranted
                     ? 'Grant microphone access'
                     : 'Tap to start recording'}
@@ -719,11 +768,11 @@ export default function VoiceInputScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <Text className="text-gray-600 text-center mb-2">
+                <Text className="text-gray-600 dark:text-gray-400 text-center mb-2">
                   Recording... Tap to stop
                 </Text>
-                <Text className="text-emerald-600 font-mono text-lg">
-                  {formatTime(recordingTime)}
+                <Text className="text-emerald-600 dark:text-emerald-400 font-mono text-lg">
+                  {formatTime(recorder.recordingTime)}
                 </Text>
               </View>
             )}
@@ -731,13 +780,13 @@ export default function VoiceInputScreen() {
             {/* Playback Controls - Show after recording is complete */}
             {recordingUri && (
               <View className="flex-1 justify-center">
-                <View className="bg-emerald-50 rounded-[12px] p-5 mb-6 border border-emerald-200">
+                <View className="bg-emerald-50 dark:bg-emerald-900/20 rounded-[12px] p-5 mb-6 border border-emerald-200 dark:border-emerald-800">
                   <View className="mb-4">
                     <AudioVisualizer
                       mode={recorder.isRecording ? 'recording' : 'playback'}
                       isActive={recorder.isRecording || isPlaying}
-                      currentTime={recorder.isRecording ? recordingTime : playbackTime}
-                      duration={recorder.isRecording ? recordingTime : duration}
+                      currentTime={recorder.isRecording ? recorder.recordingTime : playbackTime}
+                      duration={recorder.isRecording ? recorder.recordingTime : duration}
                     />
                   </View>
 
@@ -745,7 +794,7 @@ export default function VoiceInputScreen() {
                     {isPlaying ?
                       <TouchableOpacity
                         onPress={stopPlayback}
-                        className="w-10 h-10 bg-gray-500 rounded-[12px] justify-center items-center"
+                        className="w-10 h-10 bg-gray-500 dark:bg-gray-600 rounded-[12px] justify-center items-center"
                       >
                         <Ionicons name="stop" size={20} color="white" />
                       </TouchableOpacity>
@@ -785,10 +834,12 @@ export default function VoiceInputScreen() {
             {/* Action Buttons */}
             <View className="flex-row mt-4">
               <TouchableOpacity
-                className="flex-1 bg-gray-50 py-3 rounded-[12px] items-center border border-gray-200 mr-3"
+                className="flex-1 bg-gray-50 dark:bg-gray-700 py-3 rounded-[12px] items-center border border-gray-200 dark:border-gray-600 mr-3"
                 onPress={handleCloseModal}
               >
-                <Text className="text-gray-600 text-[14px] font-semibold">Cancel</Text>
+                <Text className="text-gray-600 dark:text-gray-300 text-[14px] font-semibold">
+                  Cancel
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -815,11 +866,10 @@ export default function VoiceInputScreen() {
                 <Ionicons
                   name="sparkles"
                   size={16}
-                  color={recordingUri ? 'white' : '#9CA3AF'}
+                  color={recordingUri ? 'white' : (colorScheme === 'dark' ? '#9CA3AF' : '#6B7280')}
                 />
                 <Text
-                  className={`ml-2 text-[14px] font-semibold ${recordingUri ? 'text-white' : 'text-gray-400'
-                    }`}
+                  className={`ml-2 text-[14px] font-semibold ${recordingUri ? 'text-white' : (colorScheme === 'dark' ? 'text-gray-400' : 'text-gray-500')}`}
                 >
                   Generate Task
                 </Text>

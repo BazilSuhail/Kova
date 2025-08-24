@@ -166,21 +166,19 @@ const { colorScheme } = useColorScheme();
                     <Ionicons name="folder" size={14} color={isDark ? "#34D399" : "#059669"} />
                   </View>
                   <Text className="text-gray-800 dark:text-white font-semibold">Category</Text>
-                </View>
-               <View className="relative">
-  <TextInput
-    value={task.category}
-    onChangeText={(text) => setTask({ ...task, category: text })}
-    className={`px-4 py-2 rounded-xl text-base border focus:border-emerald-300 dark:focus:border-emerald-500 ${
-      task.category 
-        ? `${getCategoryColor(task.category, isDark).bg} ${getCategoryColor(task.category, isDark).text}`
-        : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white'
-    }`}
-    placeholder="Work, Personal ..."
-    placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
-  />
-</View>
-              </View>
+                </View> 
+                <TextInput
+                  value={task.category}
+                  onChangeText={(text) => setTask({ ...task, category: text })}
+                  className={`px-4 py-2 rounded-xl text-base border border-gray-200 dark:border-gray-700 ${
+                    task.category 
+                      ? `${getCategoryColor(task.category, isDark).bg} ${getCategoryColor(task.category, isDark).text}`
+                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white'
+                  }`}
+                  placeholder="Work, Personal ..."
+                  placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
+                />
+              </View> 
 
               {/* Priority */}
               <View className="flex-1">

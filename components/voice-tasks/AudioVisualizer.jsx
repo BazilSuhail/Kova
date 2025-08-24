@@ -1,3 +1,4 @@
+import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
 import { Text, View } from 'react-native';
 import Animated, {
@@ -12,6 +13,9 @@ import Animated, {
 const BAR_COUNT = 15;
 
 const AudioVisualizer = ({ mode = 'playback', isActive = false, currentTime = 0, duration = 0 }) => {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  
   const bars = Array.from({ length: BAR_COUNT }, () => useSharedValue(0.3));
 
   useEffect(() => {
@@ -52,7 +56,7 @@ const AudioVisualizer = ({ mode = 'playback', isActive = false, currentTime = 0,
   const progressPercentage = duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0;
 
   return (
-    <View className="bg-white rounded-lg p-4">
+    <View className="bg-white dark:bg-gray-700 rounded-lg p-4">
       {/* Animated Bars */}
       <View className="flex-row items-end justify-center h-12 mb-4 px-2">
         {bars.map((bar, index) => {
@@ -63,7 +67,7 @@ const AudioVisualizer = ({ mode = 'playback', isActive = false, currentTime = 0,
           return (
             <View key={index} className="flex-1 items-center justify-end mx-0.5">
               <Animated.View
-                className="bg-emerald-400 rounded-full"
+                className="bg-emerald-500 dark:bg-emerald-400 rounded-full"
                 style={[{ width: 3, borderRadius: 999 }, animatedStyle]}
               />
             </View>
@@ -74,17 +78,17 @@ const AudioVisualizer = ({ mode = 'playback', isActive = false, currentTime = 0,
       {/* Progress Bar */}
       {mode === 'playback' && (
         <>
-          <View className="h-2 bg-gray-200 rounded-full overflow-hidden mb-3">
+          <View className="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden mb-3">
             <View
               className="h-full bg-emerald-500 rounded-full"
               style={{ width: `${progressPercentage}%` }}
             />
           </View>
           <View className="flex-row justify-between items-center">
-            <Text className="text-sm font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
+            <Text className="text-sm font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded">
               {currentTime}s
             </Text> 
-            <Text className="text-sm font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
+            <Text className="text-sm font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded">
               {duration}s
             </Text>
           </View>

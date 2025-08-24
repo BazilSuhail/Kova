@@ -8,7 +8,7 @@ import {
   Animated,
   BackHandler,
   ScrollView,
-  StatusBar, 
+  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
@@ -44,7 +44,7 @@ const PromptModalHeader = () => (
 export default function NaturalLanguageTaskScreen() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  
+
   const [showPromptModal, setShowPromptModal] = useState(true);
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
@@ -141,50 +141,50 @@ export default function NaturalLanguageTaskScreen() {
   const getCategoryColor = (category) => {
     switch (category.toLowerCase()) {
       case 'academics':
-        return { 
-          bg: isDark ? 'bg-amber-900/30' : 'bg-amber-100', 
-          text: isDark ? 'text-amber-400' : 'text-amber-600' 
+        return {
+          bg: isDark ? 'bg-amber-900/30' : 'bg-amber-100',
+          text: isDark ? 'text-amber-400' : 'text-amber-600'
         };
       case 'health':
-        return { 
-          bg: isDark ? 'bg-rose-900/30' : 'bg-rose-100', 
-          text: isDark ? 'text-rose-400' : 'text-rose-600' 
+        return {
+          bg: isDark ? 'bg-rose-900/30' : 'bg-rose-100',
+          text: isDark ? 'text-rose-400' : 'text-rose-600'
         };
       case 'fitness':
-        return { 
-          bg: isDark ? 'bg-sky-900/30' : 'bg-sky-100', 
-          text: isDark ? 'text-sky-400' : 'text-sky-600' 
+        return {
+          bg: isDark ? 'bg-sky-900/30' : 'bg-sky-100',
+          text: isDark ? 'text-sky-400' : 'text-sky-600'
         };
       case 'personal':
-        return { 
-          bg: isDark ? 'bg-purple-900/30' : 'bg-purple-100', 
-          text: isDark ? 'text-purple-400' : 'text-purple-600' 
+        return {
+          bg: isDark ? 'bg-purple-900/30' : 'bg-purple-100',
+          text: isDark ? 'text-purple-400' : 'text-purple-600'
         };
       default:
-        return { 
-          bg: isDark ? 'bg-gray-700' : 'bg-gray-100', 
-          text: isDark ? 'text-gray-300' : 'text-gray-600' 
+        return {
+          bg: isDark ? 'bg-gray-700' : 'bg-gray-100',
+          text: isDark ? 'text-gray-300' : 'text-gray-600'
         };
     }
   };
 
   return (
     <>
-      <StatusBar 
-        barStyle={isDark ? "light-content" : "dark-content"} 
-        backgroundColor={isDark ? "#030712" : "#FFFFFF"} 
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={isDark ? "#111827" : "#FFFFFF"}
       />
-      <View className="flex-1 bg-gray-50 dark:bg-gray-950">
+      <View className="flex-1 bg-gray-50 dark:bg-gray-900">
         {/* AI Prompt BottomSheet */}
         <BottomSheet
           visible={showPromptModal}
           onClose={handleCloseModal}
           header={<PromptModalHeader isDark={isDark} />}
           heightRatio={0.55}
-      draggableAreaColor={colorScheme === 'dark' ? '#1f2937' : 'white'}  // gray-800 / white
-      dragHandleColor={colorScheme === 'dark' ? '#4b5563' : '#ccc'}       // gray-600 / gray
-      statusBarColor={colorScheme === 'dark' ? '#00000099' : '#00000066'} // Darker for dark mode
-      statusBarStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+          draggableAreaColor={colorScheme === 'dark' ? '#1f2937' : 'white'}  // gray-800 / white
+          dragHandleColor={colorScheme === 'dark' ? '#4b5563' : '#ccc'}       // gray-600 / gray
+          statusBarColor={colorScheme === 'dark' ? '#00000099' : '#00000066'} // Darker for dark mode
+          statusBarStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
         >
           <View className="px-6 pt-6 pb-8 flex-1 bg-white dark:bg-gray-800">
             {/* Input Section */}
@@ -201,10 +201,10 @@ export default function NaturalLanguageTaskScreen() {
                   textAlignVertical="top"
                 />
                 <View className="absolute right-4 top-4">
-                  <Ionicons 
-                    name="chatbubble-ellipses-outline" 
-                    size={20} 
-                    color={isDark ? "#9CA3AF" : "#6B7280"} 
+                  <Ionicons
+                    name="chatbubble-ellipses-outline"
+                    size={20}
+                    color={isDark ? "#9CA3AF" : "#6B7280"}
                   />
                 </View>
               </View>
@@ -214,10 +214,10 @@ export default function NaturalLanguageTaskScreen() {
                   {prompt.length}/200 characters
                 </Text>
                 <View className="flex-row items-center">
-                  <Ionicons 
-                    name="bulb-outline" 
-                    size={14} 
-                    color={isDark ? "#F59E0B" : "#F59E0B"} 
+                  <Ionicons
+                    name="bulb-outline"
+                    size={14}
+                    color={isDark ? "#F59E0B" : "#F59E0B"}
                   />
                   <Text className="text-xs text-amber-600 dark:text-amber-400 ml-1">
                     Be specific for better results
@@ -240,8 +240,8 @@ export default function NaturalLanguageTaskScreen() {
                 disabled={!prompt.trim()}
                 className={`
                   flex-1 flex-row items-center justify-center py-4 rounded-2xl 
-                  ${!prompt.trim() 
-                    ? 'bg-gray-200 dark:bg-gray-700' 
+                  ${!prompt.trim()
+                    ? 'bg-gray-200 dark:bg-gray-700'
                     : ''}
                   ml-3
                   overflow-hidden
@@ -286,10 +286,10 @@ export default function NaturalLanguageTaskScreen() {
                 className="w-24 h-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-3xl items-center justify-center border border-emerald-100 dark:border-emerald-800"
                 style={{ marginBottom: 24 }}
               >
-                <MaterialCommunityIcons 
-                  name="brain" 
-                  size={40} 
-                  color={isDark ? "#34D399" : "#059669"} 
+                <MaterialCommunityIcons
+                  name="brain"
+                  size={40}
+                  color={isDark ? "#34D399" : "#059669"}
                 />
               </View>
               <Text className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -336,6 +336,8 @@ export default function NaturalLanguageTaskScreen() {
             contentContainerStyle={{ paddingBottom: 40 }}
           >
             <View className="px-6 pt-16 pb-8">
+
+
               {/* Header */}
               <View
                 className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-6 border border-emerald-100 dark:border-emerald-800"
@@ -343,10 +345,10 @@ export default function NaturalLanguageTaskScreen() {
               >
                 <View className="flex-row items-center">
                   <View className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl items-center justify-center" style={{ marginRight: 16 }}>
-                    <Ionicons 
-                      name="checkmark-circle" 
-                      size={32} 
-                      color={isDark ? "#34D399" : "#059669"} 
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={32}
+                      color={isDark ? "#34D399" : "#059669"}
                     />
                   </View>
                   <View className="flex-1">
@@ -366,10 +368,10 @@ export default function NaturalLanguageTaskScreen() {
                   <View className="flex-row justify-between items-center" style={{ marginBottom: 12 }}>
                     <View className="flex-row items-center">
                       <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                        <Ionicons 
-                          name="bookmark" 
-                          size={14} 
-                          color={isDark ? "#34D399" : "#059669"} 
+                        <Ionicons
+                          name="bookmark"
+                          size={14}
+                          color={isDark ? "#34D399" : "#059669"}
                         />
                       </View>
                       <Text className="text-gray-800 dark:text-white font-semibold">Title</Text>
@@ -378,10 +380,10 @@ export default function NaturalLanguageTaskScreen() {
 
                     <View className="items-center">
                       <View className="flex-row items-center bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-full border border-emerald-100 dark:border-emerald-800">
-                        <Ionicons 
-                          name="sparkles" 
-                          size={14} 
-                          color={isDark ? "#34D399" : "#059669"} 
+                        <Ionicons
+                          name="sparkles"
+                          size={14}
+                          color={isDark ? "#34D399" : "#059669"}
                         />
                         <Text className="text-emerald-700 dark:text-emerald-400 text-sm font-medium ml-2">
                           Generated by AI
@@ -403,10 +405,10 @@ export default function NaturalLanguageTaskScreen() {
                 <View style={{ marginBottom: 24 }}>
                   <View className="flex-row items-center" style={{ marginBottom: 12 }}>
                     <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                      <Ionicons 
-                        name="document-text" 
-                        size={14} 
-                        color={isDark ? "#34D399" : "#059669"} 
+                      <Ionicons
+                        name="document-text"
+                        size={14}
+                        color={isDark ? "#34D399" : "#059669"}
                       />
                     </View>
                     <Text className="text-gray-800 dark:text-white font-semibold">Description</Text>
@@ -428,10 +430,10 @@ export default function NaturalLanguageTaskScreen() {
                   <View className="flex-1" style={{ marginRight: 16 }}>
                     <View className="flex-row items-center" style={{ marginBottom: 12 }}>
                       <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                        <Ionicons 
-                          name="folder" 
-                          size={14} 
-                          color={isDark ? "#34D399" : "#059669"} 
+                        <Ionicons
+                          name="folder"
+                          size={14}
+                          color={isDark ? "#34D399" : "#059669"}
                         />
                       </View>
                       <Text className="text-gray-800 dark:text-white font-semibold">Category</Text>
@@ -440,40 +442,24 @@ export default function NaturalLanguageTaskScreen() {
                       <TextInput
                         value={task.category}
                         onChangeText={(text) => setTask({ ...task, category: text })}
-                        className="bg-white dark:bg-gray-800 px-4 py-4 pr-10 rounded-xl text-base text-gray-800 dark:text-white border border-gray-200 dark:border-gray-700 focus:border-emerald-300 dark:focus:border-emerald-500"
-                        placeholder="Select category"
+                        className={`px-4 py-4 rounded-xl text-base border border-gray-200 dark:border-gray-700 ${task.category
+                          ? `${getCategoryColor(task.category, isDark).bg} ${getCategoryColor(task.category, isDark).text}`
+                          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white'
+                          }`}
+                        placeholder="Work, Personal ..."
                         placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
                       />
-                      <View className="absolute right-3 top-1/2 -mt-2">
-                        <Ionicons 
-                          name="chevron-down" 
-                          size={16} 
-                          color={isDark ? "#9CA3AF" : "#6B7280"} 
-                        />
-                      </View>
                     </View>
-                    {/* Category Accent Pill */}
-                    {task.category ? (
-                      <View
-                        className={`mt-2 px-3 py-1 rounded-full ${getCategoryColor(task.category).bg}`}
-                      >
-                        <Text
-                          className={`text-sm font-medium ${getCategoryColor(task.category).text}`}
-                        >
-                          {task.category}
-                        </Text>
-                      </View>
-                    ) : null}
                   </View>
 
                   {/* Priority */}
                   <View className="flex-1">
                     <View className="flex-row items-center" style={{ marginBottom: 12 }}>
                       <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                        <Ionicons 
-                          name="flag" 
-                          size={14} 
-                          color={isDark ? "#34D399" : "#059669"} 
+                        <Ionicons
+                          name="flag"
+                          size={14}
+                          color={isDark ? "#34D399" : "#059669"}
                         />
                       </View>
                       <Text className="text-gray-800 dark:text-white font-semibold">Priority</Text>
@@ -487,10 +473,10 @@ export default function NaturalLanguageTaskScreen() {
                         placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
                       />
                       <View className="absolute right-3 top-1/2 -mt-2">
-                        <Ionicons 
-                          name="chevron-down" 
-                          size={16} 
-                          color={isDark ? "#9CA3AF" : "#6B7280"} 
+                        <Ionicons
+                          name="chevron-down"
+                          size={16}
+                          color={isDark ? "#9CA3AF" : "#6B7280"}
                         />
                       </View>
                     </View>
@@ -501,10 +487,10 @@ export default function NaturalLanguageTaskScreen() {
                 <View style={{ marginBottom: 24 }}>
                   <View className="flex-row items-center" style={{ marginBottom: 12 }}>
                     <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                      <Ionicons 
-                        name="calendar" 
-                        size={14} 
-                        color={isDark ? "#34D399" : "#059669"} 
+                      <Ionicons
+                        name="calendar"
+                        size={14}
+                        color={isDark ? "#34D399" : "#059669"}
                       />
                     </View>
                     <Text className="text-gray-800 dark:text-white font-semibold">Due Date</Text>
@@ -513,17 +499,17 @@ export default function NaturalLanguageTaskScreen() {
                     className="bg-white dark:bg-gray-800 px-4 py-4 rounded-xl border border-gray-200 dark:border-gray-700 flex-row items-center justify-between"
                   >
                     <Text
-                      className={`text-base ${task.dueDate 
-                        ? 'text-gray-800 dark:text-white' 
+                      className={`text-base ${task.dueDate
+                        ? 'text-gray-800 dark:text-white'
                         : (isDark ? 'text-gray-500' : 'text-gray-400')
-                      }`}
+                        }`}
                     >
                       {task.dueDate ? formatDate(task.dueDate) : 'Select due date'}
                     </Text>
-                    <Ionicons 
-                      name="calendar-outline" 
-                      size={20} 
-                      color={isDark ? "#9CA3AF" : "#6B7280"} 
+                    <Ionicons
+                      name="calendar-outline"
+                      size={20}
+                      color={isDark ? "#9CA3AF" : "#6B7280"}
                     />
                   </TouchableOpacity>
                 </View>
@@ -532,10 +518,10 @@ export default function NaturalLanguageTaskScreen() {
                 <View style={{ marginBottom: 32 }}>
                   <View className="flex-row items-center" style={{ marginBottom: 12 }}>
                     <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center" style={{ marginRight: 12 }}>
-                      <Ionicons 
-                        name="time" 
-                        size={14} 
-                        color={isDark ? "#34D399" : "#059669"} 
+                      <Ionicons
+                        name="time"
+                        size={14}
+                        color={isDark ? "#34D399" : "#059669"}
                       />
                     </View>
                     <Text className="text-gray-800 dark:text-white font-semibold">Estimated Time</Text>
@@ -550,49 +536,46 @@ export default function NaturalLanguageTaskScreen() {
                 </View>
               </View>
 
+
+              <View className='w-full h-[2px] bg-gray-200 dark:bg-gray-700 rounded-2xl mb-6' />
+
               {/* Action Buttons */}
-              <View style={{ marginTop: 32 }}>
+           
+              <View className="flex-row" style={{ gap: 8 }}>
                 <TouchableOpacity
                   onPress={handleSave}
-                  className="bg-emerald-600 py-4 rounded-xl items-center flex-row justify-center"
+                  className="bg-emerald-600 flex-1 py-3 rounded-xl items-center flex-row justify-center"
                   activeOpacity={0.8}
-                  style={{ marginBottom: 16 }}
                 >
                   <Ionicons name="checkmark-circle" size={20} color="white" />
                   <Text className="text-white text-base font-semibold ml-2">Save Task</Text>
                 </TouchableOpacity>
 
-                <View className="flex-row">
-                  <TouchableOpacity
-                    onPress={handleRegenerate}
-                    className="flex-1 bg-white dark:bg-gray-800 py-4 rounded-xl items-center flex-row justify-center border border-gray-200 dark:border-gray-700"
-                    style={{ marginRight: 12 }}
-                  >
-                    <Ionicons 
-                      name="refresh" 
-                      size={18} 
-                      color={isDark ? "#9CA3AF" : "#6B7280"} 
-                    />
-                    <Text className="text-gray-700 dark:text-gray-300 font-medium ml-2">
-                      Regenerate
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={handleCancel}
-                    className="flex-1 bg-white dark:bg-gray-800 py-4 rounded-xl items-center flex-row justify-center border border-gray-200 dark:border-gray-700"
-                    style={{ marginLeft: 12 }}
-                  >
-                    <Ionicons 
-                      name="close" 
-                      size={18} 
-                      color={isDark ? "#9CA3AF" : "#6B7280"} 
-                    />
-                    <Text className="text-gray-700 dark:text-gray-300 font-medium ml-2">
-                      Cancel
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  onPress={handleCancel}
+                  className="bg-white dark:bg-red-800/30 py-3 px-4 rounded-xl items-center flex-row justify-center border border-gray-200 dark:border-gray-700"
+                >
+                  <Ionicons
+                    name="close"
+                    size={18}
+                    color={isDark ? "#9CA3AF" : "#6B7280"}
+                  />
+                  <Text className="text-gray-700 dark:text-gray-300 font-medium ">
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleRegenerate}
+                  className="bg-white dark:bg-gray-800 p-3 rounded-xl items-center flex-row justify-center border border-gray-200 dark:border-gray-700"
+                >
+                  <Ionicons
+                    name="refresh"
+                    size={23}
+                    color={isDark ? "#9CA3AF" : "#6B7280"}
+                  />
+                </TouchableOpacity>
               </View>
+
             </View>
           </ScrollView>
         )}
