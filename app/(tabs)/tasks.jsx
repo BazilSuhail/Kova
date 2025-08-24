@@ -29,7 +29,7 @@ const TaskFilter = ({ activeFilter, onFilterChange, taskCounts, isDark }) => {
   ];
 
   return (
-    <View className="flex-row mb-6 bg-white dark:bg-gray-800 rounded-2xl p-2 border-[2px] border-gray-100">
+    <View className="flex-row mb-6 bg-white dark:bg-gray-800 rounded-2xl p-2 border-[2px] border-gray-100 dark:border-gray-700">
       {filters.map((filter) => (
         <TouchableOpacity
           key={filter.id}
@@ -71,8 +71,7 @@ const TaskFilter = ({ activeFilter, onFilterChange, taskCounts, isDark }) => {
 // Welcome Section Component
 const ProgressCard = ({ completedTasks, totalTasks }) => {
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-  const currentHour = new Date().getHours();
-  let greeting = 'Good Morning';
+  const currentHour = new Date().getHours(); 
   if (currentHour >= 12 && currentHour < 17) greeting = 'Good Afternoon';
   else if (currentHour >= 17) greeting = 'Good Evening';
 
@@ -334,18 +333,7 @@ export default function TasksScreen() {
           <View className="flex-row items-center">
             <TouchableOpacity className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mr-3">
               <Ionicons name="notifications-outline" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}
-              className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
-            >
-              <Ionicons
-                name={colorScheme === 'dark' ? "sunny" : "moon"}
-                size={18}
-                color="#059669"
-              />
-            </TouchableOpacity>
+            </TouchableOpacity> 
           </View>
         </View>
 
@@ -353,10 +341,7 @@ export default function TasksScreen() {
         {/* Welcome Section */}
         <ProgressCard
           completedTasks={completedTasks}
-          totalTasks={totalTasks}
-          isDark={isDark}
-          colorScheme={colorScheme}
-          setColorScheme={setColorScheme}
+          totalTasks={totalTasks} 
         />
 
         {/* Task Filter */}

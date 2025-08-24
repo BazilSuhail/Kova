@@ -17,8 +17,8 @@ import {
 import { useColorScheme } from 'nativewind';
 
 // Custom Header for BottomSheet
-const PromptModalHeader = ({ isDark }) => (
-  <View className="px-6 pt-3 pb-4 bg-[#030712] border-b border-gray-100 dark:border-gray-700">
+const PromptModalHeader = () => (
+  <View className="px-6 pt-3 pb-4 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
     <View className="flex-row items-center">
       {/* Gradient Icon with LinearGradient */}
       <View className="w-10 h-10 rounded-lg items-center justify-center mr-3 relative overflow-hidden">
@@ -181,8 +181,12 @@ export default function NaturalLanguageTaskScreen() {
           onClose={handleCloseModal}
           header={<PromptModalHeader isDark={isDark} />}
           heightRatio={0.55}
+      draggableAreaColor={colorScheme === 'dark' ? '#1f2937' : 'white'}  // gray-800 / white
+      dragHandleColor={colorScheme === 'dark' ? '#4b5563' : '#ccc'}       // gray-600 / gray
+      statusBarColor={colorScheme === 'dark' ? '#00000099' : '#00000066'} // Darker for dark mode
+      statusBarStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
         >
-          <View className="px-6 pt-6 pb-8 flex-1 bg-white dark:bg-gray-900">
+          <View className="px-6 pt-6 pb-8 flex-1 bg-white dark:bg-gray-800">
             {/* Input Section */}
             <View className="flex-1">
               <View className="relative" style={{ marginBottom: 24 }}>

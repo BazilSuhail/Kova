@@ -80,7 +80,7 @@ const AIOptionCard = ({ option, index }) => {
           <View className="bg-white dark:bg-gray-800 rounded-3xl p-4 border border-gray-100 dark:border-gray-700">
             <View
               className={`w-14 h-14 rounded-2xl items-center justify-center mb-4 ${option.bgColor || ''}`}
-              style={option.bgColorStyle ? { backgroundColor: option.bgColorStyle } : {}}
+              style={option.bgColorStyle ? { backgroundColor: option.bgColorStyle + '15' } : {}}
             >
               <Ionicons
                 name={option.icon}
@@ -179,6 +179,22 @@ export default function ModernAssistantScreen() {
   // Enhanced AI Assistant options
   const aiOptions = [
     {
+      title: "Notes Summarizer",
+      desc: "AI-Powered Summaries",
+      icon: "document-text-outline",
+      href: "/assistant/notes-summarizer",
+      bgColorStyle: "#f3e8ff",
+      iconColor: "#a855f7"
+    },
+    {
+      title: "Smart Notes Summaries",
+      desc: "Summaries of documents",
+      icon: "calendar-outline",
+      href: "/assistant/smart-scheduling",
+      bgColorStyle: "#ffedd5",
+      iconColor: "#f97316"
+    },
+    {
       title: "Image to Tasks",
       desc: "Capture tasks from photos",
       icon: "camera-outline",
@@ -190,26 +206,11 @@ export default function ModernAssistantScreen() {
       title: "Voice Notes",
       desc: "Convert speech to tasks",
       icon: "mic-outline",
-      href: "/assistant/voice-notes",
+      href: "/tasks/voice-input",
       bgColorStyle: "#dcfce7",
       iconColor: "#22c55e"
     },
-    {
-      title: "PDF Summarizer",
-      desc: "Extract tasks from documents",
-      icon: "document-text-outline",
-      href: "/assistant/pdf-summarizer",
-      bgColorStyle: "#f3e8ff",
-      iconColor: "#a855f7"
-    },
-    {
-      title: "Smart Scheduling",
-      desc: "AI-powered task scheduling",
-      icon: "calendar-outline",
-      href: "/assistant/smart-scheduling",
-      bgColorStyle: "#ffedd5",
-      iconColor: "#f97316"
-    },
+    
     {
       title: "Task Breakdown",
       desc: "Split complex tasks",

@@ -328,7 +328,7 @@ const QuickActions = ({ isDark }) => {
 // AI Insights Component
 const AIInsights = ({ insights }) => {
   return (
-    <View className="mb-6">
+    <View className="mb-7">
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-xl font-bold text-gray-900 dark:text-white">
           AI Insights
@@ -454,8 +454,7 @@ export default function ModernHomeScreen() {
           <TaskProgressChart tasks={dummyTasks} title="Weekly Task Progress" isDark={colorScheme} />
         </AnimatedSection>
 
-
-        <View className='w-full h-[3px] bg-gray-200 rounded-2xl mb-6' />
+        <View className='w-full h-[2px] bg-gray-200 dark:bg-gray-700 rounded-2xl mb-6' />
 
         <AnimatedSection delay={400}>
           <AIInsights insights={dashboardData.insights} />
@@ -465,11 +464,10 @@ export default function ModernHomeScreen() {
           <QuickActions isDark={colorScheme} />
         </AnimatedSection>
 
-
-                <View className='w-full h-[3px] bg-gray-200 rounded-2xl mb-6' />
+        <View className='w-full h-[2px] bg-gray-200 dark:bg-gray-700 rounded-2xl mb-6' />
 
         <AnimatedSection delay={800}>
-          <View className="mb-6">
+          <View className="mb-7">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-xl font-bold text-gray-900 dark:text-white">
                 Today's Tasks
