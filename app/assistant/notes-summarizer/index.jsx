@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import BottomSheet from 'entity-bottom-sheet';
 import * as DocumentPicker from 'expo-document-picker';
 import { useRouter } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -31,6 +32,7 @@ const FilePickerModalHeader = () => (
 );
 
 export default function NoteSummarizerScreen() {
+  const { colorScheme } = useColorScheme();
   const router = useRouter();
   const [showModal, setShowModal] = useState(true);
   const [selectedPdf, setSelectedPdf] = useState(null);
@@ -142,25 +144,25 @@ export default function NoteSummarizerScreen() {
   }, [loading]);
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-gray-50 dark:bg-gray-900">
       {/* Summary Review Screen - Always rendered behind modal */}
       <ScrollView
-        className="flex-1 bg-gray-50"
+        className="flex-1 bg-gray-50 dark:bg-gray-900"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         <View className="px-6 pt-16 pb-8">
           {/* Header */}
-          <View className="bg-emerald-50 rounded-xl py-4 px-6 mb-8 border-[1px] border-emerald-200">
+          <View className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl py-4 px-6 mb-8 border border-emerald-200 dark:border-emerald-800">
             <View className="flex-row items-center">
-              <View className="w-16 h-16 bg-emerald-100 rounded-2xl items-center justify-center mr-4">
-                <Ionicons name="checkmark-circle" size={32} color="#059669" />
+              <View className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl items-center justify-center mr-4">
+                <Ionicons name="checkmark-circle" size={32} color={colorScheme === 'dark' ? "#34D399" : "#059669"} />
               </View>
               <View className="flex-col flex-1">
-                <Text className="text-xl font-bold text-gray-900 mb-1">
+                <Text className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                   {summary.title ? 'Summary Ready' : 'Generate PDF Summary'}
                 </Text>
-                <Text className="text-gray-700 text-[11px]">
+                <Text className="text-gray-700 dark:text-gray-400 text-[11px]">
                   {summary.title
                     ? 'AI has analyzed your PDF and created a comprehensive summary.'
                     : 'Select a PDF file to get started with AI-powered summarization'}
@@ -174,13 +176,13 @@ export default function NoteSummarizerScreen() {
             {/* Document Title */}
             <View>
               <View className="flex-row items-center mb-3">
-                <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center mr-3">
-                  <Ionicons name="document" size={14} color="#059669" />
+                <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center mr-3">
+                  <Ionicons name="document" size={14} color={colorScheme === 'dark' ? "#34D399" : "#059669"} />
                 </View>
-                <Text className="text-gray-800 font-semibold">Document Title</Text>
+                <Text className="text-gray-800 dark:text-white font-semibold">Document Title</Text>
               </View>
-              <View className="bg-white p-4 rounded-xl border border-gray-200">
-                <Text className="text-md font-bold font-italic text-emerald-800">
+              <View className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                <Text className="text-md font-bold font-italic text-emerald-800 dark:text-emerald-400">
                   {summary.title || '* No document selected'}
                 </Text>
               </View>
@@ -188,33 +190,33 @@ export default function NoteSummarizerScreen() {
 
             {/* Key Points */}
             <View>
-            <View className="flex-row items-center justify-between mb-4">
+              <View className="flex-row items-center justify-between mb-4">
                 <View className="flex-row items-center">
-                <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center mr-3">
-                  <Ionicons name="list" size={14} color="#059669" />
+                  <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center mr-3">
+                    <Ionicons name="list" size={14} color={colorScheme === 'dark' ? "#34D399" : "#059669"} />
+                  </View>
+                  <Text className="text-gray-800 dark:text-white font-semibold">Key Points</Text>
                 </View>
-                <Text className="text-gray-800 font-semibold">Key Points</Text>
+                {/* AI Credit Footer */}
+                <View className="items-center">
+                  <View className="flex-row items-center bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-full border border-emerald-200 dark:border-emerald-800">
+                    <Ionicons name="sparkles" size={15} color={colorScheme === 'dark' ? "#34D399" : "#059669"} />
+                    <Text className="text-emerald-700 dark:text-emerald-400 text-[11px] font-medium ml-2">
+                      Summarized by AI
+                    </Text>
+                  </View>
+                </View>
               </View>
-              {/* AI Credit Footer */}
-          <View className="items-center">
-            <View className="flex-row items-center bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200">
-              <Ionicons name="sparkles" size={15} color="#059669" />
-              <Text className="text-emerald-700 text-[11px] font-medium ml-2">
-                Summarized by AI
-              </Text>
-            </View>
-          </View>
-            </View>
-              <View className="bg-white p-4 rounded-xl border border-gray-200">
+              <View className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
                 {summary.keyPoints.length > 0 ? (
                   summary.keyPoints.map((point, index) => (
                     <View key={index} className="flex-row items-start mb-3 last:mb-0">
                       <View className="w-2 h-2 bg-emerald-500 rounded-full mt-2 mr-3 flex-shrink-0" />
-                      <Text className="text-gray-800 leading-6 flex-1">{point}</Text>
+                      <Text className="text-gray-800 dark:text-gray-300 leading-6 flex-1">{point}</Text>
                     </View>
                   ))
                 ) : (
-                  <Text className="text-gray-500 italic">
+                  <Text className="text-gray-500 dark:text-gray-400 italic">
                     {selectedPdf
                       ? 'Processing your document...'
                       : 'Key points will appear here after processing'}
@@ -226,22 +228,22 @@ export default function NoteSummarizerScreen() {
             {/* Main Topics */}
             <View>
               <View className="flex-row items-center mb-3">
-                <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center mr-3">
-                  <Ionicons name="pricetags" size={14} color="#059669" />
+                <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center mr-3">
+                  <Ionicons name="pricetags" size={14} color={colorScheme === 'dark' ? "#34D399" : "#059669"} />
                 </View>
-                <Text className="text-gray-800 font-semibold">Main Topics</Text>
+                <Text className="text-gray-800 dark:text-white font-semibold">Main Topics</Text>
               </View>
-              <View className="bg-white p-4 rounded-xl border border-gray-200">
+              <View className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
                 {summary.mainTopics.length > 0 ? (
                   <View style={{ gap: 4 }} className="flex-row flex-wrap">
                     {summary.mainTopics.map((topic, index) => (
-                      <View key={index} className="bg-emerald-50 px-3 py-2 rounded-full border border-emerald-100">
-                        <Text className="text-emerald-700 text-sm font-medium">{topic}</Text>
+                      <View key={index} className="bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 rounded-full border border-emerald-100 dark:border-emerald-800">
+                        <Text className="text-emerald-700 dark:text-emerald-400 text-sm font-medium">{topic}</Text>
                       </View>
                     ))}
                   </View>
                 ) : (
-                  <Text className="text-gray-500 italic">
+                  <Text className="text-gray-500 dark:text-gray-400 italic">
                     {selectedPdf
                       ? 'Extracting main topics...'
                       : 'Topics will appear here after processing'}
@@ -253,13 +255,13 @@ export default function NoteSummarizerScreen() {
             {/* Reading Time */}
             <View>
               <View className="flex-row items-center mb-3">
-                <View className="w-6 h-6 bg-emerald-100 rounded-lg items-center justify-center mr-3">
-                  <Ionicons name="time" size={14} color="#059669" />
+                <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center mr-3">
+                  <Ionicons name="time" size={14} color={colorScheme === 'dark' ? "#34D399" : "#059669"} />
                 </View>
-                <Text className="text-gray-800 font-semibold">Estimated Reading Time</Text>
+                <Text className="text-gray-800 dark:text-white font-semibold">Estimated Reading Time</Text>
               </View>
-              <View className="bg-white p-4 rounded-xl border border-gray-200">
-                <Text className="text-gray-800 text-base">
+              <View className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                <Text className="text-gray-800 dark:text-white text-base">
                   {summary.estimatedReadTime || 'Calculating...'}
                 </Text>
               </View>
@@ -283,24 +285,24 @@ export default function NoteSummarizerScreen() {
             <View style={{ gap: 12 }} className="flex-row">
               <TouchableOpacity
                 onPress={handleRegenerate}
-                className="flex-1 bg-white py-4 rounded-xl items-center flex-row justify-center border border-gray-200"
+                className="flex-1 bg-white dark:bg-gray-800 py-4 rounded-xl items-center flex-row justify-center border border-gray-200 dark:border-gray-700"
               >
-                <Ionicons name="refresh" size={18} color="#6B7280" />
-                <Text className="text-gray-700 font-medium ml-2">New File</Text>
+                <Ionicons name="refresh" size={18} color={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"} />
+                <Text className="text-gray-700 dark:text-gray-300 font-medium ml-2">New File</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => { }}
-                className="flex-1 bg-white py-4 rounded-xl items-center flex-row justify-center border border-gray-200"
+                className="flex-1 bg-white dark:bg-gray-800 py-4 rounded-xl items-center flex-row justify-center border border-gray-200 dark:border-gray-700"
                 disabled={!summary.title}
               >
-                <Ionicons name="share-outline" size={18} color="#6B7280" />
-                <Text className="text-gray-700 font-medium ml-2">Share</Text>
+                <Ionicons name="share-outline" size={18} color={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"} />
+                <Text className="text-gray-700 dark:text-gray-300 font-medium ml-2">Share</Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          
+
         </View>
       </ScrollView>
 
@@ -309,31 +311,31 @@ export default function NoteSummarizerScreen() {
         visible={showModal}
         onClose={handleCloseModal}
         header={<FilePickerModalHeader />}
-        heightRatio={selectedPdf ? 0.75 :0.60}
+        heightRatio={selectedPdf ? 0.75 : 0.60}
       >
-        <View className="px-6 pt-6 pb-8 flex-1">
+        <View className="px-6 pt-6 pb-8 flex-1 bg-white dark:bg-gray-800">
           {/* Error Message */}
           {uploadError ? (
-            <View className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
+            <View className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 mb-6">
               <View className="flex-row items-center">
-                <Ionicons name="alert-circle-outline" size={20} color="#dc2626" />
-                <Text className="text-red-800 font-semibold ml-3 flex-1">{uploadError}</Text>
+                <Ionicons name="alert-circle-outline" size={20} color={colorScheme === 'dark' ? "#F87171" : "#dc2626"} />
+                <Text className="text-red-800 dark:text-red-400 font-semibold ml-3 flex-1">{uploadError}</Text>
               </View>
             </View>
           ) : null}
 
           {/* Selected File Display */}
           {selectedPdf && (
-            <View className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-6">
+            <View className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 mb-6">
               <View className="flex-row items-center">
-                <View className="w-14 h-14 bg-emerald-100 rounded-xl items-center justify-center mr-4">
-                  <Ionicons name="checkmark-circle" size={24} color="#059669" />
+                <View className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl items-center justify-center mr-4">
+                  <Ionicons name="checkmark-circle" size={24} color={colorScheme === 'dark' ? "#34D399" : "#059669"} />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-[11px] font-semibold text-emerald-700 mb-1">FILE SELECTED</Text>
-                  <View className="flex-row items-center" style={{gap:6}}>
-                  <Text className="text-[13px] font-bold text-gray-900 mb-1">{selectedPdf.name.slice(0,15)}</Text>
-                  <Text className="text-sm text-gray-600">Size: {(selectedPdf.size / 1024).toFixed(1)} KB</Text>
+                  <Text className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 mb-1">FILE SELECTED</Text>
+                  <View className="flex-row items-center" style={{ gap: 6 }}>
+                    <Text className="text-[13px] font-bold text-gray-900 dark:text-white mb-1">{selectedPdf.name.slice(0, 15)}</Text>
+                    <Text className="text-sm text-gray-600 dark:text-gray-400">Size: {(selectedPdf.size / 1024).toFixed(1)} KB</Text>
                   </View>
                 </View>
               </View>
@@ -368,9 +370,9 @@ export default function NoteSummarizerScreen() {
                 { icon: 'speedometer-outline', text: 'Fast AI-Powered Analysis' },
                 { icon: 'resize-outline', text: 'Files up to 2MB supported' }
               ].map((info, idx) => (
-                <View key={idx} className="flex-row items-center bg-emerald-50 p-3 rounded-[12px] border-[1px] border-emerald-200">
-                  <Ionicons name={info.icon} size={16} color="#6b7280" />
-                  <Text className="text-sm text-gray-700 ml-3">{info.text}</Text>
+                <View key={idx} className="flex-row items-center bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-[12px] border border-emerald-200 dark:border-emerald-800">
+                  <Ionicons name={info.icon} size={16} color={colorScheme === 'dark' ? "#9CA3AF" : "#6b7280"} />
+                  <Text className="text-sm text-gray-700 dark:text-gray-300 ml-3">{info.text}</Text>
                 </View>
               ))}
             </View>
@@ -379,16 +381,16 @@ export default function NoteSummarizerScreen() {
           {/* Action Buttons */}
           <View style={{ gap: 12 }} className="flex-row">
             <TouchableOpacity
-              className="flex-1 bg-gray-100 py-4 rounded-2xl items-center border border-gray-200"
+              className="flex-1 bg-gray-100 dark:bg-gray-700 py-4 rounded-2xl items-center border border-gray-200 dark:border-gray-600"
               onPress={handleCloseModal}
             >
-              <Text className="text-gray-700 font-semibold">Cancel</Text>
+              <Text className="text-gray-700 dark:text-gray-300 font-semibold">Cancel</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               className={`flex-1 py-4 rounded-2xl items-center flex-row justify-center ${selectedPdf
-                  ? 'bg-emerald-600'
-                  : 'bg-gray-200'
+                ? 'bg-emerald-600'
+                : 'bg-gray-200 dark:bg-gray-700'
                 }`}
               onPress={uploadPdf}
               disabled={!selectedPdf}
@@ -396,9 +398,9 @@ export default function NoteSummarizerScreen() {
               <Ionicons
                 name="cloud-upload-outline"
                 size={18}
-                color={selectedPdf ? "white" : "#9CA3AF"}
+                color={selectedPdf ? "white" : (colorScheme === 'dark' ? "#9CA3AF" : "#6B7280")}
               />
-              <Text className={`font-semibold ml-2 ${selectedPdf ? 'text-white' : 'text-gray-400'
+              <Text className={`font-semibold ml-2 ${selectedPdf ? 'text-white' : (colorScheme === 'dark' ? 'text-gray-400' : 'text-gray-500')
                 }`}>
                 Generate Summary
               </Text>
@@ -410,35 +412,35 @@ export default function NoteSummarizerScreen() {
       {/* Loading State - Overlay */}
       {loading && (
         <Animated.View
-          className="absolute inset-0 justify-center items-center px-8 bg-gray-50"
+          className="absolute inset-0 justify-center items-center px-8 bg-gray-50 dark:bg-gray-900"
           style={{ opacity: fadeAnim }}
         >
           <View className="items-center">
             {/* Animated Icon Container */}
-            <View className="w-24 h-24 bg-emerald-50 rounded-3xl items-center justify-center mb-6 border border-emerald-100">
-              <Ionicons name="document-text-outline" size={40} color="#059669" />
+            <View className="w-24 h-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-3xl items-center justify-center mb-6 border border-emerald-100 dark:border-emerald-800">
+              <Ionicons name="document-text-outline" size={40} color={colorScheme === 'dark' ? "#34D399" : "#059669"} />
             </View>
 
-            <Text className="text-2xl font-bold text-gray-900 mb-2">Processing PDF...</Text>
-            <Text className="text-gray-600 text-center mb-8 leading-6 max-w-xs">
+            <Text className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Processing PDF...</Text>
+            <Text className="text-gray-600 dark:text-gray-400 text-center mb-8 leading-6 max-w-xs">
               AI is reading your document and extracting key insights for summarization
             </Text>
 
-            <ActivityIndicator size="large" color="#059669" />
+            <ActivityIndicator size="large" color={colorScheme === 'dark' ? "#34D399" : "#059669"} />
 
             {/* Progress Steps */}
             <View style={{ gap: 12 }} className="mt-8 w-full max-w-xs">
               <View className="flex-row items-center">
                 <View className="w-2 h-2 bg-emerald-500 rounded-full mr-3" />
-                <Text className="text-sm text-gray-700">Reading PDF content</Text>
+                <Text className="text-sm text-gray-700 dark:text-gray-300">Reading PDF content</Text>
               </View>
               <View className="flex-row items-center">
-                <View className="w-2 h-2 bg-emerald-300 rounded-full mr-3" />
-                <Text className="text-sm text-gray-600">Analyzing key points</Text>
+                <View className="w-2 h-2 bg-emerald-300 dark:bg-emerald-600 rounded-full mr-3" />
+                <Text className="text-sm text-gray-600 dark:text-gray-400">Analyzing key points</Text>
               </View>
               <View className="flex-row items-center">
-                <View className="w-2 h-2 bg-gray-300 rounded-full mr-3" />
-                <Text className="text-sm text-gray-500">Generating summary</Text>
+                <View className="w-2 h-2 bg-gray-300 dark:bg-gray-600 rounded-full mr-3" />
+                <Text className="text-sm text-gray-500 dark:text-gray-500">Generating summary</Text>
               </View>
             </View>
           </View>
