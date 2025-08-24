@@ -13,18 +13,18 @@ import {
   StatusBar,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 
 // Custom Header for BottomSheet
 const FilePickerModalHeader = () => (
   <View className="px-6 pt-3 pb-4 border-b border-gray-100">
     <View className="flex-row items-center">
-      <View className="w-8 h-8 bg-emerald-500 rounded-lg items-center justify-center mr-3">
-        <Ionicons name="document-attach" size={16} color="white" />
+      <View className="w-12 h-12 bg-emerald-500 dark:bg-emerald-700 rounded-lg items-center justify-center mr-3">
+        <Ionicons name="document-attach" size={18} color="white" />
       </View>
       <View className="flex-1">
-        <Text className="text-lg font-semibold text-gray-900">Upload PDF Notes</Text>
+        <Text className="text-lg font-semibold text-gray-900 dark:text-gray-50">Upload PDF Notes</Text>
         <Text className="text-sm text-gray-500">Select a PDF file to summarize</Text>
       </View>
     </View>
@@ -145,6 +145,10 @@ export default function NoteSummarizerScreen() {
 
   return (
     <View className="flex-1 bg-gray-50 dark:bg-gray-900">
+      <StatusBar
+              barStyle={colorScheme === 'dark' ? "light-content" : "dark-content"}
+              backgroundColor={colorScheme === 'dark' ? "#111827" : "#FFFFFF"}
+            />
       {/* Summary Review Screen - Always rendered behind modal */}
       <ScrollView
         className="flex-1 bg-gray-50 dark:bg-gray-900"
@@ -159,10 +163,10 @@ export default function NoteSummarizerScreen() {
                 <Ionicons name="checkmark-circle" size={32} color={colorScheme === 'dark' ? "#34D399" : "#059669"} />
               </View>
               <View className="flex-col flex-1">
-                <Text className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+                <Text className="text-xl font-bold text-emerald-700 dark:text-white mb-1">
                   {summary.title ? 'Summary Ready' : 'Generate PDF Summary'}
                 </Text>
-                <Text className="text-gray-700 dark:text-gray-400 text-[11px]">
+                <Text className="text-emerald-700 dark:text-gray-400 text-[11px]">
                   {summary.title
                     ? 'AI has analyzed your PDF and created a comprehensive summary.'
                     : 'Select a PDF file to get started with AI-powered summarization'}
@@ -268,11 +272,13 @@ export default function NoteSummarizerScreen() {
             </View>
           </View>
 
+        <View className='w-full h-[2px] bg-gray-200 dark:bg-gray-700 rounded-2xl mt-6' />          
+
           {/* Action Buttons */}
-          <View style={{ gap: 16 }} className="mt-8">
-            <TouchableOpacity
+        <View style={{ gap: 12 }} className="flex-row mt-8">
+                <TouchableOpacity
               onPress={handleSave}
-              className="bg-emerald-600 py-4 rounded-xl items-center flex-row justify-center"
+              className="bg-emerald-600 flex-1 py-4 rounded-xl items-center flex-row justify-center"
               activeOpacity={0.8}
               disabled={!summary.title}
             >
@@ -282,10 +288,9 @@ export default function NoteSummarizerScreen() {
               </Text>
             </TouchableOpacity>
 
-            <View style={{ gap: 12 }} className="flex-row">
               <TouchableOpacity
                 onPress={handleRegenerate}
-                className="flex-1 bg-white dark:bg-gray-800 py-4 rounded-xl items-center flex-row justify-center border border-gray-200 dark:border-gray-700"
+                className="bg-white dark:bg-gray-800 px-5 py-4 rounded-xl items-center flex-row justify-center border border-gray-200 dark:border-gray-700"
               >
                 <Ionicons name="refresh" size={18} color={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"} />
                 <Text className="text-gray-700 dark:text-gray-300 font-medium ml-2">New File</Text>
@@ -293,16 +298,12 @@ export default function NoteSummarizerScreen() {
 
               <TouchableOpacity
                 onPress={() => { }}
-                className="flex-1 bg-white dark:bg-gray-800 py-4 rounded-xl items-center flex-row justify-center border border-gray-200 dark:border-gray-700"
+                className="bg-white dark:bg-gray-800 p-4 rounded-xl items-center flex-row justify-center border border-gray-200 dark:border-gray-700"
                 disabled={!summary.title}
               >
-                <Ionicons name="share-outline" size={18} color={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"} />
-                <Text className="text-gray-700 dark:text-gray-300 font-medium ml-2">Share</Text>
+                <Ionicons name="share-outline" size={22} color={colorScheme === 'dark' ? "#9CA3AF" : "#6B7280"} /> 
               </TouchableOpacity>
             </View>
-          </View>
-
-
         </View>
       </ScrollView>
 
@@ -311,21 +312,22 @@ export default function NoteSummarizerScreen() {
         visible={showModal}
         onClose={handleCloseModal}
         header={<FilePickerModalHeader />}
-        heightRatio={selectedPdf ? 0.75 : 0.60}
+        heightRatio={uploadError || selectedPdf ? 0.72 : 0.60}
+        draggableAreaColor={colorScheme === 'dark' ? '#1f2937' : 'white'}
+        dragHandleColor={colorScheme === 'dark' ? '#4b5563' : '#ccc'}
+        statusBarColor={colorScheme === 'dark' ? '#070A10' : '#00000066'}
+        statusBarStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
       >
         <View className="px-6 pt-6 pb-8 flex-1 bg-white dark:bg-gray-800">
           {/* Error Message */}
           {uploadError ? (
-            <View className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 mb-6">
+            <View className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl px-4 py-6 mb-6">
               <View className="flex-row items-center">
                 <Ionicons name="alert-circle-outline" size={20} color={colorScheme === 'dark' ? "#F87171" : "#dc2626"} />
                 <Text className="text-red-800 dark:text-red-400 font-semibold ml-3 flex-1">{uploadError}</Text>
               </View>
             </View>
-          ) : null}
-
-          {/* Selected File Display */}
-          {selectedPdf && (
+          ) : selectedPdf ? (
             <View className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 mb-6">
               <View className="flex-row items-center">
                 <View className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl items-center justify-center mr-4">
@@ -334,13 +336,18 @@ export default function NoteSummarizerScreen() {
                 <View className="flex-1">
                   <Text className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 mb-1">FILE SELECTED</Text>
                   <View className="flex-row items-center" style={{ gap: 6 }}>
-                    <Text className="text-[13px] font-bold text-gray-900 dark:text-white mb-1">{selectedPdf.name.slice(0, 15)}</Text>
-                    <Text className="text-sm text-gray-600 dark:text-gray-400">Size: {(selectedPdf.size / 1024).toFixed(1)} KB</Text>
+                    <Text className="text-[13px] font-bold text-gray-900 dark:text-white mb-1">
+                      {selectedPdf.name.slice(0, 15)}
+                    </Text>
+                    <Text className="text-sm text-gray-600 dark:text-gray-400">
+                      Size: {(selectedPdf.size / 1024).toFixed(1)} KB
+                    </Text>
                   </View>
                 </View>
               </View>
             </View>
-          )}
+          ) : null}
+
 
           {/* File Picker Section */}
           <View className="flex-1">
@@ -371,8 +378,8 @@ export default function NoteSummarizerScreen() {
                 { icon: 'resize-outline', text: 'Files up to 2MB supported' }
               ].map((info, idx) => (
                 <View key={idx} className="flex-row items-center bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-[12px] border border-emerald-200 dark:border-emerald-800">
-                  <Ionicons name={info.icon} size={16} color={colorScheme === 'dark' ? "#9CA3AF" : "#6b7280"} />
-                  <Text className="text-sm text-gray-700 dark:text-gray-300 ml-3">{info.text}</Text>
+                  <Ionicons name={info.icon} size={18} color={colorScheme === 'dark' ? "#9CA3AF" : "#10B981"} />
+                  <Text className="text-sm text-emerald-600 font-[500] dark:text-gray-300 ml-3">{info.text}</Text>
                 </View>
               ))}
             </View>
@@ -388,7 +395,7 @@ export default function NoteSummarizerScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className={`flex-1 py-4 rounded-2xl items-center flex-row justify-center ${selectedPdf
+              className={`flex-1 py-4 px-3 rounded-2xl items-center flex-row justify-center ${selectedPdf
                 ? 'bg-emerald-600'
                 : 'bg-gray-200 dark:bg-gray-700'
                 }`}
