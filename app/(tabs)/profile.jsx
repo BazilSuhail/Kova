@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useColorScheme } from 'nativewind';
@@ -26,9 +27,11 @@ export default function ProfileSettingsScreen() {
   const { colorScheme, setColorScheme } = useColorScheme();
   const isFocused = useIsFocused(); // 👈 detect if profile tab is active
 
-  const toggleDarkMode = (value) => {
-    setColorScheme(value ? 'dark' : 'light');
+  const toggleDarkMode = async (value) => {
+    await AsyncStorage.setItem("theme", value ? "dark" : "light");
+    setColorScheme(value ? "dark" : "light");
   };
+
 
   const handleLogout = () => {
     Alert.alert(
