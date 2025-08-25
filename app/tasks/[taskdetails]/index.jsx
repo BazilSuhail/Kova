@@ -1,100 +1,113 @@
 import CustomDatePicker from '@/components/tasks/CustomCalendar';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
+import { useState } from 'react';
+import { Alert, Pressable, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ModernAILoader from '../../../components/tasks/SubTasksLoader';
 
-// Mock task data
-const initialTasks = [
-  {
-    id: 'task_001',
-    title: 'Finish AI Report',
-    description: 'Summarize case studies and finalize references for the comprehensive artificial intelligence research project.',
-    category: 'Academics',
-    dueDate: '2025-07-22T18:00:00Z',
-    isCompleted: false,
-    priority: 'High',
-    hasSubtasks: true,
-    checklist: [
-      { id: '1', title: 'Complete draft', done: true },
-      { id: '2', title: 'Revise figures and charts', done: false },
-      { id: '3', title: 'Finalize references', done: false },
-      { id: '4', title: 'Submit PDF', done: false },
-    ],
-  },
-  {
-    id: 'task_002',
-    title: 'Prepare Presentation',
-    description: 'Create slides and practice delivery for the quarterly business review.',
-    category: 'Work',
-    dueDate: '2025-07-25T14:00:00Z',
-    isCompleted: false,
-    priority: 'Medium',
-    hasSubtasks: false,
-    checklist: [],
-  }
-];
+// Single task with hasSubtasks = false
+const initialTask = {
+  id: 'task_001',
+  title: 'Finish AI Report',
+  description: 'Summarize case studies and finalize references for the comprehensive artificial intelligence research project.',
+  category: 'Academics',
+  dueDate: '2025-07-22T18:00:00Z',
+  isCompleted: false,
+  priority: 'Low',
+  hasSubtasks: false,
+  checklist: [
+    { id: '1', title: 'Complete draft', done: true },
+    { id: '2', title: 'Revise figures and charts', done: false },
+    { id: '3', title: 'Finalize references', done: false },
+    { id: '4', title: 'Submit PDF', done: false },
+  ],
+};
 
 const Card = ({ children, style = {} }) => (
-  <View className="bg-white dark:bg-gray-800 rounded-2xl p-5 mb-4 shadow-sm dark:shadow-gray-900/20 border border-gray-100 dark:border-gray-700">
+  <View className="bg-white dark:bg-gray-800/70 border border-gray-100 dark:border-gray-700 p-5 mb-5 rounded-3xl">
     {children}
   </View>
 );
 
-// Priority Badge Component
+// Enhanced Priority Badge Component
 const PriorityBadge = ({ priority }) => {
-  const getPriorityClasses = (priority) => {
+  const getPriorityConfig = (priority) => {
     switch (priority?.toLowerCase()) {
       case "high":
-        return "bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700";
+        return {
+          bg: "bg-red-100 dark:bg-red-900/30",
+          border: "border-red-200 dark:border-red-700/50",
+          text: "text-red-700 dark:text-red-400",
+          icon: "alert-triangle",
+          iconColor: "#DC2626"
+        };
       case "medium":
-        return "bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700";
+        return {
+          bg: "bg-amber-100 dark:bg-amber-900/30",
+          border: "border-amber-200 dark:border-amber-700/50",
+          text: "text-amber-700 dark:text-amber-400",
+          icon: "trending-up",
+          iconColor: "#D97706"
+        };
       case "low":
-        return "bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700";
+        return {
+          bg: "bg-blue-100 dark:bg-blue-900/30",
+          border: "border-blue-200 dark:border-blue-700/50",
+          text: "text-blue-700 dark:text-blue-400",
+          icon: "arrow-down",
+          iconColor: "#2563EB"
+        };
       default:
-        return "bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600";
+        return {
+          bg: "bg-gray-100 dark:bg-gray-800/70",
+          border: "border-gray-200 dark:border-gray-600/50",
+          text: "text-gray-600 dark:text-gray-400",
+          icon: "minus",
+          iconColor: "#6B7280"
+        };
     }
   };
 
-  const getTextClasses = (priority) => {
-    switch (priority?.toLowerCase()) {
-      case "high":
-        return "text-red-700 dark:text-red-400";
-      case "medium":
-        return "text-yellow-700 dark:text-yellow-400";
-      case "low":
-        return "text-blue-700 dark:text-blue-400";
-      default:
-        return "text-gray-500 dark:text-gray-400";
-    }
-  };
+  const config = getPriorityConfig(priority);
 
   return (
-    <View className={`px-3 py-1.5 rounded-full self-start ${getPriorityClasses(priority)}`}>
-      <Text className={`text-[10px] font-semibold uppercase tracking-[0.5px] ${getTextClasses(priority)}`}>
-        {priority} Priority
+    <View className={`px-4 py-2 rounded-full border ${config.bg} ${config.border} flex-row items-center`}>
+      <Feather name={config.icon} size={12} color={config.iconColor} />
+      <Text className={`text-xs font-bold uppercase tracking-wider ml-2 ${config.text}`}>
+        {priority}
       </Text>
     </View>
   );
 };
 
-// Progress Bar Component
+// Enhanced Progress Bar Component
 const ProgressBar = ({ completed, total }) => {
   const progress = total > 0 ? (completed / total) * 100 : 0;
 
   return (
-    <View>
-      <View className="flex-row justify-between items-center mb-2">
-        <Text className="text-sm font-medium text-gray-600 dark:text-gray-300">
-          Progress
-        </Text>
-        <Text className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-          {completed}/{total} completed
-        </Text>
+    <View className="bg-emerald-50 mb-5 dark:bg-emerald-900/20 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-800/30">
+      <View className="flex-row justify-between items-center mb-4">
+        <View className="flex-row items-center">
+          <View className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full items-center justify-center mr-3">
+            <Ionicons name="analytics" size={18} color="#059669" />
+          </View>
+          <View>
+            <Text className="text-base font-bold text-gray-800 dark:text-white">
+              Task Progress
+            </Text>
+            <Text className="text-sm text-gray-500 dark:text-gray-400">
+              {progress.toFixed(0)}% completed
+            </Text>
+          </View>
+        </View>
+        <View className="bg-emerald-500 px-4 py-2 rounded-full">
+          <Text className="text-white font-bold text-sm">
+            {completed}/{total}
+          </Text>
+        </View>
       </View>
-      <View className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+      <View className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
         <View 
           className="h-full bg-emerald-500 rounded-full"
           style={{ width: `${progress}%` }}
@@ -110,7 +123,6 @@ const AISubtasksGenerator = ({ onGenerate }) => {
 
   const handleGenerate = () => {
     setLoading(true);
-    // Simulate AI processing delay
     setTimeout(() => {
       onGenerate([
         { id: 'ai-1', title: 'Research key topics', done: false },
@@ -123,21 +135,21 @@ const AISubtasksGenerator = ({ onGenerate }) => {
   };
 
   return (
-    <Card>
-      {loading ? (
-      <ModernAILoader/>
+    <View className="mb-5">
+      {!loading ? (
+        <ModernAILoader/>
       ) : (
         <TouchableOpacity 
           onPress={handleGenerate}
-          className="flex-row items-center justify-center py-4 bg-emerald-500 rounded-xl"
+          className="flex-row items-center justify-center py-5 bg-emerald-500 rounded-2xl"
         >
-          <MaterialIcons name="auto-awesome" size={20} color="white" />
-          <Text className="ml-2 text-white font-semibold text-base">
-            Create subtasks with AI
+          <MaterialIcons name="auto-awesome" size={24} color="white" />
+          <Text className="ml-3 text-white font-bold text-lg">
+            Generate AI Subtasks
           </Text>
         </TouchableOpacity>
       )}
-    </Card>
+    </View>
   );
 };
 
@@ -146,18 +158,15 @@ export default function TaskDetailsScreen() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const [tasks, setTasks] = useState(initialTasks);
-  const [activeTaskIndex, setActiveTaskIndex] = useState(0); // For demo purposes
-  const activeTask = tasks[activeTaskIndex];
-  
-  const [completed, setCompleted] = useState(activeTask.isCompleted);
-  const [checklist, setChecklist] = useState(activeTask.checklist);
+  const [task, setTask] = useState(initialTask);
+  const [completed, setCompleted] = useState(task.isCompleted);
+  const [checklist, setChecklist] = useState(task.checklist);
   const [hasChanged, setHasChanged] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
-    title: activeTask.title,
-    description: activeTask.description,
-    dueDate: new Date(activeTask.dueDate),
+    title: task.title,
+    description: task.description,
+    dueDate: new Date(task.dueDate),
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -170,18 +179,17 @@ export default function TaskDetailsScreen() {
   };
 
   const handleUpdateTask = () => {
-    const updatedTasks = [...tasks];
-    updatedTasks[activeTaskIndex] = {
-      ...activeTask,
+    const updatedTask = {
+      ...task,
       title: editData.title,
       description: editData.description,
       dueDate: editData.dueDate.toISOString(),
       isCompleted: completed,
       checklist: checklist,
     };
-    setTasks(updatedTasks);
+    setTask(updatedTask);
     setHasChanged(false);
-    Alert.alert('Success', 'Task updated successfully!');
+    Alert.alert('✅ Success', 'Task updated successfully!');
   };
 
   const handleDateSelect = (selectedDate) => {
@@ -202,92 +210,106 @@ export default function TaskDetailsScreen() {
 
   const handleGenerateSubtasks = (newSubtasks) => {
     setChecklist(newSubtasks);
-    const updatedTasks = [...tasks];
-    updatedTasks[activeTaskIndex] = {
-      ...activeTask,
+    setTask({
+      ...task,
       hasSubtasks: true,
       checklist: newSubtasks
-    };
-    setTasks(updatedTasks);
+    });
     setHasChanged(true);
   };
+
+
+  const handleDelete = ()=> console.log("sd")
 
   return (
     <ScrollView
       className="flex-1 bg-gray-50 dark:bg-gray-950"
       contentContainerStyle={{ 
         paddingBottom: insets.bottom + 40, 
-        paddingHorizontal: 20, 
+        paddingHorizontal: 15, 
         paddingTop: insets.top + 20 
       }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
-      <View className="mb-6">
-        <View className="flex-row justify-between items-start mb-3" style={{ gap: 12 }}>
-          {isEditing ? (
-            <TextInput
-              className="flex-1 mr-4 px-4 py-3 text-lg font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-400 dark:border-emerald-600 rounded-lg bg-white dark:bg-gray-800"
-              value={editData.title}
-              onChangeText={(text) => {
-                setEditData({ ...editData, title: text });
-                setHasChanged(true);
-              }}
-              placeholder="Task title"
-              placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
-              multiline
-            />
-          ) : (
-            <View className="flex-1">
-              <Text className="text-xl font-bold text-gray-900 dark:text-white leading-7">
-                {activeTask.title}
-              </Text>
-            </View>
-          )}
+      {/* Enhanced Header */}
+      <View className="mb-5">
+        {/* Title Section */}
+        <View className="bg-white dark:bg-gray-800/70 rounded-3xl p-6 border border-emerald-100 dark:border-emerald-800/30">
+          <View className="flex-row justify-between items-start mb-4">
+            {isEditing ? (
+              <View className="flex-1 mr-4">
+                <TextInput
+                  className="text-2xl font-bold text-gray-900 dark:text-white px-4 py-3 border-2 border-emerald-300 dark:border-emerald-600 rounded-xl bg-emerald-50/50 dark:bg-emerald-900/20"
+                  value={editData.title}
+                  onChangeText={(text) => {
+                    setEditData({ ...editData, title: text });
+                    setHasChanged(true);
+                  }}
+                  placeholder="Task title"
+                  placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
+                  multiline
+                />
+              </View>
+            ) : (
+              <View className="flex-1">
+                <View className="flex-row items-center mb-2">
+                  <View className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl items-center justify-center mr-4">
+                    <Ionicons name="document-text" size={24} color="#059669" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-2xl font-bold text-gray-900 dark:text-white leading-8">
+                      {task.title}
+                    </Text>
+                    <Text className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                      Active Task
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
 
-          <TouchableOpacity className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 items-center justify-center shadow-sm dark:shadow-gray-900/20 border border-gray-200 dark:border-gray-700">
-            <Ionicons 
-              name="bookmark-outline" 
-              size={20} 
-              color={isDark ? "#34D399" : "#059669"} 
-            />
-          </TouchableOpacity>
-        </View>
+            <Pressable className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 items-center justify-center border border-emerald-200 dark:border-emerald-700/50">
+              <Ionicons 
+                name="bookmark" 
+                size={20} 
+                color={isDark ? "#34D399" : "#059669"} 
+              />
+            </Pressable>
+          </View>
 
-        <View className="flex-row items-center border-t border-gray-200 dark:border-gray-700 pt-4">
-          <View className="flex-row items-center" style={{ gap: 12 }}>
-            <View className="bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full">
-              <Text className="text-emerald-600 dark:text-emerald-400 text-sm font-semibold">
-                {activeTask.category}
-              </Text>
+          {/* Category and Priority */}
+          <View className="flex-row items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700/50">
+            <View className="flex-row items-center" style={{gap:8}}>
+              <View className="bg-emerald-500 px-4 py-2 rounded-full flex-row items-center">
+                <Ionicons name="folder" size={14} color="white" />
+                <Text className="text-white text-sm font-bold ml-2">
+                  {task.category}
+                </Text>
+              </View>
+              <PriorityBadge priority={task.priority} />
             </View>
-            <PriorityBadge priority={activeTask.priority} />
           </View>
         </View>
       </View>
 
       {/* Progress Card */}
-      <Card>
-        <ProgressBar completed={completedItems} total={checklist.length} />
-      </Card>
+      <ProgressBar completed={completedItems} total={checklist.length} />
 
       {/* Description Card */}
       <Card>
-        <View className="flex-row items-center mb-3">
-          <Ionicons 
-            name="document-text-outline" 
-            size={20} 
-            color={isDark ? "#34D399" : "#059669"} 
-          />
-          <Text className="ml-2 text-base font-semibold text-gray-900 dark:text-white">
+        <View className="flex-row items-center mb-4">
+          <View className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl items-center justify-center mr-3">
+            <Ionicons name="document-text-outline" size={20} color="#059669" />
+          </View>
+          <Text className="text-lg font-bold text-gray-900 dark:text-white">
             Description
           </Text>
         </View>
 
         {isEditing ? (
           <TextInput
-            className="text-sm text-gray-700 dark:text-gray-300 border border-emerald-400 dark:border-emerald-600 rounded-lg p-3 min-h-[80px] bg-white dark:bg-gray-800"
-            style={{ lineHeight: 20 }}
+            className="text-base text-gray-700 dark:text-gray-300 border-2 border-emerald-300 dark:border-emerald-600 rounded-xl p-4 min-h-[100px] bg-emerald-50/50 dark:bg-emerald-900/10"
+            style={{ lineHeight: 24 }}
             multiline
             value={editData.description}
             onChangeText={(text) => {
@@ -298,187 +320,190 @@ export default function TaskDetailsScreen() {
             placeholderTextColor={isDark ? "#4B5563" : "#9CA3AF"}
           />
         ) : (
-          <Text className="text-sm text-gray-600 dark:text-gray-300" style={{ lineHeight: 20 }}>
-            {activeTask.description}
+          <Text className="text-base text-gray-600 dark:text-gray-300 leading-6 mb-4">
+            {task.description}
           </Text>
         )}
 
-        <View className="flex-row items-center mt-4 pt-4 border-t border-emerald-100 dark:border-emerald-900/30">
-          <Ionicons 
-            name="calendar-outline" 
-            size={16} 
-            color={isDark ? "#34D399" : "#059669"} 
-          />
-          {isEditing ? (
-            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-              <Text className="ml-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-400 dark:border-emerald-600 rounded-md px-2 py-1">
-                Due: {formatDate(editData.dueDate)}
+        <View className="flex-row items-center justify-between pt-4 border-t border-emerald-100/50 dark:border-emerald-800/30">
+          <View className="flex-row items-center">
+            <View className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg items-center justify-center mr-3">
+              <Ionicons name="calendar" size={16} color="#059669" />
+            </View>
+            {isEditing ? (
+              <Pressable onPress={() => setShowDatePicker(true)}>
+                <View className="bg-emerald-500 px-4 py-2 rounded-full">
+                  <Text className="text-white font-bold text-sm">
+                    Due: {formatDate(editData.dueDate)}
+                  </Text>
+                </View>
+              </Pressable>
+            ) : (
+              <Text className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                Due: {formatDate(task.dueDate)}
               </Text>
-            </TouchableOpacity>
-          ) : (
-            <Text className="ml-1.5 text-xs text-emerald-600 dark:text-emerald-400">
-              Due: {formatDate(activeTask.dueDate)}
+            )}
+          </View>
+          
+          <View className="flex-row items-center">
+            <Ionicons name="time-outline" size={16} color={isDark ? "#34D399" : "#059669"} />
+            <Text className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+              3 days left
             </Text>
-          )}
+          </View>
         </View>
       </Card>
 
       {/* AI Subtasks Generator */}
-      {!activeTask.hasSubtasks && (
+      {!task.hasSubtasks && (
         <AISubtasksGenerator onGenerate={handleGenerateSubtasks} />
       )}
 
-      {/* Checklist Card */}
-      {activeTask.hasSubtasks && (
+      {/* Enhanced Checklist Card */}
+      {task.hasSubtasks && (
         <Card>
-          <View className="flex-row items-center justify-between mb-4">
+          <View className="flex-row items-center justify-between mb-6">
             <View className="flex-row items-center">
-              <Ionicons 
-                name="list-outline" 
-                size={20} 
-                color={isDark ? "#34D399" : "#059669"} 
-              />
-              <Text className="ml-2 text-base font-semibold text-gray-900 dark:text-white">
-                Checklist
+              <View className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl items-center justify-center mr-3">
+                <Ionicons name="list" size={20} color="#059669" />
+              </View>
+              <View>
+                <Text className="text-lg font-bold text-gray-900 dark:text-white">
+                  Subtasks
+                </Text>
+                <Text className="text-sm text-gray-500 dark:text-gray-400">
+                  {completedItems} of {checklist.length} completed
+                </Text>
+              </View>
+            </View>
+            <View className="bg-emerald-500 px-4 py-2 rounded-full">
+              <Text className="text-white font-bold text-sm">
+                {Math.round((completedItems / checklist.length) * 100)}%
               </Text>
             </View>
-            <Text className="text-xs text-emerald-600 dark:text-emerald-400">
-              {completedItems} of {checklist.length}
-            </Text>
           </View>
 
           {checklist.map((item, index) => (
-            <TouchableOpacity
+            <Pressable
               key={item.id}
               onPress={() => toggleChecklistItem(item.id)}
-              className={`flex-row items-center px-3 py-3 rounded-xl ${
+              className={`flex-row items-center p-4 rounded-2xl mb-3 border ${
                 item.done 
-                  ? "bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800" 
-                  : "border-transparent"
+                  ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700" 
+                  : "bg-gray-50 dark:bg-gray-800/30 border-gray-200 dark:border-gray-700"
               }`}
-              style={{ marginBottom: index < checklist.length - 1 ? 8 : 0 }}
             >
-              <View className={`w-5 h-5 rounded-full items-center justify-center mr-3 border-2 ${
+              <View className={`w-6 h-6 rounded-full items-center justify-center mr-4 border-2 ${
                 item.done 
-                  ? "bg-emerald-500 border-emerald-500" 
-                  : "border-gray-300 dark:border-gray-600"
+                  ? "bg-emerald-500 border-transparent" 
+                  : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/70"
               }`}>
-                {item.done && <Ionicons name="checkmark" size={12} color="white" />}
+                {item.done && <Ionicons name="checkmark" size={14} color="white" />}
               </View>
-              <Text className={`flex-1 text-sm ${
+              <Text className={`flex-1 text-base font-medium ${
                 item.done 
-                  ? "text-emerald-600 dark:text-emerald-400 line-through" 
+                  ? "text-emerald-700 dark:text-emerald-400 line-through" 
                   : "text-gray-700 dark:text-gray-300"
               }`}>
                 {item.title}
               </Text>
-            </TouchableOpacity>
+              {item.done && (
+                <View className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-full items-center justify-center">
+                  <Ionicons name="checkmark-circle" size={16} color="#059669" />
+                </View>
+              )}
+            </Pressable>
           ))}
         </Card>
       )}
 
-      {/* Status Toggle Card */}
-      <View className="px-4 py-3 mb-4 rounded-xl border border-emerald-200 dark:border-emerald-800 flex-row items-center justify-between bg-emerald-50 dark:bg-emerald-900/20">
-        <View className="flex-row items-center">
-          <Ionicons 
-            name="checkmark-circle-outline" 
-            size={20} 
-            color={isDark ? "#34D399" : "#059669"} 
+      {/* Enhanced Status Toggle */}
+      <View className="bg-white dark:bg-gray-800/70 rounded-3xl p-6 mb-5 border border-gray-100 dark:border-gray-700">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center flex-1">
+            <View className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl items-center justify-center mr-4">
+              <Ionicons 
+                name={completed ? "checkmark-circle" : "checkmark-circle-outline"} 
+                size={24} 
+                color={completed ? "#059669" : (isDark ? "#34D399" : "#059669")} 
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                Task Completion
+              </Text>
+              <Text className="text-sm text-gray-500 dark:text-gray-400">
+                {completed ? "✅ Task completed" : "Mark when finished"}
+              </Text>
+            </View>
+          </View>
+          <Switch
+            value={completed}
+            onValueChange={(value) => {
+              setCompleted(value);
+              setHasChanged(true);
+            }}
+            trackColor={{ 
+              false: isDark ? "#374151" : "#E5E7EB", 
+              true: "#059669" 
+            }}
+            thumbColor={completed ? "#FFFFFF" : "#F3F4F6"}
+            style={{ transform: [{ scaleX: 1.2 }, { scaleY: 1.2 }] }}
           />
-          <Text className="ml-2 text-base font-medium text-emerald-700 dark:text-emerald-400">
-            Mark as Completed
-          </Text>
         </View>
-        <Switch
-          value={completed}
-          onValueChange={(value) => {
-            setCompleted(value);
-            setHasChanged(!hasChanged);
-          }}
-          trackColor={{ false: isDark ? "#1F2937" : "#d1fae5", true: "#059669" }}
-          thumbColor={completed ? "white" : (isDark ? "#34D399" : "#059669")}
-        />
       </View>
 
-      {/* Action Buttons */}
-      <View className="mt-2">
+      {/* Enhanced Action Buttons */}
+      <View style={{gap:8}}>
         {hasChanged && (
-          <TouchableOpacity
+          <Pressable
             onPress={handleUpdateTask}
-            className="flex-row items-center justify-center bg-emerald-500 py-4 rounded-2xl mb-3 shadow-sm dark:shadow-emerald-900/30"
+            className="bg-emerald-500 py-5 rounded-2xl"
           >
-            <Ionicons name="save-outline" size={20} color="white" />
-            <Text className="ml-2 text-white font-semibold text-base">
-              {isEditing ? "Save Changes" : "Update Task"}
-            </Text>
-          </TouchableOpacity>
+            <View className="flex-row items-center justify-center">
+              <Ionicons name="save" size={24} color="white" />
+              <Text className="ml-3 text-white font-bold text-lg">
+                {isEditing ? "Save Changes" : "Update Task"}
+              </Text>
+            </View>
+          </Pressable>
         )}
 
-        <View className="flex-row" style={{ gap: 12 }}>
-          <TouchableOpacity
+        <View className="flex-row" style={{gap:8}}>
+          <Pressable
             onPress={() => {
               if (isEditing) {
                 setEditData({
-                  title: activeTask.title,
-                  description: activeTask.description,
-                  dueDate: new Date(activeTask.dueDate),
+                  title: task.title,
+                  description: task.description,
+                  dueDate: new Date(task.dueDate),
                 });
                 setHasChanged(false);
               }
               setIsEditing(!isEditing);
             }}
-            className={`flex-1 flex-row items-center justify-center py-4 rounded-2xl border ${
-              isEditing
-                ? "bg-emerald-100 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-700"
-                : "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800"
-            }`}
+            className="flex-1 bg-white dark:bg-gray-800/70 py-4 rounded-2xl border-2 border-emerald-200 dark:border-emerald-700/50"
           >
-            <Ionicons
-              name={isEditing ? "close-outline" : "create-outline"}
-              size={20}
-              color={isDark ? "#34D399" : "#059669"}
-            />
-            <Text className="ml-2 font-semibold text-base dark:text-emerald-400 text-emerald-600">
-              {isEditing ? "Cancel" : "Edit"}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-red-50 dark:bg-red-900/20 py-4 rounded-2xl border border-red-200 dark:border-red-800">
-            <Ionicons name="trash-outline" size={20} color={isDark ? "#F87171" : "#dc2626"} />
-            <Text className="ml-2 font-semibold text-base text-red-600 dark:text-red-400">
-              Delete
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Demo Task Switcher */}
-      <View className="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-xl">
-        <Text className="text-center text-gray-700 dark:text-gray-300 mb-2">
-          Demo: Switch between tasks
-        </Text>
-        <View className="flex-row justify-center" style={{ gap: 12 }}>
-          {tasks.map((task, index) => (
-            <TouchableOpacity
-              key={task.id}
-              onPress={() => setActiveTaskIndex(index)}
-              className={`px-4 py-2 rounded-lg ${
-                activeTaskIndex === index
-                  ? "bg-emerald-500"
-                  : "bg-gray-200 dark:bg-gray-700"
-              }`}
-            >
-              <Text
-                className={
-                  activeTaskIndex === index
-                    ? "text-white font-medium"
-                    : "text-gray-700 dark:text-gray-300"
-                }
-              >
-                Task {index + 1}
+            <View className="flex-row items-center justify-center">
+              <Ionicons
+                name={isEditing ? "close" : "create"}
+                size={20}
+                color={isDark ? "#34D399" : "#059669"}
+              />
+              <Text className="ml-2 font-bold text-base text-emerald-600 dark:text-emerald-400">
+                {isEditing ? "Cancel" : "Edit"}
               </Text>
-            </TouchableOpacity>
-          ))}
+            </View>
+          </Pressable>
+
+          <Pressable className="flex-1 bg-white dark:bg-gray-800/70 py-4 rounded-2xl border-2 border-red-200 dark:border-red-700/50">
+            <View className="flex-row items-center justify-center">
+              <Ionicons name="trash" size={20} color={isDark ? "#F87171" : "#EF4444"} />
+              <Text className="ml-2 font-bold text-base text-red-500 dark:text-red-400">
+                Delete
+              </Text>
+            </View>
+          </Pressable>
         </View>
       </View>
 

@@ -198,7 +198,7 @@ export default function ModernAssistantScreen() {
       title: "Image to Tasks",
       desc: "Capture tasks from photos",
       icon: "camera-outline",
-      href: "/assistant/create-sub-tasks",
+      href: "/assistant/image-to-tasks",
       bgColorStyle: "#dbeafe",
       iconColor: "#3b82f6"
     },

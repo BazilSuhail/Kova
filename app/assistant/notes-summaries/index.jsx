@@ -1,4 +1,4 @@
-import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import BottomSheet from 'entity-bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';

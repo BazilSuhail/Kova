@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
-import { View, Text, Animated, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect, useRef } from 'react';
+import { Animated, Dimensions, Text, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -75,9 +75,16 @@ const ModernAILoader = () => {
     };
   }, []);
 
+  // Pre-calculate interpolation outside of render
   const rotation = rotateAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
+  });
+
+  // Pre-calculate scale interpolation outside of render
+  const dotScale = scaleAnim.interpolate({
+    inputRange: [1, 1.1],
+    outputRange: [0.8, 1.2],
   });
 
   return (
@@ -205,14 +212,7 @@ const ModernAILoader = () => {
               key={index}
               style={{
                 opacity: fadeAnim,
-                transform: [
-                  {
-                    scale: scaleAnim.interpolate({
-                      inputRange: [1, 1.1],
-                      outputRange: [0.8, 1.2],
-                    }),
-                  },
-                ],
+                transform: [{ scale: dotScale }],
               }}
             >
               <LinearGradient
