@@ -159,10 +159,10 @@ export default function PdfSummariesScreen() {
 
   return (
     <View className="flex-1 bg-gray-50 dark:bg-gray-900">
-         <StatusBar
-                    barStyle={colorScheme === 'dark' ? "light-content" : "dark-content"}
-                    backgroundColor={colorScheme === 'dark' ? "#111827" : "#FFFFFF"}
-                  />
+      <StatusBar
+        barStyle={colorScheme === 'dark' ? "light-content" : "dark-content"}
+        backgroundColor={colorScheme === 'dark' ? "#111827" : "#FFFFFF"}
+      />
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
