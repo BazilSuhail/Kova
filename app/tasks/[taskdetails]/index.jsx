@@ -1,26 +1,41 @@
 import CustomDatePicker from '@/components/tasks/CustomCalendar';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Alert, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from 'nativewind';
+import ModernAILoader from '../../../components/tasks/SubTasksLoader';
 
 // Mock task data
-const initialTask = {
-  id: 'task_001',
-  title: 'Finish AI Report',
-  description: 'Summarize case studies and finalize references for the comprehensive artificial intelligence research project.',
-  category: 'Academics',
-  dueDate: '2025-07-22T18:00:00Z',
-  isCompleted: false,
-  priority: 'High',
-  checklist: [
-    { id: '1', title: 'Complete draft', done: true },
-    { id: '2', title: 'Revise figures and charts', done: false },
-    { id: '3', title: 'Finalize references', done: false },
-    { id: '4', title: 'Submit PDF', done: false },
-  ],
-};
+const initialTasks = [
+  {
+    id: 'task_001',
+    title: 'Finish AI Report',
+    description: 'Summarize case studies and finalize references for the comprehensive artificial intelligence research project.',
+    category: 'Academics',
+    dueDate: '2025-07-22T18:00:00Z',
+    isCompleted: false,
+    priority: 'High',
+    hasSubtasks: true,
+    checklist: [
+      { id: '1', title: 'Complete draft', done: true },
+      { id: '2', title: 'Revise figures and charts', done: false },
+      { id: '3', title: 'Finalize references', done: false },
+      { id: '4', title: 'Submit PDF', done: false },
+    ],
+  },
+  {
+    id: 'task_002',
+    title: 'Prepare Presentation',
+    description: 'Create slides and practice delivery for the quarterly business review.',
+    category: 'Work',
+    dueDate: '2025-07-25T14:00:00Z',
+    isCompleted: false,
+    priority: 'Medium',
+    hasSubtasks: false,
+    checklist: [],
+  }
+];
 
 const Card = ({ children, style = {} }) => (
   <View className="bg-white dark:bg-gray-800 rounded-2xl p-5 mb-4 shadow-sm dark:shadow-gray-900/20 border border-gray-100 dark:border-gray-700">
@@ -89,20 +104,60 @@ const ProgressBar = ({ completed, total }) => {
   );
 };
 
+// AI Subtasks Generator Component
+const AISubtasksGenerator = ({ onGenerate }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleGenerate = () => {
+    setLoading(true);
+    // Simulate AI processing delay
+    setTimeout(() => {
+      onGenerate([
+        { id: 'ai-1', title: 'Research key topics', done: false },
+        { id: 'ai-2', title: 'Create outline structure', done: false },
+        { id: 'ai-3', title: 'Write content sections', done: false },
+        { id: 'ai-4', title: 'Review and edit', done: false },
+      ]);
+      setLoading(false);
+    }, 2000);
+  };
+
+  return (
+    <Card>
+      {loading ? (
+      <ModernAILoader/>
+      ) : (
+        <TouchableOpacity 
+          onPress={handleGenerate}
+          className="flex-row items-center justify-center py-4 bg-emerald-500 rounded-xl"
+        >
+          <MaterialIcons name="auto-awesome" size={20} color="white" />
+          <Text className="ml-2 text-white font-semibold text-base">
+            Create subtasks with AI
+          </Text>
+        </TouchableOpacity>
+      )}
+    </Card>
+  );
+};
+
 export default function TaskDetailsScreen() {
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const [task, setTask] = useState(initialTask);
-  const [completed, setCompleted] = useState(task.isCompleted);
-  const [checklist, setChecklist] = useState(task.checklist);
+  const [tasks, setTasks] = useState(initialTasks);
+  const [activeTaskIndex, setActiveTaskIndex] = useState(0); // For demo purposes
+  const activeTask = tasks[activeTaskIndex];
+  
+  const [completed, setCompleted] = useState(activeTask.isCompleted);
+  const [checklist, setChecklist] = useState(activeTask.checklist);
   const [hasChanged, setHasChanged] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
-    title: task.title,
-    description: task.description,
-    dueDate: new Date(task.dueDate),
+    title: activeTask.title,
+    description: activeTask.description,
+    dueDate: new Date(activeTask.dueDate),
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -115,18 +170,16 @@ export default function TaskDetailsScreen() {
   };
 
   const handleUpdateTask = () => {
-    const updatedTask = {
-      ...task,
+    const updatedTasks = [...tasks];
+    updatedTasks[activeTaskIndex] = {
+      ...activeTask,
       title: editData.title,
       description: editData.description,
       dueDate: editData.dueDate.toISOString(),
       isCompleted: completed,
       checklist: checklist,
     };
-
-    setTask(updatedTask);
-    console.log('Updated task:', updatedTask);
-    setIsEditing(false);
+    setTasks(updatedTasks);
     setHasChanged(false);
     Alert.alert('Success', 'Task updated successfully!');
   };
@@ -146,6 +199,18 @@ export default function TaskDetailsScreen() {
   };
 
   const completedItems = checklist.filter(item => item.done).length;
+
+  const handleGenerateSubtasks = (newSubtasks) => {
+    setChecklist(newSubtasks);
+    const updatedTasks = [...tasks];
+    updatedTasks[activeTaskIndex] = {
+      ...activeTask,
+      hasSubtasks: true,
+      checklist: newSubtasks
+    };
+    setTasks(updatedTasks);
+    setHasChanged(true);
+  };
 
   return (
     <ScrollView
@@ -175,7 +240,7 @@ export default function TaskDetailsScreen() {
           ) : (
             <View className="flex-1">
               <Text className="text-xl font-bold text-gray-900 dark:text-white leading-7">
-                {task.title}
+                {activeTask.title}
               </Text>
             </View>
           )}
@@ -193,10 +258,10 @@ export default function TaskDetailsScreen() {
           <View className="flex-row items-center" style={{ gap: 12 }}>
             <View className="bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full">
               <Text className="text-emerald-600 dark:text-emerald-400 text-sm font-semibold">
-                {task.category}
+                {activeTask.category}
               </Text>
             </View>
-            <PriorityBadge priority={task.priority} />
+            <PriorityBadge priority={activeTask.priority} />
           </View>
         </View>
       </View>
@@ -234,7 +299,7 @@ export default function TaskDetailsScreen() {
           />
         ) : (
           <Text className="text-sm text-gray-600 dark:text-gray-300" style={{ lineHeight: 20 }}>
-            {task.description}
+            {activeTask.description}
           </Text>
         )}
 
@@ -252,58 +317,65 @@ export default function TaskDetailsScreen() {
             </TouchableOpacity>
           ) : (
             <Text className="ml-1.5 text-xs text-emerald-600 dark:text-emerald-400">
-              Due: {formatDate(task.dueDate)}
+              Due: {formatDate(activeTask.dueDate)}
             </Text>
           )}
         </View>
       </Card>
 
+      {/* AI Subtasks Generator */}
+      {!activeTask.hasSubtasks && (
+        <AISubtasksGenerator onGenerate={handleGenerateSubtasks} />
+      )}
+
       {/* Checklist Card */}
-      <Card>
-        <View className="flex-row items-center justify-between mb-4">
-          <View className="flex-row items-center">
-            <Ionicons 
-              name="list-outline" 
-              size={20} 
-              color={isDark ? "#34D399" : "#059669"} 
-            />
-            <Text className="ml-2 text-base font-semibold text-gray-900 dark:text-white">
-              Checklist
+      {activeTask.hasSubtasks && (
+        <Card>
+          <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row items-center">
+              <Ionicons 
+                name="list-outline" 
+                size={20} 
+                color={isDark ? "#34D399" : "#059669"} 
+              />
+              <Text className="ml-2 text-base font-semibold text-gray-900 dark:text-white">
+                Checklist
+              </Text>
+            </View>
+            <Text className="text-xs text-emerald-600 dark:text-emerald-400">
+              {completedItems} of {checklist.length}
             </Text>
           </View>
-          <Text className="text-xs text-emerald-600 dark:text-emerald-400">
-            {completedItems} of {checklist.length}
-          </Text>
-        </View>
 
-        {checklist.map((item, index) => (
-          <TouchableOpacity
-            key={item.id}
-            onPress={() => toggleChecklistItem(item.id)}
-            className={`flex-row items-center px-3 py-3 rounded-xl ${
-              item.done 
-                ? "bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800" 
-                : "border-transparent"
-            }`}
-            style={{ marginBottom: index < checklist.length - 1 ? 8 : 0 }}
-          >
-            <View className={`w-5 h-5 rounded-full items-center justify-center mr-3 border-2 ${
-              item.done 
-                ? "bg-emerald-500 border-emerald-500" 
-                : "border-gray-300 dark:border-gray-600"
-            }`}>
-              {item.done && <Ionicons name="checkmark" size={12} color="white" />}
-            </View>
-            <Text className={`flex-1 text-sm ${
-              item.done 
-                ? "text-emerald-600 dark:text-emerald-400 line-through" 
-                : "text-gray-700 dark:text-gray-300"
-            }`}>
-              {item.title}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </Card>
+          {checklist.map((item, index) => (
+            <TouchableOpacity
+              key={item.id}
+              onPress={() => toggleChecklistItem(item.id)}
+              className={`flex-row items-center px-3 py-3 rounded-xl ${
+                item.done 
+                  ? "bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800" 
+                  : "border-transparent"
+              }`}
+              style={{ marginBottom: index < checklist.length - 1 ? 8 : 0 }}
+            >
+              <View className={`w-5 h-5 rounded-full items-center justify-center mr-3 border-2 ${
+                item.done 
+                  ? "bg-emerald-500 border-emerald-500" 
+                  : "border-gray-300 dark:border-gray-600"
+              }`}>
+                {item.done && <Ionicons name="checkmark" size={12} color="white" />}
+              </View>
+              <Text className={`flex-1 text-sm ${
+                item.done 
+                  ? "text-emerald-600 dark:text-emerald-400 line-through" 
+                  : "text-gray-700 dark:text-gray-300"
+              }`}>
+                {item.title}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </Card>
+      )}
 
       {/* Status Toggle Card */}
       <View className="px-4 py-3 mb-4 rounded-xl border border-emerald-200 dark:border-emerald-800 flex-row items-center justify-between bg-emerald-50 dark:bg-emerald-900/20">
@@ -347,9 +419,9 @@ export default function TaskDetailsScreen() {
             onPress={() => {
               if (isEditing) {
                 setEditData({
-                  title: task.title,
-                  description: task.description,
-                  dueDate: new Date(task.dueDate),
+                  title: activeTask.title,
+                  description: activeTask.description,
+                  dueDate: new Date(activeTask.dueDate),
                 });
                 setHasChanged(false);
               }
@@ -377,6 +449,36 @@ export default function TaskDetailsScreen() {
               Delete
             </Text>
           </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Demo Task Switcher */}
+      <View className="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-xl">
+        <Text className="text-center text-gray-700 dark:text-gray-300 mb-2">
+          Demo: Switch between tasks
+        </Text>
+        <View className="flex-row justify-center" style={{ gap: 12 }}>
+          {tasks.map((task, index) => (
+            <TouchableOpacity
+              key={task.id}
+              onPress={() => setActiveTaskIndex(index)}
+              className={`px-4 py-2 rounded-lg ${
+                activeTaskIndex === index
+                  ? "bg-emerald-500"
+                  : "bg-gray-200 dark:bg-gray-700"
+              }`}
+            >
+              <Text
+                className={
+                  activeTaskIndex === index
+                    ? "text-white font-medium"
+                    : "text-gray-700 dark:text-gray-300"
+                }
+              >
+                Task {index + 1}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 

@@ -72,7 +72,7 @@ const TaskCard = ({ task }) => {
 };
 
 // AI Assistant Option Component
-const AIOptionCard = ({ option, index }) => {
+const AIOptionCard = ({ option }) => {
   return (
     <View className="w-1/2 px-2 mb-4">
       <Link href={option.href} asChild>
@@ -189,7 +189,7 @@ export default function ModernAssistantScreen() {
     {
       title: "Smart Notes Summaries",
       desc: "Summaries of documents",
-      icon: "calendar-outline",
+      icon: "list-circle-outline",
       href: "/assistant/notes-summaries",
       bgColorStyle: "#ffedd5",
       iconColor: "#f97316"
@@ -198,7 +198,7 @@ export default function ModernAssistantScreen() {
       title: "Image to Tasks",
       desc: "Capture tasks from photos",
       icon: "camera-outline",
-      href: "/assistant/image-to-tasks",
+      href: "/assistant/create-sub-tasks",
       bgColorStyle: "#dbeafe",
       iconColor: "#3b82f6"
     },
@@ -210,23 +210,6 @@ export default function ModernAssistantScreen() {
       bgColorStyle: "#dcfce7",
       iconColor: "#22c55e"
     },
-    
-    {
-      title: "Task Breakdown",
-      desc: "Split complex tasks",
-      icon: "list-circle-outline",
-      href: "/assistant/task-breakdown",
-      bgColorStyle: "#fce7f3",
-      iconColor: "#ec4899"
-    },
-    {
-      title: "Priority Advisor",
-      desc: "Get task prioritization help",
-      icon: "flash-outline",
-      href: "/assistant/priority-advisor",
-      bgColorStyle: "#fef9c3",
-      iconColor: "#eab308"
-    }
   ];
 
   return (
@@ -292,7 +275,7 @@ export default function ModernAssistantScreen() {
           {/* AI Options Grid */}
           <View className="flex-row flex-wrap -mx-2">
             {aiOptions.map((option, idx) => (
-              <AIOptionCard key={idx} option={option} index={idx} />
+              <AIOptionCard key={idx} option={option} />
             ))}
           </View>
         </View>
