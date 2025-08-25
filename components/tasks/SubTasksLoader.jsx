@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef } from 'react';
-import { Animated, Dimensions, Text, View } from 'react-native';
+import { Animated, Dimensions, Easing, Text, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -10,13 +10,18 @@ const ModernAILoader = () => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0.3)).current;
   const shimmerAnim = useRef(new Animated.Value(-200)).current;
+  const floatAnim1 = useRef(new Animated.Value(0)).current;
+  const floatAnim2 = useRef(new Animated.Value(0)).current;
+  const floatAnim3 = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     // Rotation animation
     const rotationAnimation = Animated.loop(
       Animated.timing(rotateAnim, {
         toValue: 1,
-        duration: 3000,
+        duration: 4000,
+        easing: Easing.linear,
         useNativeDriver: true,
       })
     );
@@ -25,13 +30,15 @@ const ModernAILoader = () => {
     const scaleAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(scaleAnim, {
-          toValue: 1.1,
-          duration: 1500,
+          toValue: 1.15,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(scaleAnim, {
           toValue: 1,
-          duration: 1500,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
       ])
@@ -42,12 +49,14 @@ const ModernAILoader = () => {
       Animated.sequence([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 2000,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(fadeAnim, {
           toValue: 0.3,
-          duration: 2000,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
       ])
@@ -57,70 +66,171 @@ const ModernAILoader = () => {
     const shimmerAnimation = Animated.loop(
       Animated.timing(shimmerAnim, {
         toValue: width + 200,
-        duration: 2000,
+        duration: 2500,
+        easing: Easing.linear,
         useNativeDriver: true,
       })
+    );
+
+    // Floating particles animation
+    const floatAnimation1 = Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim1, {
+          toValue: 1,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnim1, {
+          toValue: 0,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    const floatAnimation2 = Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim2, {
+          toValue: 1,
+          duration: 1800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnim2, {
+          toValue: 0,
+          duration: 1800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    const floatAnimation3 = Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim3, {
+          toValue: 1,
+          duration: 2200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnim3, {
+          toValue: 0,
+          duration: 2200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    // Main pulse animation
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.05,
+          duration: 1000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
     );
 
     rotationAnimation.start();
     scaleAnimation.start();
     fadeAnimation.start();
     shimmerAnimation.start();
+    floatAnimation1.start();
+    floatAnimation2.start();
+    floatAnimation3.start();
+    pulseAnimation.start();
 
     return () => {
       rotationAnimation.stop();
       scaleAnimation.stop();
       fadeAnimation.stop();
       shimmerAnimation.stop();
+      floatAnimation1.stop();
+      floatAnimation2.stop();
+      floatAnimation3.stop();
+      pulseAnimation.stop();
     };
   }, []);
 
-  // Pre-calculate interpolation outside of render
+  // Interpolations
   const rotation = rotateAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
 
-  // Pre-calculate scale interpolation outside of render
   const dotScale = scaleAnim.interpolate({
-    inputRange: [1, 1.1],
+    inputRange: [1, 1.15],
     outputRange: [0.8, 1.2],
   });
 
+  const float1 = floatAnim1.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -15],
+  });
+
+  const float2 = floatAnim2.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 12],
+  });
+
+  const float3 = floatAnim3.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -10],
+  });
+
   return (
-    <View className="items-center py-8 px-6">
-      {/* Main loader container with gradient background */}
-      <View className="relative mb-6">
-        {/* Outer glow ring */}
+    <View className="items-center rounded-2xl pb-8 pt-16 px-5 dark:bg-emerald-800/20 border-[1.5px] dark:border-emerald-700/50 border-emerald-200/70">
+      {/* Main loader container with enhanced animations */}
+      <Animated.View
+        style={{ transform: [{ scale: pulseAnim }] }}
+        className="relative mb-6"
+      >
+        {/* Outer glow ring with enhanced animation */}
         <Animated.View
           style={{
             transform: [{ scale: scaleAnim }],
             opacity: fadeAnim,
           }}
-          className="absolute w-24 h-24 -top-4 -left-4"
+          className="absolute w-28 h-28 -top-7 -left-7"
         >
           <LinearGradient
             colors={['#10B981', '#059669', '#047857']}
             style={{
-              width: 96,
-              height: 96,
-              borderRadius: 48,
-              opacity: 0.3,
+              width: 112,
+              height: 112,
+              borderRadius: 56,
+              opacity: 0.25,
             }}
           />
         </Animated.View>
 
-        {/* Main icon container */}
-        <View className="w-16 h-16 overflow-hidden rounded-full">
+        {/* Main icon container with shimmer effect */}
+        <View className="w-18 h-18 overflow-hidden rounded-full shadow-lg">
           <LinearGradient
             colors={['#ECFDF5', '#D1FAE5', '#A7F3D0']}
             style={{
-              width: 64,
-              height: 64,
-              borderRadius: 32,
+              width: 72,
+              height: 72,
+              borderRadius: 36,
               alignItems: 'center',
               justifyContent: 'center',
               position: 'relative',
+              elevation: 5,
+              shadowColor: '#059669',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
             }}
           >
             {/* Shimmer overlay */}
@@ -135,78 +245,97 @@ const ModernAILoader = () => {
               }}
             >
               <LinearGradient
-                colors={['transparent', 'rgba(255,255,255,0.6)', 'transparent']}
+                colors={['transparent', 'rgba(255,255,255,0.8)', 'transparent']}
                 style={{
                   width: 100,
-                  height: 64,
+                  height: 72,
                 }}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               />
             </Animated.View>
 
-            {/* Rotating AI icon */}
+            {/* Rotating AI icon with enhanced size */}
             <Animated.View
               style={{
                 transform: [{ rotate: rotation }],
               }}
             >
-              <MaterialIcons name="auto-awesome" size={28} color="#059669" />
+              <MaterialIcons name="auto-awesome" size={32} color="#059669" />
             </Animated.View>
           </LinearGradient>
         </View>
 
-        {/* Floating particles */}
+        {/* Floating particles with individual animations */}
         <Animated.View
           style={{
             position: 'absolute',
-            top: -2,
-            right: -2,
+            top: -4,
+            right: -4,
             opacity: fadeAnim,
-            transform: [{ rotate: rotation }],
+            transform: [
+              { rotate: rotation },
+              { translateY: float1 }
+            ],
           }}
         >
-          <View className="w-3 h-3 bg-emerald-400 rounded-full opacity-60" />
+          <View className="w-3.5 h-3.5 bg-emerald-400 rounded-full opacity-70" />
         </Animated.View>
 
         <Animated.View
           style={{
             position: 'absolute',
-            bottom: -2,
-            left: -2,
+            bottom: -4,
+            left: -4,
             opacity: fadeAnim,
-            transform: [{ rotate: rotation }],
+            transform: [
+              { rotate: rotation },
+              { translateY: float2 }
+            ],
           }}
         >
-          <View className="w-2 h-2 bg-emerald-500 rounded-full opacity-80" />
+          <View className="w-2.5 h-2.5 bg-emerald-500 rounded-full opacity-85" />
         </Animated.View>
-      </View>
 
-      {/* Text content with gradient */}
-      <View className="items-center space-y-3 max-w-sm">
-        <View className="overflow-hidden rounded-lg">
-          <Text className="text-xl font-bold text-center mb-1">
-            <LinearGradient
-              colors={['#059669', '#047857', '#064E3B']}
-              style={{
-                paddingHorizontal: 16,
-                paddingVertical: 4,
-                borderRadius: 8,
-              }}
-            >
-              <Text className="text-white font-bold text-xl">
-                AI Magic in Progress
-              </Text>
-            </LinearGradient>
-          </Text>
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 8,
+            left: -8,
+            opacity: fadeAnim,
+            transform: [
+              { rotate: rotation },
+              { translateY: float3 }
+            ],
+          }}
+        >
+          <View className="w-2 h-2 bg-emerald-300 rounded-full opacity-90" />
+        </Animated.View>
+      </Animated.View>
+
+      {/* Text content with professional styling */}
+      <View className="items-center max-w-xs mt-5" style={{ gap: 6 }}>
+        <View className="my-2 rounded-lg overflow-hidden">
+          <LinearGradient
+            colors={['#059669', '#047857', '#064E3B']}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 5,
+              borderRadius: 8,
+            }}
+          >
+            <Text className="text-white font-[700] text-sm tracking-wide">
+              AI Magic in Progress
+            </Text>
+          </LinearGradient>
         </View>
 
-        <Text className="text-gray-600 dark:text-gray-300 text-center text-base leading-6">
-          Analyzing your task to generate actionable steps with intelligent precision
+        <Text className="text-gray-600 dark:text-gray-300 text-center text-[12px] w-[190px] leading-5 font-[400]">
+          Analyzing task details to generate optimized steps
         </Text>
 
-        {/* Progress indicator dots */}
-        <View className="flex-row items-center space-x-2 mt-4">
+        {/* Enhanced progress indicator dots with individual animations */}
+        <View className="flex-row items-center mt-5" style={{ gap: 8 }}>
           {[0, 1, 2].map((index) => (
             <Animated.View
               key={index}
@@ -221,7 +350,6 @@ const ModernAILoader = () => {
                   width: 8,
                   height: 8,
                   borderRadius: 4,
-                  marginHorizontal: 4,
                 }}
               />
             </Animated.View>
