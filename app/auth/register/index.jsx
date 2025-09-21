@@ -1,12 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import {
-  SafeAreaView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
   Alert,
-  StatusBar,
   Animated,
   KeyboardAvoidingView,
   Platform,

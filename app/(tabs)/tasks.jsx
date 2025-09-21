@@ -69,7 +69,7 @@ const TaskFilter = ({ activeFilter, onFilterChange, taskCounts, isDark }) => {
 };
 
 // Welcome Section Component
-const ProgressCard = ({ completedTasks, totalTasks }) => {
+const ProgressCard = ({ completedTasks, totalTasks,greeting = 'Good Afternoon' }) => {
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   const currentHour = new Date().getHours(); 
   if (currentHour >= 12 && currentHour < 17) greeting = 'Good Afternoon';
