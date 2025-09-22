@@ -26,9 +26,19 @@ export default function RootLayout() {
         backgroundColor={colorScheme === "dark" ? "#030712" : "#F9FAFB"}
         barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
       />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
+      <Stack
+            screenOptions={{
+              headerShown: false, // Hide headers if not needed
+              gestureEnabled: true, // Enable gestures
+              gestureDirection: 'horizontal', // 
+            }}
+          > 
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="+not-found" />
+          </Stack> 
+
+     
     </GestureHandlerRootView>
   );
 }
@@ -40,6 +50,11 @@ export default function RootLayout() {
 // import "../global.css";
 // import { useColorScheme } from "nativewind"; 
 
+ /*
+       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+       */
 
 // export default function RootLayout() {
 //   const { colorScheme } = useColorScheme();
