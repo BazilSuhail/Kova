@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import { Alert, ScrollView, StatusBar, Switch, Text, TouchableOpacity, View } from 'react-native';
 
@@ -24,6 +25,7 @@ const aiStats = {
 };
 
 export default function ProfileSettingsScreen() {
+  const router=useRouter();
   const { colorScheme, setColorScheme } = useColorScheme();
   const isFocused = useIsFocused(); // 👈 detect if profile tab is active
 
@@ -39,9 +41,14 @@ export default function ProfileSettingsScreen() {
       'Are you sure you want to sign out of your AI assistant?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive' },
+        { text: 'Sign Out', style: 'destructive' ,
+            onPress: () => { 
+          router.replace('/auth/login'); // Navigate after confirming
+        },
+        },
       ]
     );
+    //router.replace('/(tabs)'); // Use Expo Router replace
   };
 
   const showComingSoon = (feature) => {

@@ -4,7 +4,19 @@ import axios from 'axios';
 import { Link, useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Login() {
   const router = useRouter();
@@ -14,6 +26,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [triggerLogin, setTriggerLogin] = useState(false);
   const opacity = useState(new Animated.Value(0))[0];
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     Animated.timing(opacity, {
@@ -36,7 +49,7 @@ export default function Login() {
 
         if (res.data?.token) {
           Alert.alert('Success', 'Logged in successfully');
-          router.replace('/Home'); // Use Expo Router replace
+          router.replace('/(tabs)'); // Use Expo Router replace
         } else {
           Alert.alert('Error', res.data?.message || 'Invalid credentials');
         }
@@ -60,97 +73,111 @@ export default function Login() {
   const buttonBg = isLoading ? 'bg-emerald-400' : 'bg-emerald-700';
 
   return (
-    <Animated.View style={{ flex: 1, opacity }} className={bgColor}>
-  <CurvyBackground theme={colorScheme} />
+    <View style={{
+      flex: 1,
+      paddingTop: insets.top,
+      paddingBottom: insets.bottom,
+    }}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+      >
+        <Animated.View style={{ flex: 1, opacity }}>
+          <CurvyBackground theme={colorScheme} />
 
-
-      <View className="absolute inset-0 px-6 justify-end">
-        <View className="absolute top-14 left-6">
-          <Image
-            source={require('@/assets/images/icon.png')}
-            style={{ width: 60, height: 60 }}
-            resizeMode="contain"
-          />
-        </View>
-
-        <View className="mb-10">
-          <Text className={`text-4xl font-bold ${colorScheme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
-            Welcome Back
-          </Text>
-          <Text className={`text-[11px] mt-[10px] ${subTextColor}`}>
-            Sign in to continue your productivity journey
-          </Text>
-
-          <View className='flex-row items-center justify-between mt-[35px] mb-[25px]'>
-            <View className='flex-row items-center' style={{ gap: 4 }}>
-              <View className={`${colorScheme === 'dark' ? 'dark:bg-gray-700 bg-emerald-950/70' : 'bg-emerald-200'} w-[65px] rounded-lg h-[3px]`}></View>
-              <View className={`${colorScheme === 'dark' ? 'dark:bg-emerald-700 bg-emerald-500' : 'bg-emerald-500'} w-[5px] rounded-lg h-[5px]`}></View>
-              <View className={`${colorScheme === 'dark' ? 'dark:bg-emerald-700 bg-emerald-500' : 'bg-emerald-500'} w-[5px] rounded-lg h-[5px]`}></View>
-              <View className={`${colorScheme === 'dark' ? 'dark:bg-emerald-700 bg-emerald-500' : 'bg-emerald-500'} w-[5px] rounded-lg h-[5px]`}></View>
+          <View className="absolute inset-0 px-6 justify-end">
+            <View className="absolute top-4 left-6">
+              <Image
+                source={require('@/assets/images/icon.png')}
+                style={{ width: 60, height: 60 }}
+                resizeMode="contain"
+              />
             </View>
 
-            <Link
-              href="/SignUp"
-              className={`text-[11px] ${colorScheme === 'dark' ? 'text-gray-400' : 'text-emerald-700'}`}
+            <TouchableOpacity
+              onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}
+              className="absolute top-4 right-6 bg-white dark:bg-gray-800 p-3 rounded-2xl border border-gray-200 dark:border-gray-700"
             >
-              Don't have an account?{' '}
-              <Text className={`ml-2 font-semibold ${colorScheme === 'dark' ? 'text-emerald-400' : 'text-emerald-800'}`}>
-                Sign Up
+              <Ionicons name={colorScheme === 'dark' ? 'sunny' : 'moon'} size={18} color="#059669" />
+            </TouchableOpacity>
+
+            <View className="mb-10">
+              <Text className={`text-4xl font-bold ${colorScheme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                Welcome Back
               </Text>
-            </Link>
+              <Text className={`text-[11px] mt-[10px] ${subTextColor}`}>
+                Sign in to continue your productivity journey
+              </Text>
+
+              <View className='flex-row items-center justify-between mt-[35px] mb-[25px]'>
+                <View className='flex-row items-center' style={{ gap: 4 }}>
+                  <View className={`${colorScheme === 'dark' ? 'dark:bg-gray-700 bg-emerald-950/70' : 'bg-emerald-200'} w-[65px] rounded-lg h-[3px]`}></View>
+                  <View className={`${colorScheme === 'dark' ? 'dark:bg-emerald-700 bg-emerald-500' : 'bg-emerald-500'} w-[5px] rounded-lg h-[5px]`}></View>
+                  <View className={`${colorScheme === 'dark' ? 'dark:bg-emerald-700 bg-emerald-500' : 'bg-emerald-500'} w-[5px] rounded-lg h-[5px]`}></View>
+                  <View className={`${colorScheme === 'dark' ? 'dark:bg-emerald-700 bg-emerald-500' : 'bg-emerald-500'} w-[5px] rounded-lg h-[5px]`}></View>
+                </View>
+
+                <Link
+                  href="/(tabs)"
+                  //href="/auth/register"
+                  className={`text-[11px] ${colorScheme === 'dark' ? 'text-gray-400' : 'text-emerald-700'}`}
+                >
+                  Don't have an account?{' '}
+                  <Text className={`ml-2 font-semibold ${colorScheme === 'dark' ? 'text-emerald-400' : 'text-emerald-800'}`}>
+                    Sign Up
+                  </Text>
+                </Link>
+              </View>
+
+              <View className={`rounded-[40px] border py-2 px-4 flex-row items-center mb-4 ${inputBgColor} ${inputBorderColor} border`}>
+                <Ionicons name="mail-outline" size={20} color="#6b7280" style={{ marginRight: 10 }} />
+                <TextInput
+                  placeholder="Email"
+                  placeholderTextColor="#9ca3af"
+                  value={email}
+                  onChangeText={setEmail}
+                  className={`flex-1 ${textColor}`}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+
+              <View className={`rounded-[40px] border py-2 px-4 flex-row items-center mb-6 ${inputBgColor} ${inputBorderColor} border`}>
+                <Ionicons name="lock-closed-outline" size={20} color="#6b7280" style={{ marginRight: 10 }} />
+                <TextInput
+                  placeholder="Password"
+                  placeholderTextColor="#9ca3af"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  className={`flex-1 ${textColor}`}
+                />
+              </View>
+
+              <TouchableOpacity
+                onPress={() => {
+                  if (!email || !password) return Alert.alert('Error', 'All fields required');
+                  setTriggerLogin(true);
+                }}
+                disabled={isLoading}
+                className={`py-3 ml-auto w-[140px] rounded-[45px] items-center flex-row justify-center ${buttonBg}`}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <Text className="text-white font-[600] text-[16px] mr-3">Sign In</Text>
+                    <Feather name="arrow-right" size={22} color="#fff" />
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-
-          <View className={`rounded-[40px] border py-2 px-4 flex-row items-center mb-4 ${inputBgColor} ${inputBorderColor} border`}>
-            <Ionicons name="mail-outline" size={20} color="#6b7280" style={{ marginRight: 10 }} />
-            <TextInput
-              placeholder="Email"
-              placeholderTextColor="#9ca3af"
-              value={email}
-              onChangeText={setEmail}
-              className={`flex-1 ${textColor}`}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
-
-          <View className={`rounded-[40px] border py-2 px-4 flex-row items-center mb-6 ${inputBgColor} ${inputBorderColor} border`}>
-            <Ionicons name="lock-closed-outline" size={20} color="#6b7280" style={{ marginRight: 10 }} />
-            <TextInput
-              placeholder="Password"
-              placeholderTextColor="#9ca3af"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              className={`flex-1 ${textColor}`}
-            />
-          </View>
-
-          <TouchableOpacity
-            onPress={() => {
-              if (!email || !password) return Alert.alert('Error', 'All fields required');
-              setTriggerLogin(true);
-            }}
-            disabled={isLoading}
-            className={`py-3 ml-auto w-[140px] rounded-[45px] items-center flex-row justify-center ${buttonBg}`}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Text className="text-white font-[600] text-[16px] mr-3">Sign In</Text>
-                <Feather name="arrow-right" size={22} color="#fff" />
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}
-          className="absolute top-14 right-6 bg-white dark:bg-gray-800 p-3 rounded-2xl border border-gray-200 dark:border-gray-700"
-        >
-          <Ionicons name={colorScheme === 'dark' ? 'sunny' : 'moon'} size={18} color="#059669" />
-        </TouchableOpacity>
-      </View>
-    </Animated.View>
+        </Animated.View>
+      </KeyboardAvoidingView>
+    </View>
   );
 }

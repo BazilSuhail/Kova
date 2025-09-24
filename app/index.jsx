@@ -2,7 +2,7 @@ import logo from '@/assets/images/icon.png';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { Image, Text, View, StatusBar } from 'react-native';
+import { Image, StatusBar, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Index = () => {
@@ -55,7 +55,7 @@ const Index = () => {
       {/* Footer */}
       <View style={{ position: 'absolute', bottom: insets.bottom + 12, alignItems: 'center' }}>
         <Text className="text-emerald-300 text-[10px] font-[700] text-center">Made By</Text>
-        <Text className="text-emerald-700 font-[700]">EntityStudio</Text>
+        <Text className="text-emerald-200 font-[700]">EntityStudio</Text>
       </View>
     </View>
   );
