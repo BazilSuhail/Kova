@@ -1,6 +1,6 @@
 import CustomDatePicker from '@/components/tasks/CustomCalendar';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useColorScheme } from 'nativewind';
+import { useUniwind } from 'uniwind';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -155,8 +155,8 @@ const AISubtasksGenerator = ({ onGenerate }) => {
 
 export default function TaskDetailsScreen() {
   const insets = useSafeAreaInsets();
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { theme } = useUniwind();
+  const isDark = theme === 'dark';
 
   const [task, setTask] = useState(initialTask);
   const [completed, setCompleted] = useState(task.isCompleted);

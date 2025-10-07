@@ -2,7 +2,7 @@ import CurvyBackground from '@/components/backgrounds/CurvyBackground';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { Link, useRouter } from 'expo-router';
-import { useColorScheme } from 'nativewind';
+import { Uniwind, useUniwind } from 'uniwind';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Register() {
   const router = useRouter();
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { theme } = useUniwind();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -82,11 +82,11 @@ export default function Register() {
     setTriggerSignUp(true);
   };
 
-  const bgColor = colorScheme === 'dark' ? 'bg-gray-950' : 'bg-emerald-50';
-  const textColor = colorScheme === 'dark' ? 'text-white' : 'text-emerald-900';
-  const subTextColor = colorScheme === 'dark' ? 'text-gray-400' : 'text-emerald-700';
-  const inputBgColor = colorScheme === 'dark' ? 'bg-emerald-950/70' : 'bg-white';
-  const inputBorderColor = colorScheme === 'dark' ? 'border-emerald-900' : 'border-emerald-300';
+  const bgColor = theme === 'dark' ? 'bg-gray-950' : 'bg-emerald-50';
+  const textColor = theme === 'dark' ? 'text-white' : 'text-emerald-900';
+  const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-emerald-700';
+  const inputBgColor = theme === 'dark' ? 'bg-emerald-950/70' : 'bg-white';
+  const inputBorderColor = theme === 'dark' ? 'border-emerald-900' : 'border-emerald-300';
   const buttonBg = isLoading ? 'bg-emerald-400' : 'bg-emerald-700';
 
   return (
@@ -101,7 +101,7 @@ export default function Register() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <Animated.View style={{ flex: 1, opacity }} className={bgColor}>
-          <CurvyBackground theme={colorScheme} />
+          <CurvyBackground theme={theme} />
  <View className="absolute top-4 left-6">
                 <Image
                   source={require('@/assets/images/icon.png')}
@@ -111,10 +111,10 @@ export default function Register() {
               </View>
               
               <TouchableOpacity
-                onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}
+                onPress={() => Uniwind.setTheme(theme === 'dark' ? 'light' : 'dark')}
                 className="absolute top-4 right-6 bg-white dark:bg-gray-800 p-3 rounded-2xl border border-gray-200 dark:border-gray-700"
               >
-                <Ionicons name={colorScheme === 'dark' ? 'sunny' : 'moon'} size={18} color="#059669" />
+                <Ionicons name={theme === 'dark' ? 'sunny' : 'moon'} size={18} color="#059669" />
               </TouchableOpacity>
 
           <View className="absolute inset-0 px-6 justify-end">
@@ -122,7 +122,7 @@ export default function Register() {
 
             {/* Main content section */}
             <View className="mb-10">
-              <Text className={`text-4xl font-bold ${colorScheme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+              <Text className={`text-4xl font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
                 Create Account
               </Text>
               <Text className={`text-[11px] mt-[10px] ${subTextColor}`}>
@@ -131,18 +131,18 @@ export default function Register() {
 
               <View className='flex-row items-center justify-between mt-[35px] mb-[25px]'>
                 <View className='flex-row items-center' style={{ gap: 4 }}>
-                  <View className={`${colorScheme === 'dark' ? 'dark:bg-gray-700 bg-emerald-950/70' : 'bg-emerald-200'} w-[65px] rounded-lg h-[3px]`}></View>
-                  <View className={`${colorScheme === 'dark' ? 'dark:bg-emerald-700 bg-emerald-500' : 'bg-emerald-500'} w-[5px] rounded-lg h-[5px]`}></View>
-                  <View className={`${colorScheme === 'dark' ? 'dark:bg-emerald-700 bg-emerald-500' : 'bg-emerald-500'} w-[5px] rounded-lg h-[5px]`}></View>
-                  <View className={`${colorScheme === 'dark' ? 'dark:bg-emerald-700 bg-emerald-500' : 'bg-emerald-500'} w-[5px] rounded-lg h-[5px]`}></View>
+                  <View className={`${theme === 'dark' ? 'dark:bg-gray-700 bg-emerald-950/70' : 'bg-emerald-200'} w-[65px] rounded-lg h-[3px]`}></View>
+                  <View className={`${theme === 'dark' ? 'dark:bg-emerald-700 bg-emerald-500' : 'bg-emerald-500'} w-[5px] rounded-lg h-[5px]`}></View>
+                  <View className={`${theme === 'dark' ? 'dark:bg-emerald-700 bg-emerald-500' : 'bg-emerald-500'} w-[5px] rounded-lg h-[5px]`}></View>
+                  <View className={`${theme === 'dark' ? 'dark:bg-emerald-700 bg-emerald-500' : 'bg-emerald-500'} w-[5px] rounded-lg h-[5px]`}></View>
                 </View>
 
                 <Link
                   href="/auth/login"
-                  className={`text-[11px] ${colorScheme === 'dark' ? 'text-gray-400' : 'text-emerald-700'}`}
+                  className={`text-[11px] ${theme === 'dark' ? 'text-gray-400' : 'text-emerald-700'}`}
                 >
                   Already have an account?{' '}
-                  <Text className={`ml-2 font-semibold ${colorScheme === 'dark' ? 'text-emerald-400' : 'text-emerald-800'}`}>
+                  <Text className={`ml-2 font-semibold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-800'}`}>
                     Sign In
                   </Text>
                 </Link>

@@ -6,7 +6,7 @@ import { TaskItem } from "@/components/planner/TaskItem";
 import { TaskStats } from "@/components/planner/TaskStats";
 //import { COLORS } from "@/constants/color";
 import BottomSheet from "entity-bottom-sheet";
-import { useColorScheme } from "nativewind";
+import { useUniwind } from "uniwind";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator, 
@@ -91,7 +91,7 @@ const MONTH_NAMES = [
 
 // Main Component
 export default function ModernPlannerScreen() {
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { theme } = useUniwind();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState("month");
   const [tasks, setTasks] = useState([]);
@@ -334,8 +334,7 @@ export default function ModernPlannerScreen() {
           navigatePeriod={navigatePeriod}
           goToToday={goToToday}
           getHeaderTitle={getHeaderTitle}
-          colorScheme={colorScheme}
-          setColorScheme={setColorScheme}
+          theme={theme}
         />
 
 

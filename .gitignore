@@ -8,7 +8,8 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
-
+android/
+ios/build/
 # Native
 .kotlin/
 *.orig.*
@@ -32,10 +33,23 @@ yarn-error.*
 
 # local env files
 .env*.local
-.vscode
-.env
 
 # typescript
 *.tsbuildinfo
 
-app-example
+# generated native folders
+/ios
+/android
+
+
+# Ignore all .md files
+*.md
+# But do not ignore README.md
+!README.md
+
+# Ignore all lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+bun.lock

@@ -1,14 +1,14 @@
 // CustomTabBar.js
 import { TAB_CONFIG } from '@/constants/tabConfig';
 import { usePathname, useRouter, useSegments } from 'expo-router';
-import { useColorScheme } from 'nativewind';
+import { useUniwind } from 'uniwind';
 import { useMemo } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ActiveIndicator from './ActiveIndicator';
 
 function CustomTabBar() {
-    const { colorScheme } = useColorScheme();
+    const { theme } = useUniwind();
     const router = useRouter();
     const pathname = usePathname();
     const segments = useSegments();
@@ -33,10 +33,10 @@ function CustomTabBar() {
     };
 
     // Dynamic colors based on theme
-    const backgroundColor = colorScheme === 'dark' ? '#1f2937' : '#ffffff'; // gray-800 / white
-    const borderColor = colorScheme === 'dark' ? '#374151' : '#e5e7eb'; // gray-700 / gray-200
-    const textActiveColor = colorScheme === 'dark' ? '#ffffff' : '#059669'; // white / gray-900
-    const textInactiveColor = colorScheme === 'dark' ? '#9ca3af' : '#6b7280'; // gray-400 / gray-500
+    const backgroundColor = theme === 'dark' ? '#1f2937' : '#ffffff'; // gray-800 / white
+    const borderColor = theme === 'dark' ? '#374151' : '#e5e7eb'; // gray-700 / gray-200
+    const textActiveColor = theme === 'dark' ? '#ffffff' : '#059669'; // white / gray-900
+    const textInactiveColor = theme === 'dark' ? '#9ca3af' : '#6b7280'; // gray-400 / gray-500
 
     return (
         <View
@@ -58,8 +58,8 @@ function CustomTabBar() {
             {TAB_CONFIG.map((tab, index) => {
                 const isActive = activeIndex === index;
                 const color = isActive 
-                    ? (colorScheme === 'dark' ? '#ecfdf5' : '#10b981') // emerald-400 / emerald-500
-                    : (colorScheme === 'dark' ? '#9ca3af' : '#94a3b8'); // gray-400 / slate-400
+                    ? (theme === 'dark' ? '#ecfdf5' : '#10b981') // emerald-400 / emerald-500
+                    : (theme === 'dark' ? '#9ca3af' : '#94a3b8'); // gray-400 / slate-400
                 const textColor = isActive ? textActiveColor : textInactiveColor;
 
                 return (

@@ -2,7 +2,7 @@ import SwipeableTaskItem from '@/components/tasks/SwipeableTaskItem';
 import TaskCreationModal from '@/components/tasks/TaskCreationModal';
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
-import { useColorScheme } from 'nativewind';
+import { useUniwind } from 'uniwind';
 import { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -124,8 +124,8 @@ const PriorityIcon = ({ priority }) => {
 
 export default function TasksScreen() {
   const insets = useSafeAreaInsets();
-  const { colorScheme, setColorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { theme } = useUniwind();
+  const isDark = theme === 'dark';
 
   const [modalVisible, setModalVisible] = useState(false);
   const [taskList, setTaskList] = useState(tasks);

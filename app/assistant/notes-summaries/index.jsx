@@ -1,7 +1,7 @@
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import BottomSheet from 'entity-bottom-sheet';
 import { useRouter } from 'expo-router';
-import { useColorScheme } from 'nativewind';
+import { useUniwind } from 'uniwind';
 import { useCallback, useState } from 'react';
 import {
   Alert,
@@ -99,8 +99,8 @@ const SummaryDetailHeader = ({ fileName, isDark }) => (
 
 export default function PdfSummariesScreen() {
   const insets = useSafeAreaInsets();
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { theme } = useUniwind();
+  const isDark = theme === 'dark';
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSummary, setSelectedSummary] = useState(null);
@@ -160,8 +160,8 @@ export default function PdfSummariesScreen() {
   return (
     <View className="flex-1 bg-gray-50 dark:bg-gray-900">
       <StatusBar
-        barStyle={colorScheme === 'dark' ? "light-content" : "dark-content"}
-        backgroundColor={colorScheme === 'dark' ? "#111827" : "#FFFFFF"}
+        barStyle={theme === 'dark' ? "light-content" : "dark-content"}
+        backgroundColor={theme === 'dark' ? "#111827" : "#FFFFFF"}
       />
       <ScrollView
         className="flex-1"
@@ -336,10 +336,10 @@ export default function PdfSummariesScreen() {
         onClose={handleCloseModal}
         header={<SummaryDetailHeader fileName={selectedSummary?.fileName} isDark={isDark} />}
         heightRatio={0.85}
-        draggableAreaColor={colorScheme === 'dark' ? '#1f2937' : 'white'}
-        dragHandleColor={colorScheme === 'dark' ? '#4b5563' : '#ccc'}
-        statusBarColor={colorScheme === 'dark' ? '#070A10' : '#00000066'}
-        statusBarStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+        draggableAreaColor={theme === 'dark' ? '#1f2937' : 'white'}
+        dragHandleColor={theme === 'dark' ? '#4b5563' : '#ccc'}
+        statusBarColor={theme === 'dark' ? '#070A10' : '#00000066'}
+        statusBarStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
       >
         {selectedSummary && (
           <ScrollView
@@ -470,7 +470,7 @@ export default function PdfSummariesScreen() {
                   <FontAwesome
                     name="trash-o"
                     size={22}
-                    color={colorScheme === 'dark' ? "#F87171" : "#dc2626"}
+                    color={theme === 'dark' ? "#F87171" : "#dc2626"}
                   />
                 </TouchableOpacity>
               </View>

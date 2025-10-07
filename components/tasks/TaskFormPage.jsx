@@ -1,7 +1,7 @@
 import CustomDatePicker from '@/components/tasks/CustomCalendar';
 import { getCategoryColor } from '@/constants/getCategoryColor';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'nativewind';
+import { useUniwind } from 'uniwind';
 import { useState } from 'react';
 import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -18,9 +18,8 @@ const formatDate = (dateString) => {
 };
 
 export default function TaskFormPage({onBack }) {
-const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
+  const { theme } = useUniwind();
+  const isDark = theme === 'dark';
   const [task, setTask] = useState({
     title: '',
     description: '',
@@ -74,7 +73,7 @@ const { colorScheme } = useColorScheme();
           >
             <View className="flex-row items-center">
               <View className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl items-center justify-center" style={{ marginRight: 16 }}>
-                <Ionicons name="add-circle" size={32} color={colorScheme === 'dark' ? "#34D399" : "#059669"} />
+                <Ionicons name="add-circle" size={32} color={theme === 'dark' ? "#34D399" : "#059669"} />
               </View>
               <View className="flex-1">
                 <Text className="text-xl font-bold text-gray-800 dark:text-white">Create New Task</Text>

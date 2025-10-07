@@ -1,9 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useColorScheme } from 'nativewind';
+import { Uniwind, useUniwind } from 'uniwind';
 import { Alert, ScrollView, StatusBar, Switch, Text, TouchableOpacity, View } from 'react-native';
 
 // Mock user data for AI assistant
@@ -26,12 +25,13 @@ const aiStats = {
 
 export default function ProfileSettingsScreen() {
   const router=useRouter();
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { theme } = useUniwind();
   const isFocused = useIsFocused(); // 👈 detect if profile tab is active
 
   const toggleDarkMode = async (value) => {
-    await AsyncStorage.setItem("theme", value ? "dark" : "light");
-    setColorScheme(value ? "dark" : "light");
+    const newTheme = value ? "dark" : "light";
+    await AsyncStorage.setItem("theme", newTheme);
+    Uniwind.setTheme(newTheme);
   };
 
 
@@ -66,22 +66,14 @@ export default function ProfileSettingsScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* <StatusBar backgroundColor={colorScheme === "dark" ? "#030712" : "#f3f4f6"} /> */}
         {isFocused && (
           <StatusBar
-            backgroundColor={colorScheme === "dark" ? "#030712" : "#f3f4f6"}
-            barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
+            backgroundColor={theme === "dark" ? "#030712" : "#f3f4f6"}
+            barStyle={theme === "dark" ? "light-content" : "dark-content"}
           />
         )}
 
-        <LinearGradient
-          colors={
-            colorScheme === "dark"
-              ? ['#000000', '#000000', '#030712', '#022c22', '#047857']
-              : ['#ffffff', '#d1fae5']
-          }
-          className="px-6 pt-16 pb-20 rounded-b-[22px] overflow-hidden" // increased paddingBottom and borderRadius
-        >
+        <View className="px-6 pt-16 pb-20 rounded-b-[22px] overflow-hidden bg-gradient-to-b dark:from-black dark:to-emerald-800 from-white to-emerald-100">
           {/* Optional subtle overlay for depth */}
           <View className="absolute inset-0 bg-black/5 dark:bg-white/5 rounded-b-[32px]" />
 
@@ -99,7 +91,7 @@ export default function ProfileSettingsScreen() {
               <Ionicons name="person" size={28} color="white" />
             </View>
           </View>
-        </LinearGradient>
+        </View>
 
         <View className="px-4 -mt-10">
           {/* Profile Card */}
@@ -198,7 +190,7 @@ export default function ProfileSettingsScreen() {
           <SettingItem
             icon="moon"
             label="Dark Mode"
-            value={colorScheme === 'dark'}
+            value={theme === 'dark'}
             onValueChange={toggleDarkMode}
             type="toggle"
           />

@@ -1,12 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet from 'entity-bottom-sheet';
-import { useColorScheme } from 'nativewind';
+import { useUniwind } from 'uniwind';
 import { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 export default function CustomDatePicker({ visible, onClose, onDateSelect, initialDate }) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { theme } = useUniwind();
+  const isDark = theme === 'dark';
 
   const [currentDate, setCurrentDate] = useState(new Date(initialDate));
   const [selectedDate, setSelectedDate] = useState(new Date(initialDate));
@@ -109,10 +109,10 @@ export default function CustomDatePicker({ visible, onClose, onDateSelect, initi
       visible={visible}
       onClose={onClose}
       heightRatio={0.54}
-      draggableAreaColor={colorScheme === 'dark' ? '#1f2937' : 'white'}  // gray-800 / white
-      dragHandleColor={colorScheme === 'dark' ? '#4b5563' : '#ccc'}       // gray-600 / gray
-      statusBarColor={colorScheme === 'dark' ? '#00000099' : '#00000066'} // Darker for dark mode
-      statusBarStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+      draggableAreaColor={theme === 'dark' ? '#1f2937' : 'white'}  // gray-800 / white
+      dragHandleColor={theme === 'dark' ? '#4b5563' : '#ccc'}       // gray-600 / gray
+      statusBarColor={theme === 'dark' ? '#00000099' : '#00000066'} // Darker for dark mode
+      statusBarStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
       header={
         <View className={`flex-row items-center justify-between px-8 dark:bg-gray-800 bg-white`}>
           <TouchableOpacity

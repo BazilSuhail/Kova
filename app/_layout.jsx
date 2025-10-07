@@ -3,18 +3,18 @@ import { Stack } from "expo-router";
 import { StatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { useColorScheme } from "nativewind";
+import { Uniwind, useUniwind } from "uniwind";
 import { useEffect } from "react";
 import "../global.css";
 
 export default function RootLayout() {
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { theme } = useUniwind();
 
   useEffect(() => {
     const loadTheme = async () => {
       const savedTheme = await AsyncStorage.getItem("theme");
       if (savedTheme) {
-        setColorScheme(savedTheme); // "dark" or "light"
+        Uniwind.setTheme(savedTheme); // "dark" or "light"
       }
     };
     loadTheme();
@@ -23,8 +23,8 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar
-        backgroundColor={colorScheme === "dark" ? "#030712" : "#F9FAFB"}
-        barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
+        backgroundColor={theme === "dark" ? "#030712" : "#F9FAFB"}
+        barStyle={theme === "dark" ? "light-content" : "dark-content"}
       />
       <Stack
             screenOptions={{
@@ -42,32 +42,6 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
-
-// import { Stack } from "expo-router";
-// import { StatusBar } from "react-native";
-// import { GestureHandlerRootView } from "react-native-gesture-handler";
-
-// import "../global.css";
-// import { useColorScheme } from "nativewind"; 
-
- /*
-       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-       */
-
-// export default function RootLayout() {
-//   const { colorScheme } = useColorScheme();
-  
-//   return (
-//     <GestureHandlerRootView style={{ flex: 1 }}>
-//       <StatusBar
-//         backgroundColor={colorScheme === "dark" ? "#030712" : "#F9FAFB"}
-//         barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
-//       />
-//       <Stack screenOptions={{ headerShown: false }}>
-//         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-//       </Stack>
 //     </GestureHandlerRootView>
 //   );
 // }

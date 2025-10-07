@@ -1,5 +1,4 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef } from 'react';
 import { Animated, Dimensions, Easing, Text, View } from 'react-native';
 
@@ -202,30 +201,14 @@ const ModernAILoader = () => {
             transform: [{ scale: scaleAnim }],
             opacity: fadeAnim,
           }}
-          className="absolute w-28 h-28 -top-7 -left-7"
-        >
-          <LinearGradient
-            colors={['#10B981', '#059669', '#047857']}
-            style={{
-              width: 112,
-              height: 112,
-              borderRadius: 56,
-              opacity: 0.25,
-            }}
-          />
-        </Animated.View>
+          className="absolute w-28 h-28 -top-7 -left-7 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 rounded-full opacity-25"
+        />
 
         {/* Main icon container with shimmer effect */}
         <View className="w-18 h-18 overflow-hidden rounded-full shadow-lg">
-          <LinearGradient
-            colors={['#ECFDF5', '#D1FAE5', '#A7F3D0']}
+          <View
+            className="w-18 h-18 bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200 rounded-full items-center justify-center"
             style={{
-              width: 72,
-              height: 72,
-              borderRadius: 36,
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
               elevation: 5,
               shadowColor: '#059669',
               shadowOffset: { width: 0, height: 4 },
@@ -244,14 +227,13 @@ const ModernAILoader = () => {
                 transform: [{ translateX: shimmerAnim }],
               }}
             >
-              <LinearGradient
-                colors={['transparent', 'rgba(255,255,255,0.8)', 'transparent']}
+              <View
+                className="bg-gradient-to-r from-transparent via-white to-transparent"
                 style={{
                   width: 100,
                   height: 72,
+                  opacity: 0.8,
                 }}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
               />
             </Animated.View>
 
@@ -263,7 +245,7 @@ const ModernAILoader = () => {
             >
               <MaterialIcons name="auto-awesome" size={32} color="#059669" />
             </Animated.View>
-          </LinearGradient>
+          </View>
         </View>
 
         {/* Floating particles with individual animations */}
@@ -315,19 +297,10 @@ const ModernAILoader = () => {
 
       {/* Text content with professional styling */}
       <View className="items-center max-w-xs mt-5" style={{ gap: 6 }}>
-        <View className="my-2 rounded-lg overflow-hidden">
-          <LinearGradient
-            colors={['#059669', '#047857', '#064E3B']}
-            style={{
-              paddingHorizontal: 16,
-              paddingVertical: 5,
-              borderRadius: 8,
-            }}
-          >
-            <Text className="text-white font-[700] text-sm tracking-wide">
-              AI Magic in Progress
-            </Text>
-          </LinearGradient>
+        <View className="my-2 rounded-lg overflow-hidden bg-gradient-to-r from-emerald-600 to-emerald-900 px-4 py-[5px]">
+          <Text className="text-white font-[700] text-sm tracking-wide">
+            AI Magic in Progress
+          </Text>
         </View>
 
         <Text className="text-gray-600 dark:text-gray-300 text-center text-[12px] w-[190px] leading-5 font-[400]">
@@ -344,14 +317,7 @@ const ModernAILoader = () => {
                 transform: [{ scale: dotScale }],
               }}
             >
-              <LinearGradient
-                colors={['#10B981', '#059669']}
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 4,
-                }}
-              />
+              <View className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full" />
             </Animated.View>
           ))}
         </View>

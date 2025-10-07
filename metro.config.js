@@ -1,6 +1,10 @@
-const { getDefaultConfig } = require("expo/metro-config");
-const { withNativeWind } = require('nativewind/metro');
- 
-const config = getDefaultConfig(__dirname)
- 
-module.exports = withNativeWind(config, { input: './global.css' })
+const { getDefaultConfig } = require('expo/metro-config');
+const { withUniwindConfig } = require('uniwind/metro');
+
+const config = getDefaultConfig(__dirname);
+
+// Uniwind MUST be the outermost wrapper
+module.exports = withUniwindConfig(config, {
+  // Path to your global CSS file
+  cssEntryFile: './global.css',
+});

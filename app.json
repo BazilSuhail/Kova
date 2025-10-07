@@ -6,17 +6,24 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "zenflow",
-    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "Allow ZenFlow to transcribe your speech to text.",
+        "NSMicrophoneUsageDescription": "Allow ZenFlow to use the microphone for interviews."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": false
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.anonymous.zenflow"
     },
     "web": {
       "bundler": "metro",
@@ -26,23 +33,21 @@
     "plugins": [
       "expo-router",
       [
-        "expo-splash-screen",
+        "expo-speech-recognition",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
-      [
-        "expo-audio",
-        {
-          "microphonePermission": "Allow $(ZenFlow) to access your microphone."
+          "microphonePermission": "Allow ZenFlow to use the microphone for interviews.",
+          "speechRecognitionPermission": "Allow ZenFlow to transcribe your speech to text."
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e7727eb1-aca1-4a32-b5c4-9cb00ad5a45b"
+      }
+    },
+    "owner": "bazil_suhail"
   }
 }

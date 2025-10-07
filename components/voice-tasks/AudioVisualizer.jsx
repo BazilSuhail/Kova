@@ -1,4 +1,4 @@
-import { useColorScheme } from 'nativewind';
+import { useUniwind } from 'uniwind';
 import { useEffect } from 'react';
 import { Text, View } from 'react-native';
 import Animated, {
@@ -13,8 +13,8 @@ import Animated, {
 const BAR_COUNT = 15;
 
 const AudioVisualizer = ({ mode = 'playback', isActive = false, currentTime = 0, duration = 0 }) => {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { theme } = useUniwind();
+  const isDark = theme === 'dark';
   
   const bars = Array.from({ length: BAR_COUNT }, () => useSharedValue(0.3));
 

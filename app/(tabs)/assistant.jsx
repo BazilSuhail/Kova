@@ -1,6 +1,6 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
-import { useColorScheme } from 'nativewind';
+import { useUniwind } from 'uniwind';
 import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -134,7 +134,7 @@ const QuickActionItem = ({ icon, title, description, color, bgColor, bgColorStyl
 
 export default function ModernAssistantScreen() {
   const insets = useSafeAreaInsets();
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { theme } = useUniwind();
 
   // Enhanced task data
   const tasks = [
@@ -187,7 +187,7 @@ export default function ModernAssistantScreen() {
       iconColor: "#a855f7"
     },
     {
-      title: "Smart Notes Summaries",
+      title: "Smart Notes",
       desc: "Summaries of documents",
       icon: "list-circle-outline",
       href: "/assistant/notes-summaries",
@@ -196,7 +196,7 @@ export default function ModernAssistantScreen() {
     },
     {
       title: "Image to Tasks",
-      desc: "Capture tasks from photos",
+      desc: "Scan, Sync and Solve",
       icon: "camera-outline",
       href: "/assistant/image-to-tasks",
       bgColorStyle: "#dbeafe",

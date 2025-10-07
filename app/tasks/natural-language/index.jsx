@@ -1,8 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import BottomSheet from 'entity-bottom-sheet';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useColorScheme } from 'nativewind';
+import { useUniwind } from 'uniwind';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -22,14 +21,8 @@ import { getCategoryColor } from '@/constants/getCategoryColor';
 const PromptModalHeader = () => (
   <View className="px-6 pt-3 pb-4 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
     <View className="flex-row items-center">
-      {/* Gradient Icon with LinearGradient */}
-      <View className="w-10 h-10 rounded-lg items-center justify-center mr-3 relative overflow-hidden">
-        <LinearGradient
-          colors={['#10b981', '#059669']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="absolute inset-0 rounded-full"
-        />
+      {/* Gradient Icon */}
+      <View className="w-10 h-10 rounded-lg items-center justify-center mr-3 bg-gradient-to-br from-emerald-500 to-emerald-600">
         <Ionicons name="sparkles" size={16} color="white" />
       </View>
 
@@ -44,8 +37,8 @@ const PromptModalHeader = () => (
 );
 
 export default function NaturalLanguageTaskScreen() {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { theme } = useUniwind();
+  const isDark = theme === 'dark';
 
   const [showPromptModal, setShowPromptModal] = useState(true);
   const [prompt, setPrompt] = useState('');
@@ -151,13 +144,13 @@ export default function NaturalLanguageTaskScreen() {
           visible={showPromptModal}
           onClose={handleCloseModal}
           header={<PromptModalHeader isDark={isDark} />}
-          heightRatio={0.55}
-          draggableAreaColor={colorScheme === 'dark' ? '#1f2937' : 'white'}  // gray-800 / white
-          dragHandleColor={colorScheme === 'dark' ? '#4b5563' : '#ccc'}       // gray-600 / gray
-          statusBarColor={colorScheme === 'dark' ? '#00000099' : '#00000066'} // Darker for dark mode
-          statusBarStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+          heightRatio={0.6}
+          draggableAreaColor={theme === 'dark' ? '#1f2937' : 'white'}  // gray-800 / white
+          dragHandleColor={theme === 'dark' ? '#4b5563' : '#ccc'}       // gray-600 / gray
+          statusBarColor={theme === 'dark' ? '#00000099' : '#00000066'} // Darker for dark mode
+          statusBarStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
         >
-          <View className="px-6 pt-6 pb-8 flex-1 bg-white dark:bg-gray-800">
+          <View className="px-6 pt-6 pb-13 flex-1 bg-white dark:bg-gray-800">
             {/* Input Section */}
             <View className="flex-1">
               <View className="relative" style={{ marginBottom: 24 }}>
@@ -198,7 +191,7 @@ export default function NaturalLanguageTaskScreen() {
             </View>
 
             {/* Action Buttons */}
-            <View className="flex-row" style={{ marginTop: 12 }}>
+            <View className="flex-row" >
               <TouchableOpacity
                 className="flex-1 bg-gray-50 dark:bg-gray-800 py-4 rounded-2xl items-center border border-gray-200 dark:border-gray-700"
                 onPress={handleCloseModal}
@@ -210,32 +203,18 @@ export default function NaturalLanguageTaskScreen() {
                 onPress={handleCreateTask}
                 disabled={!prompt.trim()}
                 className={`
-                  flex-1 flex-row items-center justify-center py-4 rounded-2xl 
-                  ${!prompt.trim()
-                    ? 'bg-gray-200 dark:bg-gray-700'
-                    : ''}
-                  ml-3
-                  overflow-hidden
+                  flex-1 flex-row items-center justify-center py-4 rounded-2xl ml-3
+                  ${prompt.trim() ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : 'bg-gray-200 dark:bg-gray-700'}
                 `}
               >
-                {prompt.trim() && (
-                  <LinearGradient
-                    colors={['#10b981', '#059669']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    className="absolute inset-0 rounded-2xl"
-                  />
-                )}
-
                 <Ionicons
                   name="sparkles"
                   size={18}
                   color={prompt.trim() ? 'white' : (isDark ? '#9CA3AF' : '#6B7280')}
-                  className="z-10"
                 />
                 <Text
                   className={`
-                    ml-2 font-semibold z-10
+                    ml-2 font-semibold
                     ${prompt.trim() ? 'text-white' : (isDark ? 'text-gray-400' : 'text-gray-500')}
                   `}
                 >

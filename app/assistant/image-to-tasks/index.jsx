@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import BottomSheet from 'entity-bottom-sheet';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { useColorScheme } from 'nativewind';
+import { useUniwind } from 'uniwind';
 import { useEffect, useRef, useState } from 'react';
 import {
     Alert,
@@ -25,8 +25,8 @@ const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 export default function ImageProcessorScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { colorScheme } = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const { theme } = useUniwind();
+    const isDark = theme === 'dark';
     
     const [showModal, setShowModal] = useState(true);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -405,10 +405,10 @@ export default function ImageProcessorScreen() {
                     setShowModal(false);
                     router.back();
                 }}                
-        draggableAreaColor={colorScheme === 'dark' ? '#1f2937' : 'white'}
-        dragHandleColor={colorScheme === 'dark' ? '#4b5563' : '#ccc'}
-        statusBarColor={colorScheme === 'dark' ? '#070A10' : '#00000066'}
-        statusBarStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+        draggableAreaColor={theme === 'dark' ? '#1f2937' : 'white'}
+        dragHandleColor={theme === 'dark' ? '#4b5563' : '#ccc'}
+        statusBarColor={theme === 'dark' ? '#070A10' : '#00000066'}
+        statusBarStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
             >
                 <View
                     className="bg-white dark:bg-gray-800 flex-1"

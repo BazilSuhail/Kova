@@ -1,6 +1,6 @@
 import TaskProgressChart from "@/components/charts/TaskProgressChart";
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useColorScheme } from 'nativewind';
+import { useUniwind } from 'uniwind';
 import { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -101,7 +101,7 @@ const dashboardData = {
 };
 
 // Welcome Section Component
-const WelcomeSection = ({ colorScheme, setColorScheme }) => {
+const WelcomeSection = ({ theme }) => {
   const currentHour = new Date().getHours();
   let greeting = 'Good Morning';
   if (currentHour >= 12 && currentHour < 17) greeting = 'Good Afternoon';
@@ -121,15 +121,15 @@ const WelcomeSection = ({ colorScheme, setColorScheme }) => {
 
         <View className="flex-row items-center">
           <TouchableOpacity className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mr-3">
-            <Ionicons name="notifications-outline" size={20} color={colorScheme === 'dark' ? '#9ca3af' : '#6b7280'} />
+            <Ionicons name="notifications-outline" size={20} color={theme === 'dark' ? '#9ca3af' : '#6b7280'} />
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}
+            onPress={() => Uniwind.setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
           >
             <Ionicons
-              name={colorScheme === 'dark' ? "sunny" : "moon"}
+              name={theme === 'dark' ? "sunny" : "moon"}
               size={18}
               color="#059669"
             />
@@ -197,7 +197,7 @@ const StatisticsOverview = ({ stats }) => {
 };
 
 // Task Item Component
-function TaskItem({ task, isFirst, isLast, onPress, isSelected, colorScheme }) {
+function TaskItem({ task, isFirst, isLast, onPress, isSelected, theme }) {
   const getCategoryColor = (category) => {
     const colors = {
       'academics': '#f59e0b',
@@ -234,7 +234,7 @@ function TaskItem({ task, isFirst, isLast, onPress, isSelected, colorScheme }) {
         } ${isSelected ? 'bg-gray-50 dark:bg-gray-700' : ''}`}
       style={[
         roundedStyle,
-        !isLast && { borderBottomWidth: 1, borderBottomColor: colorScheme === 'dark' ? '#374151' : '#f1f5f9' }
+        !isLast && { borderBottomWidth: 1, borderBottomColor: theme === 'dark' ? '#374151' : '#f1f5f9' }
       ]}
     >
       <View className="flex-row items-center">
@@ -405,7 +405,7 @@ const AnimatedSection = ({ children, delay }) => {
 // Main Screen Component
 export default function ModernHomeScreen() {
   const insets = useSafeAreaInsets();
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { theme } = useUniwind();
   const [selectedTask, setSelectedTask] = useState(null);
 
   // Mock data - replace with real data
@@ -439,10 +439,7 @@ export default function ModernHomeScreen() {
         }}
       >
         <AnimatedSection delay={0}>
-          <WelcomeSection
-            colorScheme={colorScheme}
-            setColorScheme={setColorScheme}
-          />
+            <WelcomeSection theme={theme} />
         </AnimatedSection>
 
         <AnimatedSection delay={200}>
@@ -451,7 +448,7 @@ export default function ModernHomeScreen() {
 
 
         <AnimatedSection delay={250}>
-          <TaskProgressChart tasks={dummyTasks} title="Weekly Task Progress" isDark={colorScheme} />
+          <TaskProgressChart tasks={dummyTasks} title="Weekly Task Progress" />
         </AnimatedSection>
 
         <View className='w-full h-[2px] bg-gray-200 dark:bg-gray-700 rounded-2xl mb-6' />
@@ -461,7 +458,7 @@ export default function ModernHomeScreen() {
         </AnimatedSection>
 
         <AnimatedSection delay={600}>
-          <QuickActions isDark={colorScheme} />
+          <QuickActions isDark={theme === 'dark'} />
         </AnimatedSection>
 
         <View className='w-full h-[2px] bg-gray-200 dark:bg-gray-700 rounded-2xl mb-6' />
@@ -488,7 +485,7 @@ export default function ModernHomeScreen() {
                   isLast={index === dashboardData.tasks.length - 1}
                   onPress={() => setSelectedTask(selectedTask?.id === task.id ? null : task)}
                   isSelected={selectedTask?.id === task.id}
-                  colorScheme={colorScheme}
+                  theme={theme}
                 />
               ))}
             </View>

@@ -2,14 +2,15 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Dimensions, Text, View } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
+import { useUniwind } from 'uniwind';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 const TaskProgressChart = ({
   tasks = [],
   title = "Task Progress",
-  isDark
 }) => {
+  const { theme } = useUniwind();
   const [chartWidth, setChartWidth] = useState(screenWidth);
 
   // Process tasks data for line chart
@@ -62,14 +63,14 @@ const TaskProgressChart = ({
 
   // Color scheme based on dark mode
   const colors = {
-    primary: isDark === 'dark' ? '#10b981' : '#059669',
-    secondary: isDark === 'dark' ? '#6b7280' : '#9ca3af',
-    background: isDark === 'dark' ? '#1f2937' : '#ffffff',
-    text: isDark === 'dark' ? '#f9fafb' : '#111827',
-    border: isDark === 'dark' ? '#374151' : '#e5e7eb',
-    accent: isDark === 'dark' ? '#34d399' : '#10b981',
-    warning: isDark === 'dark' ? '#fbbf24' : '#f59e0b',
-    error: isDark === 'dark' ? '#f87171' : '#ef4444',
+    primary: theme === 'dark' ? '#10b981' : '#059669',
+    secondary: theme === 'dark' ? '#6b7280' : '#9ca3af',
+    background: theme === 'dark' ? '#1f2937' : '#ffffff',
+    text: theme === 'dark' ? '#f9fafb' : '#111827',
+    border: theme === 'dark' ? '#374151' : '#e5e7eb',
+    accent: theme === 'dark' ? '#34d399' : '#10b981',
+    warning: theme === 'dark' ? '#fbbf24' : '#f59e0b',
+    error: theme === 'dark' ? '#f87171' : '#ef4444',
   };
 
   // Chart configuration
@@ -142,7 +143,7 @@ const TaskProgressChart = ({
   if (!tasks || tasks.length === 0) {
     return (
       <View
-        className={`mb-6 p-6 rounded-3xl ${isDark === 'dark' ? 'bg-gray-800' : 'bg-white'} border ${isDark === 'dark' ? 'border-gray-700' : 'border-gray-100'}`}
+        className={`mb-6 p-6 rounded-3xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-100'}`}
         onLayout={(event) => {
           const { width } = event.nativeEvent.layout;
           setChartWidth(width);
@@ -152,12 +153,12 @@ const TaskProgressChart = ({
           <Ionicons
             name="analytics-outline"
             size={48}
-            color={isDark === 'dark' ? '#6b7280' : '#9ca3af'}
+            color={theme === 'dark' ? '#6b7280' : '#9ca3af'}
           />
-          <Text className={`text-lg font-semibold mt-3 ${isDark === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+          <Text className={`text-lg font-semibold mt-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
             No tasks to display
           </Text>
-          <Text className={`text-sm mt-1 ${isDark === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+          <Text className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
             Add some tasks to see your progress
           </Text>
         </View>
@@ -167,7 +168,7 @@ const TaskProgressChart = ({
 
   return (
     <View
-      className={`mb-6 rounded-3xl ${isDark === 'dark' ? 'bg-gray-800' : 'bg-white'} border ${isDark === 'dark' ? 'border-gray-700' : 'border-gray-100'} shadow-sm`}
+      className={`mb-6 rounded-3xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-100'} shadow-sm`}
       onLayout={(event) => {
         const { width } = event.nativeEvent.layout;
         setChartWidth(width);
@@ -176,11 +177,11 @@ const TaskProgressChart = ({
       {/* Header */}
       <View className="flex-row justify-between items-center p-5 pb-2">
         <View className="flex-row items-center">
-          <View className={`w-10 h-10 rounded-xl items-center justify-center mr-3 ${isDark === 'dark' ? 'bg-emerald-900/30' : 'bg-emerald-100'}`}>
-            <MaterialIcons name="analytics" size={20} color={isDark === 'dark' ? '#34d399' : '#059669'} />
+          <View className={`w-10 h-10 rounded-xl items-center justify-center mr-3 ${theme === 'dark' ? 'bg-emerald-900/30' : 'bg-emerald-100'}`}>
+            <MaterialIcons name="analytics" size={20} color={theme === 'dark' ? '#34d399' : '#059669'} />
           </View>
           <View>
-            <Text className={`text-lg font-bold ${isDark === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            <Text className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {title}
             </Text>
           </View>
