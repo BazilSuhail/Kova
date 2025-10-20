@@ -1,36 +1,21 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, Platform, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
+import type { Task } from '@/api/types';
+import { TaskComposerSheet } from '@/components/domain/task-composer';
+import { TaskRow } from '@/components/domain/task-row';
 import { Chip } from '@/components/ui/chip';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
 import { Fab } from '@/components/ui/fab';
+import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { Sheet } from '@/components/ui/sheet';
+import { SkeletonCard } from '@/components/ui/skeleton';
+import { useDeleteTask, useTasks, useToggleTask } from '@/hooks/queries/tasks';
+import { errorMessage } from '@/lib/errors';
 import { useThemeColors } from '@/theme/colors';
-import type { IconName } from '@/theme/icons';
-
-export type Todo = { id: string; title: string; done: boolean; tag: string };
-
-const initialTodos: Todo[] = [
-  { id: '1', title: 'Buy groceries', done: false, tag: 'Personal' },
-  { id: '2', title: 'Finish Q3 report', done: false, tag: 'Work' },
-  { id: '3', title: 'Call dentist', done: false, tag: 'Health' },
-  { id: '4', title: '20 minute walk', done: true, tag: 'Health' },
-  { id: '5', title: 'Water the plants', done: true, tag: 'Personal' },
-  { id: '6', title: 'Reply to emails', done: false, tag: 'Work' },
-  { id: '7', title: 'Read 10 pages', done: true, tag: 'Learning' },
-  { id: '8', title: 'Plan weekend trip', done: false, tag: 'Personal' },
-];
-
-// Category pills — plain Tailwind so light/dark resolve automatically.
-const TAG_CLASS: Record<string, string> = {
-  Personal: 'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
-  Work: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
-  Health: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
-  Learning: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
-};
 
 type Filter = 'all' | 'open' | 'done';
 
@@ -40,24 +25,116 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: 'done', label: 'Done' },
 ];
 
-/** Ways a task will be able to arrive. Only the UI lives here; the write endpoints come later. */
-const captureModes: { icon: IconName; title: string; detail: string }[] = [
-  { icon: 'create-outline', title: 'Type it in', detail: 'Title, due date and category' },
-  { icon: 'chatbubble-ellipses-outline', title: 'Say it naturally', detail: 'One sentence and Kova files it' },
-  { icon: 'mic-outline', title: 'Voice note', detail: 'Hands free while you are moving' },
-  { icon: 'camera-outline', title: 'Scan your notes', detail: 'A photo of your list becomes tasks' },
-];
-
 export default function TasksScreen() {
   const colors = useThemeColors();
-  const [todos, setTodos] = useState<Todo[]>(initialTodos);
+  const router = useRouter();
+  const listRef = useRef<FlatList<Task>>(null);
+
   const [filter, setFilter] = useState<Filter>('all');
-  const [captureOpen, setCaptureOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [applied, setApplied] = useState('');
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [busyTaskId, setBusyTaskId] = useState<string | null>(null);
 
-  const toggle = (id: string) => setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+  // Typing should not fire one request per keystroke.
+  useEffect(() => {
+    const timer = setTimeout(() => setApplied(search.trim()), 350);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-  const doneCount = todos.filter((t) => t.done).length;
-  const visible = todos.filter((t) => (filter === 'all' ? true : filter === 'done' ? t.done : !t.done));
+  const completed = filter === 'all' ? undefined : filter === 'done';
+  const tasksQuery = useTasks({ completed, q: applied || undefined });
+  const toggleTask = useToggleTask();
+  const deleteTask = useDeleteTask();
+
+  const tasks = useMemo(
+    () => tasksQuery.data?.pages.flatMap((page) => page.items) ?? [],
+    [tasksQuery.data],
+  );
+  const total = tasksQuery.data?.pages[0]?.total ?? 0;
+  const narrowed = filter !== 'all' || applied.length > 0;
+
+  function toggle(task: Task) {
+    setBusyTaskId(task.taskId);
+    toggleTask.mutate(
+      { taskId: task.taskId, isCompleted: !task.isCompleted },
+      { onSettled: () => setBusyTaskId(null) },
+    );
+  }
+
+  function confirmDelete(task: Task) {
+    // RN Web has no button-capable Alert, so it deletes straight away.
+    if (Platform.OS === 'web') {
+      deleteTask.mutate(task.taskId);
+      return;
+    }
+    Alert.alert('Delete task', `"${task.title}" will be removed along with its steps.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => deleteTask.mutate(task.taskId) },
+    ]);
+  }
+
+  function emptyState() {
+    if (tasksQuery.isPending) {
+      return (
+        <View style={{ gap: 12, marginTop: 12 }}>
+          <SkeletonCard lines={1} />
+          <SkeletonCard lines={1} />
+          <SkeletonCard lines={1} />
+        </View>
+      );
+    }
+
+    if (tasksQuery.isError) {
+      return (
+        <ErrorState
+          title="Could not load your tasks"
+          message={errorMessage(tasksQuery.error)}
+          onRetry={() => void tasksQuery.refetch()}
+        />
+      );
+    }
+
+    if (applied) {
+      return (
+        <EmptyState
+          icon="search"
+          title="No matches"
+          description={`Nothing here matches "${applied}".`}
+        />
+      );
+    }
+
+    if (filter === 'done') {
+      return (
+        <EmptyState
+          icon="checkmark-done-circle"
+          title="Nothing finished yet"
+          description="Tick something off and it will show up here."
+        />
+      );
+    }
+
+    if (filter === 'open') {
+      return (
+        <EmptyState
+          icon="checkmark-circle-outline"
+          title="Nothing open here"
+          description="You are all caught up for now."
+        />
+      );
+    }
+
+    return (
+      <EmptyState
+        icon="file-tray-outline"
+        title="No tasks yet"
+        description="Capture the first one and it will land here."
+        actionLabel="Add a task"
+        onAction={() => setComposerOpen(true)}
+      />
+    );
+  }
 
   return (
     <Screen scroll={false} contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 16 }}>
@@ -66,22 +143,29 @@ export default function TasksScreen() {
         title="Your tasks"
         subtitle="Keep the next step visible and manageable."
         right={
-          <View className="rounded-full bg-violet-100 px-4 py-2 dark:bg-violet-900">
-            <Text className="text-sm font-bold text-violet-700 dark:text-violet-300">
-              {doneCount} / {todos.length}
-            </Text>
-          </View>
+          tasksQuery.data ? (
+            <View className="rounded-full bg-violet-100 px-4 py-2 dark:bg-violet-900">
+              <Text className="text-sm font-bold text-violet-700 dark:text-violet-300">
+                {tasks.length} / {total}
+              </Text>
+            </View>
+          ) : null
         }
       />
 
-      <View className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-        <View
-          className="h-full rounded-full bg-violet-500"
-          style={{ width: `${todos.length === 0 ? 0 : (doneCount / todos.length) * 100}%` }}
+      <View className="mt-4">
+        <Input
+          icon="search"
+          placeholder="Search tasks"
+          value={search}
+          onChangeText={setSearch}
+          autoCorrect={false}
+          autoCapitalize="none"
+          returnKeyType="search"
         />
       </View>
 
-      <View className="mt-4 flex-row" style={{ gap: 8 }}>
+      <View className="flex-row items-center" style={{ gap: 8 }}>
         {FILTERS.map((item) => (
           <Chip
             key={item.key}
@@ -93,74 +177,51 @@ export default function TasksScreen() {
       </View>
 
       <FlatList
-        data={visible}
-        keyExtractor={(item) => item.id}
+        ref={listRef}
+        data={tasks}
+        keyExtractor={(item) => item.taskId}
         style={{ marginTop: 16 }}
         contentContainerStyle={{ gap: 8, paddingBottom: 96 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        refreshing={tasksQuery.isRefetching && !tasksQuery.isFetchingNextPage}
+        onRefresh={() => void tasksQuery.refetch()}
+        onEndReachedThreshold={0.4}
+        onEndReached={() => {
+          if (tasksQuery.hasNextPage && !tasksQuery.isFetchingNextPage) {
+            void tasksQuery.fetchNextPage();
+          }
+        }}
         renderItem={({ item }) => (
-          <Pressable
-            onPress={() => toggle(item.id)}
-            accessibilityRole="checkbox"
-            accessibilityState={{ checked: item.done }}
-            className={`flex-row items-center rounded-xl border bg-white px-4 py-3 active:opacity-70 dark:bg-slate-900 ${
-              item.done ? 'border-violet-400 dark:border-violet-700' : 'border-slate-200 dark:border-slate-800'
-            }`}
-            style={{ gap: 12 }}>
-            <View
-              className={`h-6 w-6 items-center justify-center rounded-full border-2 ${
-                item.done
-                  ? 'border-violet-600 bg-violet-600'
-                  : 'border-slate-400 bg-white dark:border-slate-600 dark:bg-slate-900'
-              }`}>
-              {item.done ? <Ionicons name="checkmark" size={13} color={colors.onPrimary} /> : null}
-            </View>
-            <Text
-              numberOfLines={1}
-              className={`flex-1 text-sm font-semibold ${
-                item.done ? 'text-slate-400 line-through dark:text-slate-600' : 'text-slate-900 dark:text-slate-100'
-              }`}>
-              {item.title}
-            </Text>
-            <View className={`rounded-full px-2 py-1 ${TAG_CLASS[item.tag]}`}>
-              <Text className="text-xs font-semibold">{item.tag}</Text>
-            </View>
-          </Pressable>
-        )}
-        ListEmptyComponent={
-          <EmptyState
-            icon={filter === 'done' ? 'checkmark-done-circle' : 'file-tray-outline'}
-            title={filter === 'done' ? 'Nothing finished yet' : 'Nothing open here'}
-            description={
-              filter === 'done' ? 'Tick something off and it will show up here.' : 'You are all caught up for now.'
-            }
+          <TaskRow
+            task={item}
+            toggling={busyTaskId === item.taskId}
+            onToggle={() => toggle(item)}
+            onPress={() => router.push(`/tasks/${item.taskId}`)}
+            onLongPress={() => confirmDelete(item)}
           />
+        )}
+        ListEmptyComponent={emptyState}
+        ListFooterComponent={
+          tasksQuery.isFetchingNextPage ? (
+            <ActivityIndicator style={{ marginTop: 16 }} color={colors.primary} />
+          ) : null
         }
       />
 
-      <Fab onPress={() => setCaptureOpen(true)} accessibilityLabel="Capture a task" />
+      {narrowed ? (
+        <Text className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">
+          Showing {tasks.length} of {total}
+        </Text>
+      ) : null}
 
-      <Sheet
-        visible={captureOpen}
-        onClose={() => setCaptureOpen(false)}
-        title="Capture a task"
-        subtitle="Pick how you want to get it out of your head.">
-        <View style={{ gap: 8 }}>
-          {captureModes.map((mode) => (
-            <View
-              key={mode.title}
-              className="flex-row items-center rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
-              <View className="h-9 w-9 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-950">
-                <Ionicons name={mode.icon} size={17} color={colors.primary} />
-              </View>
-              <View className="ml-3 flex-1">
-                <Text className="text-sm font-semibold text-slate-900 dark:text-slate-100">{mode.title}</Text>
-                <Text className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{mode.detail}</Text>
-              </View>
-              <Chip label="Soon" />
-            </View>
-          ))}
-        </View>
-      </Sheet>
+      <Fab onPress={() => setComposerOpen(true)} accessibilityLabel="Capture a task" />
+
+      <TaskComposerSheet
+        visible={composerOpen}
+        onClose={() => setComposerOpen(false)}
+        onCreated={() => listRef.current?.scrollToOffset({ offset: 0, animated: true })}
+      />
     </Screen>
   );
 }

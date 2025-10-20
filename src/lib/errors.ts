@@ -54,7 +54,8 @@ export function kindForStatus(status: number): ApiErrorKind {
   if (status === 413) return 'tooLarge';
   if (status === 415) return 'unsupported';
   if (status === 429) return 'rateLimit';
-  if (status === 503) return 'providerDown';
+  // 502 stands for "the AI provider answered with something unusable" on this API.
+  if (status === 502 || status === 503) return 'providerDown';
   if (status >= 500) return 'server';
   return 'unknown';
 }
@@ -96,6 +97,11 @@ export function isApiError(error: unknown): error is ApiError {
 /** True when the account must sign in again (token revoked, refresh dead). */
 export function isAuthError(error: unknown): boolean {
   return isApiError(error) && error.kind === 'auth';
+}
+
+/** True when the server reports the resource as missing. */
+export function isNotFound(error: unknown): boolean {
+  return isApiError(error) && error.status === 404;
 }
 
 /** True when the server is throttling us; mirrors `Retry-After`. */

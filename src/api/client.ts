@@ -221,7 +221,7 @@ function logResponse(path: string, method: string, response: Response): void {
   );
 }
 
-/* ── List helpers (used by the paginated endpoints from the next phase on) ── */
+/* ── List helpers ── */
 
 export type Paginated<T> = {
   items: T[];

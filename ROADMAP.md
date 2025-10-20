@@ -31,10 +31,25 @@ gating, animated custom `tabBar`, UI kit (Card, Button, Input, Chip, Sheet, Empt
 Row, Screen), loading/empty/error states. Screens live in `src/screens/` with thin route files under `src/app/`.
 Theme preference hoisted into `ThemeProvider` so the stored choice applies before the first paint.
 
-## Phase 3 — MVP screens (~40/75 endpoints) — next
-Home/Dashboard · Tasks (list/search/filter/paging, create, detail + subtasks, AI/voice/scan capture,
-categorize, title-rewrite) · Planner · Notifications · Profile (edit/avatars/password/delete-cascade).
-Handle `415` / `502` / `503` and the task-`PUT` 404-on-no-op + planner-`PUT` 200-on-no-op quirks.
+## Phase 3 — MVP screens (~40/75 endpoints) 🔄 in progress
+**Done**
+- **Home** on `GET /api/dashboard/` + `GET /api/daily-recap/`: completion ring, due-today and streak tiles,
+  today's tasks with optimistic ticks, recap card, next reminders, suggestions, unread bell badge.
+- **Tasks**: debounced search, All/Open/Done filters, paging, pull to refresh, optimistic complete and delete,
+  skeleton/empty/error states.
+- **Captured tasks**: typed form (with `suggest-title` on demand) and natural language
+  (`create/natural-language`); voice and scan are named as pending, not mocked.
+- **Task detail**: edit only the changed fields, complete, `rewrite-title`, `categorize`, generate steps from
+  the description, toggle and delete steps, delete the task.
+- **Notifications**: unread filter, mark read on tap, hold to remove, paging, empty/error states.
+- Quirk handling: task `PUT` answers 404 on a no-op, so toggles keep the optimistic value and edits skip
+  an unchanged draft; `415` / `502` / `503` surface the server's own wording.
+- **Endpoints (19 added):** dashboard, daily-recap, tasks list/get/create/update/delete,
+  `suggest-title`, `create/natural-language`, `categorize`, `rewrite-title`, subtasks list/create/update/delete
+  (single and per task), notifications list/update/delete.
+
+**Next in this phase:** Planner · Profile editing, avatar catalogue, password change, delete account ·
+voice + scan capture (multipart) · category filter chips.
 
 ## Phase 4 — Full v1 + polish
 Insights (Progress, Suggestions, Mood & Journal, Summaries) · Plan (Calendar, Reminders, Recaps) ·
