@@ -3,8 +3,9 @@ const { withUniwindConfig } = require('uniwind/metro');
 
 const config = getDefaultConfig(__dirname);
 
-// Uniwind MUST be the outermost wrapper
 module.exports = withUniwindConfig(config, {
-  // Path to your global CSS file
+  // Relative path to your global.css file
   cssEntryFile: './global.css',
+  // (Optional) Path for auto-generated TypeScript types
+  dtsFile: './uniwind-types.d.ts'
 });

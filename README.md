@@ -1,102 +1,81 @@
-# 📱 Personal AI Life Assistant  
+# Kova — Mobile Client
 
-A smart, empathetic mobile application designed to help students manage their tasks, mood, schedules, and goals — all in one place. Built for the **SOFTEC 2025 App Development Competition**, this app blends AI-powered features with thoughtful UX to make university life less overwhelming and more productive.  
+**Kova** is a Personal AI Life Assistant for students: plan, prioritise, reflect, and grow with
+natural-language tasks, voice capture, mood-aware suggestions, smart reminders, and offline sync.
 
----
-
-## ✨ Features  
-
-### Core Features  
-- **🔐 User Registration & Login** — Secure sign-up/login with session management.  
-- **🏠 Personalized Dashboard** — View tasks, schedules, mood logs, and reminders at a glance.  
-- **🗣️ Natural Language Task Creation** — Turn inputs like _"Buy milk tomorrow"_ into structured tasks.  
-- **📂 Smart Task Categorization** — Automatic labels (Academics, Personal, Health, etc.).  
-- **📅 Daily/Weekly/Monthly Planner** — Calendar views with drag-and-drop editing.  
-- **😊 Mood-Based Suggestions** — Adjust task load based on mood logs.  
-- **🎙️ Voice Input** — Log tasks through speech-to-text.  
-- **📝 Auto Notes Summarizer** — Convert long notes into 3–5 bullet points.  
-- **✅ Checklist Generator** — Break down broad goals into subtasks.  
-- **⏰ Smart Reminders** — Gentle nudges before deadlines, adaptive to habits.  
-- **📷 Quick Add from Camera/Scans** — OCR extracts and converts text from images into tasks.  
-- **📔 Mood Journal** — Log moods, reflections, and see trends.  
-- **📊 Personal Progress Tracker** — Visualize task streaks and achievements.  
-- **📴 Offline Usability** — Add/edit/view tasks offline with sync on reconnect.  
-- **🎨 Customization Options** — Light/dark mode, font sizes, layouts.  
-- **🔔 Notification Center** — See reminders, missed tasks, and system updates.  
-- **🧠 Adaptive Suggestions** — Learns your patterns to optimize productivity.  
-
-### Bonus Features  
-- **💬 Daily Affirmations** — Motivational messages and journaling prompts.  
-- **🪄 Smart Event Title Generator** — Rewrites vague task names into clearer ones.  
-- **📅 Daily Recap View** — Summary of completed/pending tasks and mood snapshot.  
+This repository is the **React Native + Expo** client. It talks to the
+**[Kova server](https://github.com/BazilSuhail/ZenFlow-Server)** (Flask + MongoDB, 75 endpoints).
 
 ---
 
-## 🤖 Tech Stack  
+## Tech stack
 
-<a href="#"> 
-  <img alt="JavaScript" src="https://img.shields.io/badge/javascript%20-%23323330.svg?&style=for-the-badge&logo=javascript&logoColor=%23F7DF1E"/>  
-  <img alt="React" src="https://img.shields.io/badge/React-%2361DAFB.svg?&style=for-the-badge&logo=react&logoColor=white"/> 
-  <img alt="Framer Motion" src="https://img.shields.io/badge/Framer%20Motion-%23ED5A9F.svg?&style=for-the-badge&logo=framer&logoColor=white"/>
-  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind%20CSS-%2306B6D4.svg?&style=for-the-badge&logo=tailwindcss&logoColor=white"/>
-  <img alt="Node js" src="https://img.shields.io/badge/Node.js-%23339933.svg?&style=for-the-badge&logo=node.js&logoColor=white"/> 
-  <img alt="Express js" src="https://img.shields.io/badge/Express.js-%23000000.svg?&style=for-the-badge&logo=express&logoColor=white"/>   
-  <img alt="MongoDB" src ="https://img.shields.io/badge/MongoDB-%234ea94b.svg?&style=for-the-badge&logo=mongodb&logoColor=white"/> 
-</a>  
+| | |
+|---|---|
+| Runtime | Expo SDK 57 · React Native 0.86 · React 19 |
+| Routing | expo-router (file-based) |
+| Styling | **Uniwind** (Tailwind CSS v4 for React Native) |
+| Icons | `@expo/vector-icons` (Ionicons) |
+| Animation | React Native `Animated` (Reanimated available) |
+| Language | TypeScript (strict) |
 
----
+## Getting started
 
-## 📦 Installation  
-
-1. Clone the repository:  
-   ```bash
-   git clone https://github.com/yourusername/personal-ai-life-assistant.git
-   cd personal-ai-life-assistant
-   ```
-
-2. Install dependencies:  
-   ```bash
-   npm install
-   ```
-
-3. Run the development server:  
-   ```bash
-   npx expo start
-   ```
-
----
-
-## 📂 Folder Structure  
-
-```
-.
-├── app/                # Expo Router pages & navigation
-├── components/         # Reusable UI components
-├── hooks/              # Custom hooks
-├── services/           # API calls & backend integration
-├── assets/             # Images, icons, fonts
-├── README.md
-└── package.json
+```bash
+bun install          # or npm install
+cp .env.example .env # then set EXPO_PUBLIC_API_URL
+bun start            # or: bun run android | bun run ios | bun run web
 ```
 
+### Environment
+
+`.env` is git-ignored; `.env.example` documents the keys.
+
+| Variable | Purpose |
+|---|---|
+| `EXPO_PUBLIC_API_URL` | Base URL of the Kova API (no trailing `/api`) |
+
+Common values: `http://127.0.0.1:5000` (local) · `http://10.0.2.2:5000` (Android emulator) ·
+`http://<lan-ip>:5000` (physical device).
+
+### Scripts
+
+| Command | Does |
+|---|---|
+| `bun start` | Start the Expo dev server |
+| `bun run android` / `ios` / `web` | Start on a specific platform |
+| `bun run lint` | ESLint (expo config) |
+| `bunx tsc --noEmit` | Type-check |
+
+## Project structure
+
+```text
+src/
+├─ app/            expo-router entry + layouts
+├─ components/     tab bar, theme toggle, shared UI
+├─ screens/        screen implementations
+├─ hooks/          reusable hooks (persisted theme)
+└─ theme/          theme-aware colour tokens for icons & charts
+```
+
+## Navigation
+
+Bottom tab bar — **Home · Tasks · Plan · Insights · Profile** — with an animated active
+indicator, swipeable pager, and tabs that mount on first visit.
+
+## Theming
+
+Light and dark are handled by **plain Tailwind classes** via Uniwind (`bg-white dark:bg-slate-900`) —
+there is no custom colour palette to configure. The only raw colour values live in
+`src/theme/colors.ts`, used by `useThemeColors()` for APIs that can't take a `className`
+(Ionicons `color`, chart strokes). Accent policy: violet = brand/primary/AI,
+emerald = success/streak, red/amber = danger/warning.
+
+## Roadmap
+
+See **[ROADMAP.md](ROADMAP.md)** — phased plan from foundations to full v1, with the screen →
+endpoint mapping for the 75-endpoint API.
+
 ---
 
-## 🚀 Roadmap  
-
-- [x] User authentication  
-- [x] OCR-based task creation  
-- [x] Auto Notes Summarizer  
-- [x] Checklist generator from goals  
-- [ ] AI-powered adaptive suggestions  
-- [ ] Multi-language support  
-
----
-
-## 🏆 About SOFTEC 2025  
-
-This project was built for **SOFTEC 2025 App Development Competition**, under the theme **"Personal AI Life Assistant"** — a student-focused productivity tool designed to intelligently manage academic, personal, and mental well-being needs.  
-
----
-
-## 📜 License  
-This project is licensed under the MIT License.  
+Built for students who want to plan, reflect, and grow.

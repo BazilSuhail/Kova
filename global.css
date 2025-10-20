@@ -1,4 +1,2 @@
-@import "tailwindcss";
-@import "uniwind";
-
-/* You can add custom CSS variables here for theming later */
+@import 'tailwindcss';
+@import 'uniwind';

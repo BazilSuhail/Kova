@@ -1,55 +1,51 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# dependencies
+# ─── Dependencies ────────────────────────────────────────────────────────────
 node_modules/
+.pnp
+.pnp.js
+.yarn/
 
-# Expo
+# ─── Expo / React Native build output ────────────────────────────────────────
 .expo/
 dist/
 web-build/
 expo-env.d.ts
-android/
-ios/build/
-# Native
-.kotlin/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
 .metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
 *.tsbuildinfo
 
-# generated native folders
+# Generated native projects (Continuous Native Generation)
 /ios
 /android
 
+# ─── Environment — never commit secrets or machine config ────────────────────
+.env
+.env.*
+!.env.example
 
-# Ignore all .md files
-*.md
-# But do not ignore README.md
-!README.md
+# ─── Native signing / credentials ────────────────────────────────────────────
+*.jks
+*.p8
+*.p12
+*.keystore
+*.key
+*.mobileprovision
+*.pem
+.kotlin/
 
-# Ignore all lock files
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-bun.lockb
-bun.lock
+# ─── Logs & debug ────────────────────────────────────────────────────────────
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.expo-shared/
+
+# ─── Testing / coverage ──────────────────────────────────────────────────────
+coverage/
+*.lcov
+__snapshots__/
+
+# ─── OS / editor junk ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+*.orig.*
+*.bak

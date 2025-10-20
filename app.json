@@ -1,53 +1,39 @@
 {
   "expo": {
-    "name": "zenflow",
-    "slug": "zenflow",
+    "name": "Kova",
+    "slug": "kova",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "zenflow",
-    "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true,
-      "infoPlist": {
-        "NSSpeechRecognitionUsageDescription": "Allow ZenFlow to transcribe your speech to text.",
-        "NSMicrophoneUsageDescription": "Allow ZenFlow to use the microphone for interviews."
-      }
-    },
+    "icon": "./assets/app-icon.png",
+    "scheme": "kova",
+    "userInterfaceStyle": "automatic",
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#EDE9FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "permissions": [
-        "android.permission.RECORD_AUDIO",
-        "android.permission.MODIFY_AUDIO_SETTINGS"
-      ],
-      "package": "com.anonymous.zenflow"
+      "predictiveBackGestureEnabled": false
     },
     "web": {
-      "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router",
       [
-        "expo-speech-recognition",
+        "expo-splash-screen",
         {
-          "microphonePermission": "Allow ZenFlow to use the microphone for interviews.",
-          "speechRecognitionPermission": "Allow ZenFlow to transcribe your speech to text."
+          "backgroundColor": "#7C3AED",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 76
         }
       ]
     ],
     "experiments": {
-      "typedRoutes": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "e7727eb1-aca1-4a32-b5c4-9cb00ad5a45b"
-      }
-    },
-    "owner": "bazil_suhail"
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
   }
 }
