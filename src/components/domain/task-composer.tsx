@@ -6,16 +6,25 @@ import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
 import { Input } from '@/components/ui/input';
 import { Sheet } from '@/components/ui/sheet';
+import { ScanCapture } from '@/components/domain/scan-capture';
 import {
   EMPTY_DRAFT,
   TaskFields,
   draftToCreateInput,
   type TaskDraft,
 } from '@/components/domain/task-fields';
+import { VoiceCapture } from '@/components/domain/voice-capture';
 import { useCaptureTask, useCreateTask, useSuggestTitle } from '@/hooks/queries/tasks';
 import { errorMessage } from '@/lib/errors';
 
-type Mode = 'manual' | 'prompt';
+type Mode = 'manual' | 'prompt' | 'voice' | 'scan';
+
+const MODES: { value: Mode; label: string }[] = [
+  { value: 'manual', label: 'Type it in' },
+  { value: 'prompt', label: 'Say it naturally' },
+  { value: 'voice', label: 'Record it' },
+  { value: 'scan', label: 'Scan it' },
+];
 
 type Props = {
   visible: boolean;
@@ -25,8 +34,10 @@ type Props = {
 };
 
 /**
- * Two working ways in: a plain form, and one sentence the model turns into a filed task.
- * Voice and camera capture are not built yet, so they are named rather than mocked.
+ * Four ways in, one sheet: a plain form, one sentence for the model, a voice note, or a photo.
+ *
+ * Voice and scan both close the sheet through `finish`, except for a scan, which stays open
+ * long enough to show the text the OCR actually read.
  */
 export function TaskComposerSheet({ visible, onClose, onCreated }: Props) {
   const [mode, setMode] = useState<Mode>('manual');
@@ -103,11 +114,27 @@ export function TaskComposerSheet({ visible, onClose, onCreated }: Props) {
   }
 
   return (
-    <Sheet visible={visible} onClose={handleClose} title="Capture a task" subtitle="Get it out of your head now, organise it later.">
-      <ScrollView style={{ maxHeight: 460 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <View className="mb-4 flex-row" style={{ gap: 8 }}>
-          <Chip label="Type it in" selected={mode === 'manual'} onPress={() => setMode('manual')} />
-          <Chip label="Say it naturally" selected={mode === 'prompt'} onPress={() => setMode('prompt')} />
+    <Sheet
+      visible={visible}
+      onClose={handleClose}
+      title="Capture a task"
+      subtitle="Get it out of your head now, organise it later.">
+      <ScrollView
+        style={{ maxHeight: 460 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        <View className="mb-4 flex-row flex-wrap" style={{ gap: 8 }}>
+          {MODES.map((option) => (
+            <Chip
+              key={option.value}
+              label={option.label}
+              selected={mode === option.value}
+              onPress={() => {
+                setError(null);
+                setMode(option.value);
+              }}
+            />
+          ))}
         </View>
 
         {mode === 'manual' ? (
@@ -138,7 +165,9 @@ export function TaskComposerSheet({ visible, onClose, onCreated }: Props) {
               onPress={() => void submitManual()}
             />
           </>
-        ) : (
+        ) : null}
+
+        {mode === 'prompt' ? (
           <>
             <Input
               label="What is on your mind?"
@@ -158,18 +187,30 @@ export function TaskComposerSheet({ visible, onClose, onCreated }: Props) {
               onPress={() => void submitPrompt()}
             />
           </>
-        )}
+        ) : null}
+
+        {mode === 'voice' ? <VoiceCapture disabled={submitting} onCreated={finish} /> : null}
+
+        {mode === 'scan' ? (
+          <ScanCapture
+            disabled={submitting}
+            onCreated={(task) => onCreated?.(task)}
+            onDone={handleClose}
+          />
+        ) : null}
 
         {error ? (
           <Text className="mt-3 text-sm font-medium text-red-500 dark:text-red-400">{error}</Text>
         ) : null}
 
-        <Text className="mt-5 text-center text-xs text-slate-500 dark:text-slate-400">
-          Voice notes and scans arrive in a later update.
-        </Text>
-
-        <View className="mt-3">
-          <Button label="Cancel" variant="secondary" size="md" disabled={submitting} onPress={handleClose} />
+        <View className="mt-5">
+          <Button
+            label="Cancel"
+            variant="secondary"
+            size="md"
+            disabled={submitting}
+            onPress={handleClose}
+          />
         </View>
       </ScrollView>
     </Sheet>

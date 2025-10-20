@@ -7,7 +7,12 @@
     "icon": "./assets/app-icon.png",
     "scheme": "kova",
     "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.kova.app",
+      "supportsTablet": true
+    },
     "android": {
+      "package": "com.kova.app",
       "adaptiveIcon": {
         "backgroundColor": "#EDE9FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -30,7 +35,26 @@
           "imageWidth": 76
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Kova uses the microphone so one spoken sentence can become a task."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Kova reads the photos you pick so notes on paper can become tasks.",
+          "cameraPermission": "Kova uses the camera so a photo of your notes can become a task."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#7C3AED"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

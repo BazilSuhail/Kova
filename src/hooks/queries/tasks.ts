@@ -13,7 +13,9 @@ import { deleteSubtask, generateSubtasks, listSubtasks, updateSubtask } from '@/
 import {
   categorizeTask,
   createTask,
+  createTaskFromImage,
   createTaskFromPrompt,
+  createTaskFromVoice,
   deleteTask,
   fetchTask,
   listTasks,
@@ -26,6 +28,8 @@ import {
 } from '@/api/tasks';
 import type { SubtaskGroup, Task } from '@/api/types';
 import { isNotFound } from '@/lib/errors';
+import { successFeedback, warnFeedback } from '@/lib/haptics';
+import type { UploadFile } from '@/lib/upload';
 import { queryKeys } from './keys';
 
 /** Only the filters a screen controls; paging is the hook's business. */
@@ -89,6 +93,28 @@ export function useTask(taskId: string) {
   });
 }
 
+/**
+ * The categories the user actually has.
+ *
+ * Categories are free text on the server and there is no listing route, so the filter row is
+ * derived from one broad page. Five minutes of staleness is plenty for a filter chip, and any
+ * task write invalidates the `tasks` prefix anyway.
+ */
+export function useTaskCategories() {
+  return useQuery({
+    queryKey: queryKeys.taskCategories,
+    queryFn: async (): Promise<string[]> => {
+      const page = await listTasks({ limit: 100 });
+      const found = new Set<string>();
+      for (const task of page.items) {
+        if (task.category) found.add(task.category);
+      }
+      return Array.from(found).sort();
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
 export function useSubtasks(taskId: string) {
   return useQuery({
     queryKey: queryKeys.subtasks(taskId),
@@ -101,7 +127,10 @@ export function useCreateTask() {
   const refresh = useTaskRefresher();
   return useMutation({
     mutationFn: (input: CreateTaskInput) => createTask(input),
-    onSuccess: (task) => refresh(task.taskId),
+    onSuccess: (task) => {
+      successFeedback();
+      refresh(task.taskId);
+    },
   });
 }
 
@@ -110,7 +139,34 @@ export function useCaptureTask() {
   const refresh = useTaskRefresher();
   return useMutation({
     mutationFn: (prompt: string) => createTaskFromPrompt(prompt),
-    onSuccess: (task) => refresh(task.taskId),
+    onSuccess: (task) => {
+      successFeedback();
+      refresh(task.taskId);
+    },
+  });
+}
+
+/** Voice capture: the server transcribes the clip, then files the task. */
+export function useCaptureTaskFromVoice() {
+  const refresh = useTaskRefresher();
+  return useMutation({
+    mutationFn: (file: UploadFile) => createTaskFromVoice(file),
+    onSuccess: (task) => {
+      successFeedback();
+      refresh(task.taskId);
+    },
+  });
+}
+
+/** Photo capture: OCR reads the page first, then the task is filed. */
+export function useCaptureTaskFromImage() {
+  const refresh = useTaskRefresher();
+  return useMutation({
+    mutationFn: (file: UploadFile) => createTaskFromImage(file),
+    onSuccess: ({ task }) => {
+      successFeedback();
+      refresh(task.taskId);
+    },
   });
 }
 
@@ -125,6 +181,11 @@ export function useToggleTask() {
   return useMutation({
     mutationFn: ({ taskId, isCompleted }: { taskId: string; isCompleted: boolean }) =>
       updateTask(taskId, { isCompleted }),
+
+    // Ticking something off is the one action that deserves a pulse of its own.
+    onSuccess: (_data, { isCompleted }) => {
+      if (isCompleted) successFeedback();
+    },
 
     onMutate: async ({ taskId, isCompleted }) => {
       await client.cancelQueries({ queryKey: queryKeys.tasks });
@@ -199,7 +260,10 @@ export function useDeleteTask() {
       if (context?.detail) client.setQueryData(queryKeys.task(taskId), context.detail);
     },
 
-    onSettled: (_data, _error, taskId) => refresh(taskId),
+    onSettled: (_data, _error, taskId) => {
+      warnFeedback();
+      refresh(taskId);
+    },
   });
 }
 

@@ -7,6 +7,9 @@ Server contract: **75 endpoints** — see [`ZenFlow-Server/docs/client.md`](../Z
 emerald = success/streak, slate = neutral, red/amber = danger/warning. Icons come from
 `@expo/vector-icons` (Ionicons); icon/chart colours come from `useThemeColors()` in `src/theme/colors.ts`.
 
+**Coverage:** every screen-facing route is wired. The one exception is the offline `sync/push` queue,
+which exists in `src/api/sync.ts` but nothing enqueues into it (see Phase 4 "Deferred").
+
 ---
 
 ## Phase 0 — Foundations ✅ done
@@ -31,14 +34,13 @@ gating, animated custom `tabBar`, UI kit (Card, Button, Input, Chip, Sheet, Empt
 Row, Screen), loading/empty/error states. Screens live in `src/screens/` with thin route files under `src/app/`.
 Theme preference hoisted into `ThemeProvider` so the stored choice applies before the first paint.
 
-## Phase 3 — MVP screens (~40/75 endpoints) 🔄 in progress
-**Done**
+## Phase 3 — MVP screens ✅ done
 - **Home** on `GET /api/dashboard/` + `GET /api/daily-recap/`: completion ring, due-today and streak tiles,
   today's tasks with optimistic ticks, recap card, next reminders, suggestions, unread bell badge.
-- **Tasks**: debounced search, All/Open/Done filters, paging, pull to refresh, optimistic complete and delete,
-  skeleton/empty/error states.
-- **Captured tasks**: typed form (with `suggest-title` on demand) and natural language
-  (`create/natural-language`); voice and scan are named as pending, not mocked.
+- **Tasks**: debounced search, All/Open/Done filters, category chips, paging, pull to refresh, optimistic
+  complete and delete, skeleton/empty/error states.
+- **Captured tasks**: typed form (with `suggest-title` on demand), natural language
+  (`create/natural-language`), voice notes (`create/voice`) and photo scans (`create/image`).
 - **Task detail**: edit only the changed fields, complete, `rewrite-title`, `categorize`, generate steps from
   the description, toggle and delete steps, delete the task.
 - **Notifications**: unread filter, mark read on tap, hold to remove, paging, empty/error states.
@@ -48,13 +50,60 @@ Theme preference hoisted into `ThemeProvider` so the stored choice applies befor
   `suggest-title`, `create/natural-language`, `categorize`, `rewrite-title`, subtasks list/create/update/delete
   (single and per task), notifications list/update/delete.
 
-**Next in this phase:** Planner · Profile editing, avatar catalogue, password change, delete account ·
-voice + scan capture (multipart) · category filter chips.
+**Follow-ups landed with Phase 4:** voice + scan capture (multipart), category filter chips,
+planner, profile editing, avatar catalogue, password change, delete account.
 
-## Phase 4 — Full v1 + polish
-Insights (Progress, Suggestions, Mood & Journal, Summaries) · Plan (Calendar, Reminders, Recaps) ·
-push via `expo-notifications` → `/api/devices/` · offline `sync/pull` + `push` · animations/haptics/a11y ·
-EAS build + Kova icons/splash · align `docs/client.md` with the plain-Tailwind approach.
+## Phase 4 — Full v1 ✅ done
+
+**Insights**
+- Progress tab: completion rate, current/longest streak, active days, a seven-day load balance chart,
+  achievement bars, top suggestions, and the Reflect shortcuts.
+- Suggestions: one card per nudge with a priority pill and a type icon.
+- Mood: six-label check-in with an energy stepper, live load guidance from `mood/suggestions`, tags and a
+  note; trends over 7/30/90 days with a distribution and a dependency-free daily bar chart; full history
+  with long-press delete.
+- Journal: today's prompt and affirmation, write or replace today's entry, earlier entries with detail
+  and delete.
+- Summaries: create from a note (≥20 characters) or a PDF upload, infinite list, detail with numbered
+  bullets, edit, convert to a task, delete.
+
+**Plan**
+- Today: focus list (add/remove), linked tasks with completion, reflection, day numbers, quick links.
+- Editor: 14-day chooser (plus the previous fortnight), focus chips, linked open tasks, reflection,
+  create/update/delete for one day.
+- Calendar: day, week and month views with stepping, a month grid with task dots and today's ring.
+- Reminders: 48-hour lookahead, pending/sent filters, create with a day + half-hour time chooser
+  (local time converted to an instant), confirm-and-delete.
+- Weekly recap: range stepping, totals, per-day completion bars and a card per day (reflection joined
+  by date from the planner).
+
+**Profile**
+- Identity header with a real avatar (server-relative paths resolved through `assetUrl`), progress stats,
+  grouped rows, sign out.
+- Edit name/email/preferences, avatar catalogue with highlight and remove, settings (appearance, text
+  size, layout, notifications, language) saved per key with an optimistic overlay, registered devices,
+  manual sync with a `since` cursor, password change, delete account (type-to-confirm).
+- `about` refreshed to describe the shipped app.
+
+**Cross-cutting**
+- Push: permission, Android channel, Expo token → `POST /api/devices/` on every launch (re-owns the
+  token), foreground refresh of the bell, tap → `/notifications`. Web is guarded out.
+- Haptics: tab presses, task completion, task creation, deletes, mood picks and destructive confirms.
+- Navigation: every pushed screen carries a header back control (`BackButton`, with a cold-deep-link
+  fallback).
+- Build: `eas.json` (development/preview/production, `appVersionSource: remote`, preview APK), iOS bundle
+  id and Android package `com.kova.app`, permission copy for microphone, camera and photos.
+- `docs/client.md` (server repo) now documents Tailwind + Uniwind instead of the "Zenith Aura" tokens.
+
+**Verification:** `tsc --noEmit` clean · `eslint . --max-warnings 0` clean · `expo export --platform web`
+and `--platform android` both succeed.
+
+**Deferred**
+- Offline mutation queue. `sync/push` exists in the API layer but nothing enqueues changes; the app is
+  honest about it on the Sync screen (a failed write is retried by the user, and a pull repairs caches).
+- Push tokens need an EAS project (`eas init`) before a device can register outside Expo Go.
+- No automated tests on the client, and no deployed server: `.env` still points at `127.0.0.1`, so a
+  physical device needs `EXPO_PUBLIC_API_URL` set to the host's LAN address.
 
 ---
 

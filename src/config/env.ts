@@ -20,3 +20,15 @@ export const API_BASE = resolveBaseUrl();
 
 /** True when the base URL was not explicitly configured (useful for dev warnings). */
 export const API_BASE_IS_DEFAULT = !process.env.EXPO_PUBLIC_API_URL?.trim();
+
+/**
+ * Turns a server-relative asset path into something `Image` can load.
+ *
+ * The server returns catalogue avatars and `profilePicture` as `/api/users/avatars/x.svg`, which
+ * is relative to the API host, not to the app bundle.
+ */
+export function assetUrl(path: string | undefined | null): string | null {
+  if (!path) return null;
+  if (/^(https?:|data:|file:|blob:|content:)/i.test(path)) return path;
+  return `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`;
+}

@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { request, unwrapList, type Paginated } from './client';
 import { listSchema, parseOrThrow, taskSchema, type Task } from './types';
+import { fileFormData, type UploadFile } from '@/lib/upload';
 
 export type TaskFilters = {
   /** `true` = finished only, `false` = open only, `undefined` = both. */
@@ -35,6 +36,9 @@ const categorySchema = z.object({ taskId: z.string().optional(), category: z.str
 
 /** LLM-backed routes need more patience than a plain database read. */
 const AI_TIMEOUT_MS = 45_000;
+
+/** Transcription and OCR add a provider round trip on top of the model call. */
+const CAPTURE_TIMEOUT_MS = 90_000;
 
 /** `GET /api/tasks/` — one page of tasks, normalised across both list shapes. */
 export async function listTasks(filters: TaskFilters = {}): Promise<Paginated<Task>> {
@@ -83,10 +87,48 @@ export async function createTaskFromPrompt(prompt: string): Promise<Task> {
 }
 
 /**
+ * `POST /api/tasks/create/voice` — audio in, a filed task out.
+ *
+ * The server transcribes the clip and then asks the model for the fields, which is why this
+ * needs a longer patience budget than a plain write.
+ */
+export async function createTaskFromVoice(file: UploadFile): Promise<Task> {
+  const payload = await request<unknown>('/api/tasks/create/voice', {
+    method: 'POST',
+    form: await fileFormData(file),
+    timeoutMs: CAPTURE_TIMEOUT_MS,
+  });
+  return parseOrThrow(taskSchema, payload, 'task');
+}
+
+/** The OCR text is echoed for display and never persisted. */
+const imageTaskSchema = taskSchema.extend({ extractedText: z.string().catch('') });
+
+export type ImageCapture = {
+  task: Task;
+  extractedText: string;
+};
+
+/**
+ * `POST /api/tasks/create/image` — a photo of handwritten notes becomes a task.
+ *
+ * OCR reads the page first, then the model files it. An unconfigured OCR provider answers
+ * `503`, which surfaces to the caller as a provider-down error.
+ */
+export async function createTaskFromImage(file: UploadFile): Promise<ImageCapture> {
+  const payload = await request<unknown>('/api/tasks/create/image', {
+    method: 'POST',
+    form: await fileFormData(file),
+    timeoutMs: CAPTURE_TIMEOUT_MS,
+  });
+  const parsed = parseOrThrow(imageTaskSchema, payload, 'task');
+  return { task: parsed, extractedText: parsed.extractedText };
+}
+
+/**
  * `POST /api/tasks/suggest-title` — rewrites a title without saving it.
  * Falls back to a local heuristic server side when no LLM key is configured.
- */
-export async function suggestTitle(title: string): Promise<string> {
+ */export async function suggestTitle(title: string): Promise<string> {
   const payload = await request<unknown>('/api/tasks/suggest-title', {
     method: 'POST',
     body: { title },

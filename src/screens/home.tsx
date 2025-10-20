@@ -286,13 +286,27 @@ export default function HomeScreen() {
 
       {suggestions.length > 0 ? (
         <>
-          <SectionHeading>
+          <SectionHeading
+            action={
+              <Pressable
+                onPress={() => router.push('/insights/suggestions')}
+                accessibilityRole="button"
+                accessibilityLabel="See all suggestions"
+                className="active:opacity-70">
+                <Text className="text-sm font-semibold text-violet-600 dark:text-violet-400">
+                  See all
+                </Text>
+              </Pressable>
+            }>
             <Text className="text-base font-bold text-slate-900 dark:text-slate-100">For you</Text>
           </SectionHeading>
 
           <View style={{ gap: 8 }}>
             {suggestions.map((suggestion) => (
-              <Card key={suggestion.id} className="border-violet-200 dark:border-violet-900">
+              <Card
+                key={suggestion.id}
+                onPress={() => router.push('/insights/suggestions')}
+                className="border-violet-200 dark:border-violet-900">
                 <View className="flex-row items-center" style={{ gap: 8 }}>
                   <Ionicons name="sparkles" size={16} color={colors.primary} />
                   <Text className="flex-1 text-sm font-semibold text-slate-900 dark:text-slate-100">

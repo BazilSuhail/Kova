@@ -4,6 +4,7 @@ import { Animated, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Tabs } from 'expo-router';
 
+import { selectFeedback } from '@/lib/haptics';
 import { useThemeColors } from '@/theme/colors';
 import type { IconName } from '@/theme/icons';
 
@@ -72,6 +73,7 @@ export function AppTabBar({ state, descriptors, navigation }: TabBarProps) {
           });
 
           if (!focused && !event.defaultPrevented) {
+            selectFeedback();
             navigation.navigate(route.name, route.params);
           }
         }

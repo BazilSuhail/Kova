@@ -118,10 +118,14 @@ export const taskStatsSchema = z.object({
 
 export const reminderSchema = z.object({
   reminderId: z.string(),
-  title: z.string().optional(),
-  fireAt: z.string().optional(),
-  status: z.string().optional(),
+  title: z.string().catch('Reminder'),
+  message: z.string().catch(''),
+  fireAt: z.string().catch(''),
+  status: z.string().catch('pending'),
+  createdAt: z.string().optional(),
 });
+
+export type Reminder = z.infer<typeof reminderSchema>;
 
 export const moodSchema = z.object({
   moodId: z.string(),
@@ -131,9 +135,13 @@ export const moodSchema = z.object({
 
 export const summarySchema = z.object({
   summaryId: z.string(),
-  summaryBullets: z.array(z.string()).optional(),
+  sourceType: z.string().catch('note'),
+  originalFileName: z.string().catch(''),
+  summaryBullets: z.array(z.string()).catch([]),
   createdAt: z.string().optional(),
 });
+
+export type Summary = z.infer<typeof summarySchema>;
 
 export const suggestionSchema = z.object({
   id: z.string(),
@@ -171,6 +179,242 @@ export const dailyRecapSchema = z.object({
 });
 
 export type DailyRecap = z.infer<typeof dailyRecapSchema>;
+
+/* ── Planner ── */
+
+export const plannerSchema = z.object({
+  plannerId: z.string(),
+  date: z.string().catch(''),
+  focusTasks: z.array(z.string()).catch([]),
+  tasks: z.array(z.string()).catch([]),
+  reflection: z.string().catch(''),
+  /** Linked tasks, resolved by the server in one batched query. */
+  tasksDetails: z.array(taskSchema).catch([]),
+});
+
+export type Planner = z.infer<typeof plannerSchema>;
+
+/* ── Calendar ── */
+
+export const calendarDaySchema = z.object({
+  date: z.string(),
+  tasks: z.array(taskSchema).catch([]),
+  planner: plannerSchema.nullable().catch(null),
+});
+
+export type CalendarDay = z.infer<typeof calendarDaySchema>;
+
+export const calendarSchema = z.object({
+  view: z.string().catch('week'),
+  start: z.string().catch(''),
+  end: z.string().catch(''),
+  days: z.array(calendarDaySchema).catch([]),
+});
+
+export type CalendarView = z.infer<typeof calendarSchema>;
+
+/* ── Weekly recap ── */
+
+export const weeklyRecapSchema = z.object({
+  startDate: z.string().catch(''),
+  endDate: z.string().catch(''),
+  /** Always exactly 7 entries, oldest first. */
+  days: z.array(dailyRecapSchema).catch([]),
+  totals: z.object({
+    completedTasks: z.number().catch(0),
+    pendingTasks: z.number().catch(0),
+  }),
+});
+
+export type WeeklyRecap = z.infer<typeof weeklyRecapSchema>;
+
+/* ── Progress ── */
+
+export const progressSchema = z.object({
+  totals: z.object({
+    tasks: z.number().catch(0),
+    completedTasks: z.number().catch(0),
+    pendingTasks: z.number().catch(0),
+    completionRate: z.number().catch(0),
+    moodEntries: z.number().catch(0),
+    reflections: z.number().catch(0),
+  }),
+  streak: z.object({
+    current: z.number().catch(0),
+    longest: z.number().catch(0),
+  }),
+  loadBalance: z
+    .array(
+      z.object({
+        day: z.string(),
+        completed: z.number().catch(0),
+        pending: z.number().catch(0),
+      }),
+    )
+    .catch([]),
+  achievements: z
+    .array(
+      z.object({
+        id: z.string(),
+        label: z.string(),
+        earned: z.boolean().catch(false),
+        progress: z.number().catch(0),
+        target: z.number().catch(1),
+      }),
+    )
+    .catch([]),
+  activeDays: z.number().catch(0),
+});
+
+export type Progress = z.infer<typeof progressSchema>;
+
+/* ── Mood ── */
+
+export const moodEntrySchema = z.object({
+  moodId: z.string(),
+  mood: z.string().catch(''),
+  score: z.number().catch(0),
+  energy: z.number().nullable().catch(null),
+  note: z.string().catch(''),
+  tags: z.array(z.string()).catch([]),
+  date: z.string().catch(''),
+  loggedAt: z.string().optional(),
+  createdAt: z.string().optional(),
+});
+
+export type MoodEntry = z.infer<typeof moodEntrySchema>;
+
+export const moodTrendsSchema = z.object({
+  range: z.object({
+    start: z.string().catch(''),
+    end: z.string().catch(''),
+    days: z.number().catch(30),
+  }),
+  entries: z.number().catch(0),
+  averageScore: z.number().catch(0),
+  distribution: z.record(z.string(), z.number()).catch({}),
+  series: z
+    .array(
+      z.object({
+        date: z.string(),
+        score: z.number().nullable().catch(null),
+        entries: z.number().catch(0),
+      }),
+    )
+    .catch([]),
+  streak: z.number().catch(0),
+});
+
+export type MoodTrends = z.infer<typeof moodTrendsSchema>;
+
+export const moodLoadSchema = z.object({
+  score: z.number().catch(0),
+  energy: z.number().nullable().catch(null),
+  suggestedLoad: z.string().catch('balanced'),
+  message: z.string().catch(''),
+});
+
+export type MoodLoad = z.infer<typeof moodLoadSchema>;
+
+/* ── Reflections ── */
+
+export const reflectionSchema = z.object({
+  reflectionId: z.string(),
+  date: z.string().catch(''),
+  text: z.string().catch(''),
+  mood: z.string().catch(''),
+  prompt: z.string().catch(''),
+  createdAt: z.string().optional(),
+});
+
+export type Reflection = z.infer<typeof reflectionSchema>;
+
+export const todayReflectionSchema = z.object({
+  date: z.string().catch(''),
+  prompt: z.string().catch(''),
+  affirmation: z.string().catch(''),
+  /** The caller's entry for that date, or null. */
+  reflection: reflectionSchema.nullable().catch(null),
+});
+
+export type TodayReflection = z.infer<typeof todayReflectionSchema>;
+
+/* ── Summaries ── */
+
+export const summaryCreateSchema = z.object({
+  summary: summarySchema,
+  /** A suggestion only — it is persisted by `convert-to-tasks`. */
+  task: taskSchema.nullable().catch(null),
+});
+
+export type SummaryCreate = z.infer<typeof summaryCreateSchema>;
+
+/* ── Account ── */
+
+export const avatarSchema = z.object({
+  id: z.string(),
+  filename: z.string().catch(''),
+  url: z.string().catch(''),
+});
+
+export type Avatar = z.infer<typeof avatarSchema>;
+
+export const avatarListSchema = z.object({
+  avatars: z.array(avatarSchema).catch([]),
+});
+
+export const settingsSchema = userPreferencesSchema.extend({
+  notificationStyle: z.string().optional(),
+  language: z.string().optional(),
+});
+
+export type UserSettings = z.infer<typeof settingsSchema>;
+
+/* ── Devices ── */
+
+export const deviceSchema = z.object({
+  deviceId: z.string(),
+  expoPushToken: z.string().catch(''),
+  platform: z.string().catch(''),
+  enabled: z.boolean().catch(true),
+  registeredAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+});
+
+export type Device = z.infer<typeof deviceSchema>;
+
+/* ── Sync ── */
+
+export const syncPullSchema = z.object({
+  serverTime: z.string().catch(''),
+  full: z.boolean().catch(false),
+  tasks: z.array(taskSchema).catch([]),
+  subtasks: z.array(subtaskGroupSchema).catch([]),
+  planner: z.array(plannerSchema).catch([]),
+  summaries: z.array(summarySchema).catch([]),
+  notifications: z.array(notificationSchema).catch([]),
+  mood: z.array(moodEntrySchema).catch([]),
+  reflections: z.array(reflectionSchema).catch([]),
+  reminders: z.array(reminderSchema).catch([]),
+  deleted: z
+    .array(
+      z.object({
+        collection: z.string(),
+        docId: z.string(),
+      }),
+    )
+    .catch([]),
+});
+
+export type SyncPull = z.infer<typeof syncPullSchema>;
+
+export const syncPushSchema = z.object({
+  applied: z.record(z.string(), z.number()).catch({}),
+  skipped: z.array(z.unknown()).catch([]),
+  serverTime: z.string().catch(''),
+});
+
+export type SyncPush = z.infer<typeof syncPushSchema>;
 
 /** Validates a payload against a schema, or fails with a server-shaped `ApiError`. */
 export function parseOrThrow<T>(schema: z.ZodType<T>, payload: unknown, what: string): T {

@@ -1,95 +1,355 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
+import { ErrorState } from '@/components/ui/error-state';
+import { Row } from '@/components/ui/row';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
+import { SectionHeading } from '@/components/ui/section-heading';
+import { SkeletonCard } from '@/components/ui/skeleton';
+import { useProgress, useSuggestions } from '@/hooks/queries/insights';
+import { errorMessage } from '@/lib/errors';
+import { tapFeedback } from '@/lib/haptics';
 import { useThemeColors } from '@/theme/colors';
-import type { IconName } from '@/theme/icons';
 
-const stats: { label: string; value: string; sub: string; icon: IconName }[] = [
-  { label: 'Tasks done', value: '18', sub: '+4 vs last week', icon: 'checkmark-circle' },
-  { label: 'Focus time', value: '6.5h', sub: '+1.5h vs last wk', icon: 'time' },
-  { label: 'Best streak', value: '7 days', sub: 'All-time high!', icon: 'trending-up' },
-  { label: 'Avg. session', value: '32 min', sub: 'Getting longer!', icon: 'flash' },
-];
+const PRIORITY_BG: Record<string, string> = {
+  high: 'bg-red-50 dark:bg-red-950',
+  medium: 'bg-amber-50 dark:bg-amber-950',
+};
 
-const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-const activity = [0.5, 0.85, 1.0, 0.6, 0.9, 0.3, 0.75];
+const PRIORITY_TEXT: Record<string, string> = {
+  high: 'text-red-600 dark:text-red-400',
+  medium: 'text-amber-700 dark:text-amber-400',
+};
 
-const weeklyMood = [
-  { day: 'M', emoji: '😊' },
-  { day: 'T', emoji: '😐' },
-  { day: 'W', emoji: '🔥' },
-  { day: 'T', emoji: '😌' },
-  { day: 'F', emoji: '🚀' },
-  { day: 'S', emoji: '😴' },
-  { day: 'S', emoji: '😊' },
-];
+/** A read-only pill; the shared `Chip` only carries the violet selected state. */
+function PriorityChip({ priority }: { priority?: string }) {
+  const label = priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : 'Info';
+
+  return (
+    <View
+      className={`rounded-full px-3 py-1 ${
+        PRIORITY_BG[priority ?? ''] ?? 'bg-slate-100 dark:bg-slate-800'
+      }`}>
+      <Text
+        className={`text-xs font-semibold ${
+          PRIORITY_TEXT[priority ?? ''] ?? 'text-slate-600 dark:text-slate-300'
+        }`}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function Legend({ className, label }: { className: string; label: string }) {
+  return (
+    <View className="flex-row items-center" style={{ gap: 4 }}>
+      <View className={`h-2 w-2 rounded-full ${className}`} />
+      <Text className="text-xs text-slate-500 dark:text-slate-400">{label}</Text>
+    </View>
+  );
+}
 
 export default function InsightsScreen() {
   const colors = useThemeColors();
+  const progress = useProgress();
+  const suggestions = useSuggestions();
+
+  const data = progress.data;
+  const totals = data?.totals;
+  const completed = totals?.completedTasks ?? 0;
+  const total = totals?.tasks ?? 0;
+  // A new account has zero tasks; the rate is a percentage of zero otherwise.
+  const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  const loadBalance = data?.loadBalance ?? [];
+  const weekMax = loadBalance.reduce((max, entry) => Math.max(max, entry.completed + entry.pending), 0);
+  const weekScale = weekMax > 0 ? weekMax : 1;
+  const achievements = data?.achievements ?? [];
+  const topSuggestions = (suggestions.data ?? []).slice(0, 2);
+
+  function openSuggestions() {
+    tapFeedback();
+    router.push('/insights/suggestions');
+  }
+
+  const suggestionButton = (
+    <Pressable
+      onPress={openSuggestions}
+      accessibilityRole="button"
+      accessibilityLabel="Open suggestions"
+      className="h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white active:opacity-70 dark:border-slate-800 dark:bg-slate-900">
+      <Ionicons name="sparkles" size={20} color={colors.primary} />
+    </Pressable>
+  );
+
+  function progressBody() {
+    if (progress.isPending) {
+      return (
+        <View className="mt-5" style={{ gap: 12 }}>
+          <SkeletonCard lines={2} />
+          <SkeletonCard lines={1} />
+          <SkeletonCard lines={3} />
+        </View>
+      );
+    }
+
+    if (progress.isError || !data) {
+      return (
+        <ErrorState
+          className="mt-5"
+          title="Could not load your progress"
+          message={errorMessage(progress.error)}
+          onRetry={() => void progress.refetch()}
+        />
+      );
+    }
+
+    return (
+      <>
+        <Card className="mt-5">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-sm font-semibold text-slate-900 dark:text-slate-100">Completion rate</Text>
+            <Ionicons name="stats-chart" size={18} color={colors.primary} />
+          </View>
+          <Text className="mt-3 text-5xl font-bold text-violet-600 dark:text-violet-400">{rate}%</Text>
+          <Text className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            {completed} of {total} tasks done
+          </Text>
+          <View className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+            <View
+              className="h-full rounded-full bg-violet-600 dark:bg-violet-500"
+              style={{ width: `${rate}%` }}
+            />
+          </View>
+        </Card>
+
+        <View className="mt-4 flex-row" style={{ gap: 12 }}>
+          <Card className="flex-1 rounded-2xl">
+            <View className="h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950">
+              <Ionicons name="flame" size={18} color={colors.success} />
+            </View>
+            <Text className="mt-3 text-2xl font-bold text-slate-900 dark:text-slate-100">
+              {data.streak.current}
+            </Text>
+            <Text className="text-sm text-slate-500 dark:text-slate-400">day streak</Text>
+          </Card>
+
+          <Card className="flex-1 rounded-2xl">
+            <View className="h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950">
+              <Ionicons name="trophy-outline" size={18} color={colors.success} />
+            </View>
+            <Text className="mt-3 text-2xl font-bold text-slate-900 dark:text-slate-100">
+              {data.streak.longest}
+            </Text>
+            <Text className="text-sm text-slate-500 dark:text-slate-400">best streak</Text>
+          </Card>
+
+          <Card className="flex-1 rounded-2xl">
+            <View className="h-9 w-9 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-950">
+              <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+            </View>
+            <Text className="mt-3 text-2xl font-bold text-slate-900 dark:text-slate-100">{data.activeDays}</Text>
+            <Text className="text-sm text-slate-500 dark:text-slate-400">active days</Text>
+          </Card>
+        </View>
+
+        <Card className="mt-4">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-sm font-semibold text-slate-900 dark:text-slate-100">This week</Text>
+            <View className="flex-row items-center" style={{ gap: 12 }}>
+              <Legend className="bg-emerald-500" label="done" />
+              <Legend className="bg-slate-200 dark:bg-slate-700" label="open" />
+            </View>
+          </View>
+
+          {loadBalance.length === 0 ? (
+            <Text className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+              Finish a task and the week will fill in.
+            </Text>
+          ) : (
+            <View className="mt-4 flex-row items-end justify-between" style={{ height: 110 }}>
+              {loadBalance.map((entry) => {
+                const done = Math.round((entry.completed / weekScale) * 72);
+                const open = Math.round((entry.pending / weekScale) * 72);
+
+                return (
+                  <View key={entry.day} className="flex-1 items-center" style={{ gap: 6 }}>
+                    <View className="w-3 items-center justify-end" style={{ height: 72, gap: 2 }}>
+                      {open > 0 ? (
+                        <View
+                          className="w-3 rounded-full bg-slate-200 dark:bg-slate-700"
+                          style={{ height: open }}
+                        />
+                      ) : null}
+                      {done > 0 ? (
+                        <View className="w-3 rounded-full bg-emerald-500" style={{ height: done }} />
+                      ) : null}
+                    </View>
+                    <Text className="text-xs text-slate-400 dark:text-slate-500">
+                      {entry.day.slice(0, 3)}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </Card>
+
+        <Card className="mt-4">
+          <Text className="text-sm font-semibold text-slate-900 dark:text-slate-100">Achievements</Text>
+
+          {achievements.length === 0 ? (
+            <Text className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+              Finish your first task to start earning badges.
+            </Text>
+          ) : (
+            achievements.map((achievement) => {
+              const ratio =
+                achievement.target > 0
+                  ? Math.min(1, achievement.progress / achievement.target)
+                  : 0;
+
+              return (
+                <View key={achievement.id} className="mt-4">
+                  <View className="flex-row items-center justify-between">
+                    <Text className="flex-1 pr-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      {achievement.label}
+                    </Text>
+                    {achievement.earned ? (
+                      <Ionicons name="checkmark-circle" size={18} color={colors.success} />
+                    ) : (
+                      <Text className="text-xs text-slate-500 dark:text-slate-400">
+                        {achievement.progress} / {achievement.target}
+                      </Text>
+                    )}
+                  </View>
+                  {!achievement.earned ? (
+                    <View className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                      <View
+                        className="h-full rounded-full bg-emerald-500"
+                        style={{ width: `${ratio * 100}%` }}
+                      />
+                    </View>
+                  ) : null}
+                </View>
+              );
+            })
+          )}
+        </Card>
+      </>
+    );
+  }
 
   return (
-    <Screen>
-      <ScreenHeader
-        eyebrow="Insights"
-        title={`Your week${'\n'}in flow.`}
-        subtitle="Small wins are adding up. Keep your rhythm."
-      />
+    <Screen scroll={false}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={progress.isRefetching || suggestions.isRefetching}
+            onRefresh={() => {
+              void progress.refetch();
+              void suggestions.refetch();
+            }}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }>
+        <ScreenHeader eyebrow="Insights" title="Your progress" right={suggestionButton} />
 
-      <Card className="mt-6 rounded-3xl p-5">
-        <View className="flex-row items-center justify-between">
-          <Text className="font-semibold text-slate-900 dark:text-slate-100">Weekly activity</Text>
-          <View className="flex-row items-center" style={{ gap: 4 }}>
-            <Ionicons name="stats-chart" size={14} color={colors.primary} />
-            <Text className="text-xs font-semibold text-violet-600 dark:text-violet-400">This week</Text>
-          </View>
-        </View>
+        {progressBody()}
 
-        <View className="mt-4 flex-row items-end justify-between" style={{ height: 100 }}>
-          {activity.map((level, index) => (
-            <View key={index} className="flex-1 items-center" style={{ gap: 6 }}>
-              <View
-                className={`w-full rounded-lg ${index === 2 ? 'bg-violet-500' : 'bg-slate-200 dark:bg-slate-700'}`}
-                style={{ height: Math.round(level * 70) }}
-              />
-              <Text className="text-xs text-slate-400 dark:text-slate-500">{days[index]}</Text>
-            </View>
-          ))}
-        </View>
-      </Card>
+        <SectionHeading
+          action={
+            <Pressable onPress={openSuggestions} accessibilityRole="button">
+              <Text className="text-sm font-semibold text-violet-600 dark:text-violet-400">See all</Text>
+            </Pressable>
+          }>
+          <Text className="text-base font-bold text-slate-900 dark:text-slate-100">For you</Text>
+        </SectionHeading>
 
-      <View className="mt-4 flex-row flex-wrap" style={{ gap: 10 }}>
-        {stats.map((stat) => (
-          <Card key={stat.label} className="rounded-2xl" style={{ width: '47.5%' }}>
-            <View className="flex-row items-center justify-between">
-              <View className="h-9 w-9 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-950">
-                <Ionicons name={stat.icon} size={17} color={colors.primary} />
-              </View>
-              <Ionicons name="arrow-up" size={16} color={colors.success} />
-            </View>
-            <Text className="mt-3 text-2xl font-bold text-slate-900 dark:text-slate-100">{stat.value}</Text>
-            <Text className="text-xs text-slate-500 dark:text-slate-400">{stat.label}</Text>
-            <Text className="mt-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">{stat.sub}</Text>
+        {suggestions.isPending ? (
+          <SkeletonCard lines={2} />
+        ) : topSuggestions.length === 0 ? (
+          <Card>
+            <Text className="text-sm text-slate-500 dark:text-slate-400">
+              Suggestions appear once you have some tasks, moods or journal entries behind you.
+            </Text>
           </Card>
-        ))}
-      </View>
+        ) : (
+          <View style={{ gap: 8 }}>
+            {topSuggestions.map((suggestion) => (
+              <Card
+                key={suggestion.id}
+                onPress={openSuggestions}
+                className="border-violet-200 dark:border-violet-900">
+                <View className="flex-row items-center" style={{ gap: 8 }}>
+                  <Ionicons name="sparkles" size={16} color={colors.primary} />
+                  <Text
+                    numberOfLines={1}
+                    className="flex-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    {suggestion.title}
+                  </Text>
+                  {suggestion.priority ? <PriorityChip priority={suggestion.priority} /> : null}
+                </View>
+                {suggestion.message ? (
+                  <Text className="mt-2 text-sm leading-5 text-slate-600 dark:text-slate-400">
+                    {suggestion.message}
+                  </Text>
+                ) : null}
+              </Card>
+            ))}
+          </View>
+        )}
 
-      <Card className="mt-4 rounded-2xl">
-        <View className="flex-row items-center justify-between">
-          <Text className="font-semibold text-slate-900 dark:text-slate-100">Weekly mood</Text>
-          <Ionicons name="happy" size={16} color={colors.primary} />
-        </View>
-        <View className="mt-3 flex-row justify-between">
-          {weeklyMood.map((entry, index) => (
-            <View key={index} className="items-center" style={{ gap: 6 }}>
-              <Text style={{ fontSize: 20 }}>{entry.emoji}</Text>
-              <Text className="text-xs text-slate-400 dark:text-slate-500">{entry.day}</Text>
-            </View>
-          ))}
-        </View>
-      </Card>
+        <SectionHeading>
+          <Text className="text-base font-bold text-slate-900 dark:text-slate-100">Reflect</Text>
+        </SectionHeading>
+
+        <Card padded={false} className="overflow-hidden rounded-2xl">
+          <Row
+            title="Log today's mood"
+            subtitle="A quick check-in shapes the day"
+            icon="happy-outline"
+            tone="primary"
+            onPress={() => router.push('/insights/mood')}
+          />
+          <Row
+            title="Mood trends"
+            subtitle="How the last weeks have felt"
+            icon="trending-up"
+            tone="primary"
+            onPress={() => router.push('/insights/mood-trends')}
+          />
+          <Row
+            title="Mood history"
+            subtitle="Every check-in, newest first"
+            icon="time-outline"
+            tone="primary"
+            onPress={() => router.push('/insights/mood-history')}
+          />
+          <Row
+            title="Journal"
+            subtitle="Guided reflections and prompts"
+            icon="book-outline"
+            tone="primary"
+            onPress={() => router.push('/insights/journal')}
+          />
+          <Row
+            title="Summaries library"
+            subtitle="Turn notes and PDFs into bullets"
+            icon="library-outline"
+            tone="primary"
+            onPress={() => router.push('/insights/library')}
+            last
+          />
+        </Card>
+      </ScrollView>
     </Screen>
   );
 }

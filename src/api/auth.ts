@@ -48,3 +48,15 @@ export async function logout(refreshToken?: string): Promise<void> {
     body: refreshToken ? { refresh_token: refreshToken } : {},
   });
 }
+
+/**
+ * `PUT /api/auth/password` — the only route with a server-side password rule (8+ chars).
+ *
+ * Existing sessions stay valid, so the caller decides whether to sign out afterwards.
+ */
+export async function changePassword(input: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<void> {
+  await request<{ message?: string }>('/api/auth/password', { method: 'PUT', body: input });
+}

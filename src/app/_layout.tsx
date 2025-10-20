@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import '../../global.css';
 import { AuthProvider, useAuth } from '@/providers/auth-provider';
+import { PushProvider } from '@/providers/push-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
 import { BootScreen } from '@/screens/boot-splash';
@@ -55,7 +56,9 @@ export default function RootLayout() {
       <ThemeProvider>
         <QueryProvider>
           <AuthProvider>
-            <RootNavigator />
+            <PushProvider>
+              <RootNavigator />
+            </PushProvider>
           </AuthProvider>
         </QueryProvider>
       </ThemeProvider>

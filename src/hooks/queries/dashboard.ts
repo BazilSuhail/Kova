@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchDailyRecap, fetchDashboard } from '@/api/dashboard';
+import { fetchDashboard } from '@/api/dashboard';
+import { fetchDailyRecap } from '@/api/recaps';
 import { queryKeys } from './keys';
 
 /**

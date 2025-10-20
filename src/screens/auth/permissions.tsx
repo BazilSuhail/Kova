@@ -58,7 +58,8 @@ export function PermissionsScreen() {
       </View>
 
       <Text className="mt-6 text-xs text-slate-500 dark:text-slate-400">
-        Device registration for push arrives with the reminders work, so nothing is sent to the server yet.
+        Reminders are scheduled on the server, so this device registers itself for push the first
+        time it can get a token. You can remove it any time from Profile.
       </Text>
 
       <View className="mt-6" style={{ gap: 10 }}>

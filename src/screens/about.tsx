@@ -23,8 +23,9 @@ export function AboutScreen() {
 
       <Card className="mt-5">
         <Text className="text-sm leading-6 text-slate-600 dark:text-slate-400">
-          Kova keeps your tasks, your focus sessions and your progress in one calm place. Plan the day,
-          capture what comes up, and let the recaps show you what is actually moving.
+          Kova keeps your tasks, your day plans and your progress in one calm place. Capture what
+          comes up by sentence, voice or photo, plan the day around a few focus tasks, and let the
+          recaps and trends show you what is actually moving.
         </Text>
       </Card>
 

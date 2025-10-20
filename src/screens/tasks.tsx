@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Platform, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Platform, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import type { Task } from '@/api/types';
@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { SkeletonCard } from '@/components/ui/skeleton';
-import { useDeleteTask, useTasks, useToggleTask } from '@/hooks/queries/tasks';
+import { useDeleteTask, useTaskCategories, useTasks, useToggleTask } from '@/hooks/queries/tasks';
 import { errorMessage } from '@/lib/errors';
 import { useThemeColors } from '@/theme/colors';
 
@@ -31,6 +31,7 @@ export default function TasksScreen() {
   const listRef = useRef<FlatList<Task>>(null);
 
   const [filter, setFilter] = useState<Filter>('all');
+  const [category, setCategory] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [applied, setApplied] = useState('');
   const [composerOpen, setComposerOpen] = useState(false);
@@ -43,7 +44,12 @@ export default function TasksScreen() {
   }, [search]);
 
   const completed = filter === 'all' ? undefined : filter === 'done';
-  const tasksQuery = useTasks({ completed, q: applied || undefined });
+  const tasksQuery = useTasks({
+    completed,
+    q: applied || undefined,
+    category: category ?? undefined,
+  });
+  const categoriesQuery = useTaskCategories();
   const toggleTask = useToggleTask();
   const deleteTask = useDeleteTask();
 
@@ -51,8 +57,9 @@ export default function TasksScreen() {
     () => tasksQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [tasksQuery.data],
   );
+  const categories = categoriesQuery.data ?? [];
   const total = tasksQuery.data?.pages[0]?.total ?? 0;
-  const narrowed = filter !== 'all' || applied.length > 0;
+  const narrowed = filter !== 'all' || applied.length > 0 || category !== null;
 
   function toggle(task: Task) {
     setBusyTaskId(task.taskId);
@@ -101,6 +108,18 @@ export default function TasksScreen() {
           icon="search"
           title="No matches"
           description={`Nothing here matches "${applied}".`}
+        />
+      );
+    }
+
+    if (category) {
+      return (
+        <EmptyState
+          icon="pricetag-outline"
+          title={`Nothing in ${category}`}
+          description="Try another category, or clear the filter."
+          actionLabel="Clear filter"
+          onAction={() => setCategory(null)}
         />
       );
     }
@@ -175,6 +194,29 @@ export default function TasksScreen() {
           />
         ))}
       </View>
+
+      {categories.length > 0 ? (
+        <View className="mt-3">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8 }}>
+            <Chip
+              label="All categories"
+              selected={category === null}
+              onPress={() => setCategory(null)}
+            />
+            {categories.map((item) => (
+              <Chip
+                key={item}
+                label={item}
+                selected={category === item}
+                onPress={() => setCategory(category === item ? null : item)}
+              />
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
 
       <FlatList
         ref={listRef}
