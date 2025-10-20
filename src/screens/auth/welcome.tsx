@@ -1,16 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
-import { PrimaryButton } from '@/components/ui/primary-button';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { FormError } from '@/components/ui/form-error';
+import { ThemedSafeAreaView } from '@/components/ui/styled';
 import { useAuth } from '@/providers/auth-provider';
 import { retrySession } from '@/store/auth-store';
 import { useThemeColors } from '@/theme/colors';
-import type { AuthRoute } from './auth-flow';
-
-type IconName = keyof typeof Ionicons.glyphMap;
+import type { IconName } from '@/theme/icons';
 
 const highlights: { icon: IconName; title: string; detail: string }[] = [
   { icon: 'sunny-outline', title: 'Plan the day', detail: 'Focus blocks that match your energy' },
@@ -18,8 +18,9 @@ const highlights: { icon: IconName; title: string; detail: string }[] = [
   { icon: 'trending-up-outline', title: 'See progress build', detail: 'Streaks, mood and weekly recaps' },
 ];
 
-export function WelcomeScreen({ onNavigate }: { onNavigate: (route: AuthRoute) => void }) {
+export function WelcomeScreen() {
   const colors = useThemeColors();
+  const router = useRouter();
   const { restoreError } = useAuth();
   const [retrying, setRetrying] = useState(false);
 
@@ -33,13 +34,13 @@ export function WelcomeScreen({ onNavigate }: { onNavigate: (route: AuthRoute) =
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }} className="bg-slate-100 dark:bg-slate-950" edges={['top', 'bottom']}>
+    <ThemedSafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']} className="bg-slate-100 dark:bg-slate-950">
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: 32, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}>
         <View className="h-16 w-16 items-center justify-center rounded-3xl bg-violet-600">
-          <Ionicons name="sparkles" size={30} color="#FFFFFF" />
+          <Ionicons name="sparkles" size={30} color={colors.onPrimary} />
         </View>
 
         <Text className="mt-6 text-4xl font-bold text-slate-900 dark:text-slate-100">Kova</Text>
@@ -71,27 +72,31 @@ export function WelcomeScreen({ onNavigate }: { onNavigate: (route: AuthRoute) =
 
         <View className="mt-8" style={{ gap: 12 }}>
           {highlights.map((item) => (
-            <View
-              key={item.title}
-              className="flex-row items-center rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <Card key={item.title} className="flex-row items-center rounded-2xl">
               <View className="h-10 w-10 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-950">
                 <Ionicons name={item.icon} size={19} color={colors.primary} />
               </View>
               <View className="ml-3 flex-1">
-                <Text className="text-sm font-semibold text-slate-900 dark:text-slate-100">{item.title}</Text>
+                <Text className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {item.title}
+                </Text>
                 <Text className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{item.detail}</Text>
               </View>
-            </View>
+            </Card>
           ))}
         </View>
 
         <View style={{ flex: 1 }} />
 
         <View className="mt-8" style={{ gap: 10 }}>
-          <PrimaryButton label="Create your account" onPress={() => onNavigate('signup')} />
-          <PrimaryButton label="I already have an account" variant="ghost" onPress={() => onNavigate('login')} />
+          <Button label="Create your account" onPress={() => router.push('/signup')} />
+          <Button
+            label="I already have an account"
+            variant="secondary"
+            onPress={() => router.push('/login')}
+          />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </ThemedSafeAreaView>
   );
 }

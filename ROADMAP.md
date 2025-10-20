@@ -13,23 +13,25 @@ emerald = success/streak, slate = neutral, red/amber = danger/warning. Icons com
 - Rebrand → Kova: `app.json` (`name`, `slug`, `scheme: kova`), `package.json` (`kova-app`), `@kova/theme` key.
 - Icons: dropped `@react-native-vector-icons/*` (font was never linked → blank glyphs) for `@expo/vector-icons`.
 - Tabs reconciled to **Home · Tasks · Plan · Insights · Profile** (`todo→tasks`, `focus→plan`), outline→filled active icons.
-- Acclaim: violet accent via plain Tailwind; removed the undefined utilities (`bg-muted`, `text-primary`,
+- Accent: violet accent via plain Tailwind; removed the undefined utilities (`bg-muted`, `text-primary`,
   `text-muted-foreground`, `text-warning`) and all hardcoded icon hex.
 - `global.css` reduced to `@import 'tailwindcss'` + `@import 'uniwind'`.
 - Tabs lazy-mount on first visit (no boot-time queries for unopened tabs).
 - `EXPO_PUBLIC_API_URL` in `.env` (ignored) + `.env.example` (tracked); `.gitignore` rewritten for Expo/RN.
 
-## Phase 1 — Integration core (next)
+## Phase 1 — Integration core ✅ done
 `expo-secure-store`, `@tanstack/react-query`, `zustand`, `zod` · `api/client.ts` (bearer, **401 → refresh + rotation**,
 429 `Retry-After`, error normalisation, `Server-Timing`/`X-Request-ID`) · secure token store + `AuthProvider`
 + auth gate + splash · `QueryProvider` · welcome / login / signup / permissions.
 **Endpoints:** `signup`, `login`, `refresh`, `logout`, `me`.
 
-## Phase 2 — Navigation shell
-Adopt expo-router properly: `(auth)` / `(tabs)` groups, a `<Stack>` per tab, capture modals, animated custom
-`tabBar`, UI kit (Card, Button, Input, Chip, Sheet, EmptyState, Skeleton, FAB), loading/empty/error states.
+## Phase 2 — Navigation shell ✅ done
+expo-router adopted: `(auth)` / `(tabs)` groups, a `<Stack>` per tab, modal routes, declarative `Stack.Protected`
+gating, animated custom `tabBar`, UI kit (Card, Button, Input, Chip, Sheet, EmptyState, ErrorState, Skeleton, FAB,
+Row, Screen), loading/empty/error states. Screens live in `src/screens/` with thin route files under `src/app/`.
+Theme preference hoisted into `ThemeProvider` so the stored choice applies before the first paint.
 
-## Phase 3 — MVP screens (~40/75 endpoints)
+## Phase 3 — MVP screens (~40/75 endpoints) — next
 Home/Dashboard · Tasks (list/search/filter/paging, create, detail + subtasks, AI/voice/scan capture,
 categorize, title-rewrite) · Planner · Notifications · Profile (edit/avatars/password/delete-cascade).
 Handle `415` / `502` / `503` and the task-`PUT` 404-on-no-op + planner-`PUT` 200-on-no-op quirks.

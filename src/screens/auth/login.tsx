@@ -1,16 +1,14 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { AuthScaffold } from '@/components/auth/auth-scaffold';
+import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/form-error';
-import { PrimaryButton } from '@/components/ui/primary-button';
-import { TextField } from '@/components/ui/text-field';
+import { Input } from '@/components/ui/input';
 import { errorMessage, isApiError } from '@/lib/errors';
 import { currentPasswordSchema, emailSchema, fieldError } from '@/lib/validation';
 import { useAuthStore } from '@/store/auth-store';
-import { useThemeColors } from '@/theme/colors';
-import type { AuthRoute } from './auth-flow';
 
 type FieldErrors = {
   email?: string;
@@ -18,8 +16,8 @@ type FieldErrors = {
   form?: string;
 };
 
-export function LoginScreen({ onNavigate }: { onNavigate: (route: AuthRoute) => void }) {
-  const colors = useThemeColors();
+export function LoginScreen() {
+  const router = useRouter();
   const signIn = useAuthStore((state) => state.signIn);
 
   const [email, setEmail] = useState('');
@@ -44,7 +42,7 @@ export function LoginScreen({ onNavigate }: { onNavigate: (route: AuthRoute) => 
       await signIn(email.trim(), password);
     } catch (error) {
       const message = errorMessage(error);
-      // 401 means the credentials themselves were refused — show it on the password field.
+      // 401 means the credentials themselves were refused, so it belongs on the field.
       setErrors(isApiError(error) && error.status === 401 ? { password: message } : { form: message });
     } finally {
       setSubmitting(false);
@@ -55,18 +53,20 @@ export function LoginScreen({ onNavigate }: { onNavigate: (route: AuthRoute) => 
     <AuthScaffold
       title="Welcome back"
       subtitle="Sign in to pick up where you left off."
-      onBack={() => onNavigate('welcome')}
+      onBack={() => router.back()}
       footer={
         <View className="flex-row items-center justify-center">
           <Text className="text-sm text-slate-500 dark:text-slate-400">New to Kova?</Text>
-          <Pressable onPress={() => onNavigate('signup')} className="ml-1 active:opacity-70">
-            <Text className="text-sm font-semibold text-violet-600 dark:text-violet-400">Create an account</Text>
+          <Pressable onPress={() => router.replace('/signup')} className="ml-1 active:opacity-70">
+            <Text className="text-sm font-semibold text-violet-600 dark:text-violet-400">
+              Create an account
+            </Text>
           </Pressable>
         </View>
       }>
       {errors.form ? <FormError message={errors.form} /> : null}
 
-      <TextField
+      <Input
         label="Email"
         value={email}
         onChangeText={setEmail}
@@ -80,7 +80,7 @@ export function LoginScreen({ onNavigate }: { onNavigate: (route: AuthRoute) => 
         returnKeyType="next"
       />
 
-      <TextField
+      <Input
         label="Password"
         value={password}
         onChangeText={setPassword}
@@ -95,15 +95,12 @@ export function LoginScreen({ onNavigate }: { onNavigate: (route: AuthRoute) => 
       />
 
       <View className="mt-2">
-        <PrimaryButton label="Sign in" loading={submitting} onPress={handleSubmit} />
+        <Button label="Sign in" loading={submitting} onPress={handleSubmit} />
       </View>
 
-      <View className="mt-4 flex-row items-center justify-center">
-        <Ionicons name="lock-closed-outline" size={13} color={colors.textMuted} />
-        <Text className="ml-1.5 text-xs text-slate-500 dark:text-slate-400">
-          Password reset is not available yet.
-        </Text>
-      </View>
+      <Text className="mt-4 text-center text-xs text-slate-500 dark:text-slate-400">
+        Password reset is not available yet.
+      </Text>
     </AuthScaffold>
   );
 }

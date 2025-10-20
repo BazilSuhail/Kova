@@ -3,11 +3,11 @@ import { useState } from 'react';
 import { Platform, Text, View } from 'react-native';
 
 import { AuthScaffold } from '@/components/auth/auth-scaffold';
-import { PrimaryButton } from '@/components/ui/primary-button';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { useAuthStore } from '@/store/auth-store';
 import { useThemeColors } from '@/theme/colors';
-
-type IconName = keyof typeof Ionicons.glyphMap;
+import type { IconName } from '@/theme/icons';
 
 const benefits: { icon: IconName; title: string; detail: string }[] = [
   { icon: 'notifications-outline', title: 'Reminders that land on time', detail: 'Due dates and focus blocks' },
@@ -15,6 +15,7 @@ const benefits: { icon: IconName; title: string; detail: string }[] = [
   { icon: 'sparkles-outline', title: 'Recap when you finish', detail: 'A short summary of the day' },
 ];
 
+/** One-time step after a new signup. Finishing it hands the shell back to the tabs. */
 export function PermissionsScreen() {
   const colors = useThemeColors();
   const completePermissions = useAuthStore((state) => state.completePermissions);
@@ -42,27 +43,27 @@ export function PermissionsScreen() {
       subtitle="Kova can nudge you at the right moment. You can change this later in Profile.">
       <View style={{ gap: 12 }}>
         {benefits.map((benefit) => (
-          <View
-            key={benefit.title}
-            className="flex-row items-center rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <Card key={benefit.title} className="flex-row items-center rounded-2xl">
             <View className="h-10 w-10 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-950">
               <Ionicons name={benefit.icon} size={19} color={colors.primary} />
             </View>
             <View className="ml-3 flex-1">
-              <Text className="text-sm font-semibold text-slate-900 dark:text-slate-100">{benefit.title}</Text>
+              <Text className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                {benefit.title}
+              </Text>
               <Text className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{benefit.detail}</Text>
             </View>
-          </View>
+          </Card>
         ))}
       </View>
 
       <Text className="mt-6 text-xs text-slate-500 dark:text-slate-400">
-        Device registration for push lands with the reminders phase, so nothing is sent to the server yet.
+        Device registration for push arrives with the reminders work, so nothing is sent to the server yet.
       </Text>
 
       <View className="mt-6" style={{ gap: 10 }}>
-        <PrimaryButton label="Enable notifications" loading={busy} onPress={handleEnable} />
-        <PrimaryButton label="Not now" variant="ghost" onPress={completePermissions} />
+        <Button label="Enable notifications" loading={busy} onPress={handleEnable} />
+        <Button label="Not now" variant="secondary" onPress={completePermissions} />
       </View>
     </AuthScaffold>
   );

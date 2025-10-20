@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable } from 'react-native';
-import { usePersistedTheme } from '@/hooks/usePersistedTheme';
+
+import { useThemePreference } from '@/providers/theme-provider';
 import { useIsDark, useThemeColors } from '@/theme/colors';
 
 export function ThemeToggle() {
-  const { setTheme, isHydrated } = usePersistedTheme();
+  const { setTheme, isHydrated } = useThemePreference();
   const isDark = useIsDark();
   const colors = useThemeColors();
 

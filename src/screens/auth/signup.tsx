@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { AuthScaffold } from '@/components/auth/auth-scaffold';
+import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/form-error';
-import { PrimaryButton } from '@/components/ui/primary-button';
-import { TextField } from '@/components/ui/text-field';
+import { Input } from '@/components/ui/input';
 import { errorMessage, isApiError } from '@/lib/errors';
 import { emailSchema, fieldError, nameSchema, newPasswordSchema } from '@/lib/validation';
 import { useAuthStore } from '@/store/auth-store';
-import type { AuthRoute } from './auth-flow';
 
 type FieldErrors = {
   name?: string;
@@ -18,7 +18,8 @@ type FieldErrors = {
   form?: string;
 };
 
-export function SignupScreen({ onNavigate }: { onNavigate: (route: AuthRoute) => void }) {
+export function SignupScreen() {
+  const router = useRouter();
   const signUp = useAuthStore((state) => state.signUp);
 
   const [name, setName] = useState('');
@@ -44,10 +45,10 @@ export function SignupScreen({ onNavigate }: { onNavigate: (route: AuthRoute) =>
     setErrors({});
     setSubmitting(true);
     try {
+      // A new account flips the shell to the permissions step automatically.
       await signUp(name.trim(), email.trim(), password);
     } catch (error) {
       const message = errorMessage(error);
-      // The server reports duplicate accounts as a 400 on the email.
       const onEmail = isApiError(error) && error.status === 400 && /email/i.test(message);
       setErrors(onEmail ? { email: message } : { form: message });
     } finally {
@@ -59,18 +60,18 @@ export function SignupScreen({ onNavigate }: { onNavigate: (route: AuthRoute) =>
     <AuthScaffold
       title="Create your account"
       subtitle="Kova keeps your day, your moods and your progress in one place."
-      onBack={() => onNavigate('welcome')}
+      onBack={() => router.back()}
       footer={
         <View className="flex-row items-center justify-center">
           <Text className="text-sm text-slate-500 dark:text-slate-400">Already have an account?</Text>
-          <Pressable onPress={() => onNavigate('login')} className="ml-1 active:opacity-70">
+          <Pressable onPress={() => router.replace('/login')} className="ml-1 active:opacity-70">
             <Text className="text-sm font-semibold text-violet-600 dark:text-violet-400">Sign in</Text>
           </Pressable>
         </View>
       }>
       {errors.form ? <FormError message={errors.form} /> : null}
 
-      <TextField
+      <Input
         label="Name"
         value={name}
         onChangeText={setName}
@@ -82,7 +83,7 @@ export function SignupScreen({ onNavigate }: { onNavigate: (route: AuthRoute) =>
         returnKeyType="next"
       />
 
-      <TextField
+      <Input
         label="Email"
         value={email}
         onChangeText={setEmail}
@@ -96,12 +97,13 @@ export function SignupScreen({ onNavigate }: { onNavigate: (route: AuthRoute) =>
         returnKeyType="next"
       />
 
-      <TextField
+      <Input
         label="Password"
         value={password}
         onChangeText={setPassword}
         error={errors.password}
         placeholder="At least 8 characters"
+        hint="Use 8 characters or more."
         secureTextEntry
         autoCapitalize="none"
         autoComplete="new-password"
@@ -109,7 +111,7 @@ export function SignupScreen({ onNavigate }: { onNavigate: (route: AuthRoute) =>
         returnKeyType="next"
       />
 
-      <TextField
+      <Input
         label="Confirm password"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
@@ -123,7 +125,7 @@ export function SignupScreen({ onNavigate }: { onNavigate: (route: AuthRoute) =>
       />
 
       <View className="mt-2">
-        <PrimaryButton label="Create account" loading={submitting} onPress={handleSubmit} />
+        <Button label="Create account" loading={submitting} onPress={handleSubmit} />
       </View>
     </AuthScaffold>
   );
