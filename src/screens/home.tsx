@@ -2,7 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuthStore } from '@/store/auth-store';
 import { useThemeColors } from '@/theme/colors';
+
+function greetingFor(date: Date): string {
+  const hour = date.getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function todayLabel(date: Date): string {
+  return date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+}
 
 const quickActions = [
   { id: '1', label: 'Start focus', icon: 'flash' as const,         tone: 'primary' as const },
@@ -18,6 +30,9 @@ const upcomingTasks = [
 
 export default function HomeScreen() {
   const colors = useThemeColors();
+  const user = useAuthStore((state) => state.user);
+  const firstName = user?.name.trim().split(/\s+/)[0] ?? 'there';
+  const now = new Date();
   const toneColor = { primary: colors.primary, info: colors.info, success: colors.success };
 
   return (
@@ -32,10 +47,10 @@ export default function HomeScreen() {
 
         {/* Header */}
         <Text className="text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
-          Wednesday, October 7
+          {todayLabel(now)}
         </Text>
         <Text className="mt-2 text-4xl font-bold text-slate-900 dark:text-slate-100">
-          Good morning, Alex.
+          {greetingFor(now)}, {firstName}.
         </Text>
         <Text className="mt-2 text-base text-slate-500 dark:text-slate-400">
           A clear mind starts with one small step.

@@ -1,9 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useAuthStore } from '@/store/auth-store';
 import { useThemeColors } from '@/theme/colors';
+
+/** "Alex Lee" → "AL"; falls back to a single letter for one-word names. */
+function initialsOf(name: string | undefined): string {
+  const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'K';
+  const first = parts[0]?.charAt(0) ?? '';
+  const last = parts.length > 1 ? parts[parts.length - 1]?.charAt(0) ?? '' : '';
+  return `${first}${last}`.toUpperCase() || 'K';
+}
 
 const preferences = [
   { label: 'Notifications', detail: 'Daily reminders are on', icon: 'notifications' as const },
@@ -13,6 +23,20 @@ const preferences = [
 
 export default function ProfileScreen() {
   const colors = useThemeColors();
+  const user = useAuthStore((state) => state.user);
+  const signOut = useAuthStore((state) => state.signOut);
+
+  function handleSignOut() {
+    // RN Web has no button-capable Alert, so it signs out directly.
+    if (Platform.OS === 'web') {
+      void signOut();
+      return;
+    }
+    Alert.alert('Sign out', 'You will need to sign in again to get back in.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign out', style: 'destructive', onPress: () => void signOut() },
+    ]);
+  }
 
   return (
     <SafeAreaView
@@ -29,11 +53,13 @@ export default function ProfileScreen() {
         {/* Avatar Card */}
         <View className="mt-4 flex-row items-center rounded-3xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <View className="h-14 w-14 items-center justify-center rounded-full bg-violet-600">
-            <Text className="text-xl font-bold text-white">AL</Text>
+            <Text className="text-xl font-bold text-white">{initialsOf(user?.name)}</Text>
           </View>
           <View className="ml-3 flex-1">
-            <Text className="text-lg font-bold text-slate-900 dark:text-slate-100">Alex Lee</Text>
-            <Text className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Building a calmer routine</Text>
+            <Text className="text-lg font-bold text-slate-900 dark:text-slate-100">{user?.name ?? 'Kova user'}</Text>
+            <Text className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+              {user?.email ?? 'Signed in'}
+            </Text>
           </View>
           <Pressable className="h-9 w-9 items-center justify-center rounded-full bg-slate-100 active:opacity-70 dark:bg-slate-800">
             <Ionicons name="pencil" size={16} color={colors.textMuted} />
@@ -92,7 +118,10 @@ export default function ProfileScreen() {
             <Text className="ml-2 font-semibold text-slate-700 dark:text-slate-300">Help &amp; Support</Text>
           </Pressable>
 
-          <Pressable className="flex-row items-center justify-center rounded-2xl border border-red-200 bg-white py-4 active:opacity-70 dark:border-red-900 dark:bg-slate-900">
+          <Pressable
+            onPress={handleSignOut}
+            accessibilityRole="button"
+            className="flex-row items-center justify-center rounded-2xl border border-red-200 bg-white py-4 active:opacity-70 dark:border-red-900 dark:bg-slate-900">
             <Ionicons name="log-out" size={18} color={colors.danger} />
             <Text className="ml-2 font-semibold text-red-500 dark:text-red-400">Sign out</Text>
           </Pressable>
