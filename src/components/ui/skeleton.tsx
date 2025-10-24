@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Animated, View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
 
-import { useThemeColors } from '@/theme/colors';
+import { radii, useThemeColors } from '@/config/theme';
 
 type Props = {
   width?: DimensionValue;
@@ -10,13 +10,7 @@ type Props = {
   style?: StyleProp<ViewStyle>;
 };
 
-/**
- * Pulsing placeholder used while a screen's first payload is in flight.
- *
- * `Animated.View` is not one of the components Uniwind wraps, so the colours come from
- * `useThemeColors()` instead of a `className`.
- */
-export function Skeleton({ width = '100%', height = 16, radius = 8, style }: Props) {
+export function Skeleton({ width = '100%', height = 16, radius = radii.sm, style }: Props) {
   const colors = useThemeColors();
   const [pulse] = useState(() => new Animated.Value(0.5));
 
@@ -34,15 +28,23 @@ export function Skeleton({ width = '100%', height = 16, radius = 8, style }: Pro
   return (
     <Animated.View
       accessibilityRole="progressbar"
-      style={[{ width, height, borderRadius: radius, opacity: pulse, backgroundColor: colors.border }, style]}
+      style={[
+        {
+          width,
+          height,
+          borderRadius: radius,
+          opacity: pulse,
+          backgroundColor: colors.skeleton,
+        },
+        style,
+      ]}
     />
   );
 }
 
-/** A few stacked lines, sized like a card's text block. */
 export function SkeletonCard({ lines = 2 }: { lines?: number }) {
   return (
-    <View className="rounded-3xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+    <View className="rounded-3xl border border-border bg-surface p-4">
       <Skeleton width="55%" height={14} />
       {Array.from({ length: lines }).map((_, index) => (
         <Skeleton

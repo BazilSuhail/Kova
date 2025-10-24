@@ -3,10 +3,10 @@ import { Platform, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 
-import type { Task } from '@/api/types';
+import type { Task } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useCaptureTaskFromImage } from '@/hooks/queries/tasks';
+import { useCaptureTaskFromImage } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
 import { extensionFor } from '@/lib/upload';
 
@@ -14,24 +14,18 @@ type ScanSource = 'camera' | 'library';
 
 type Props = {
   disabled?: boolean;
-  /** Fired as soon as the task exists, so the list behind the sheet is already right. */
   onCreated: (task: Task) => void;
-  /** Fired when the user is finished with the panel. */
   onDone: () => void;
 };
 
-/**
- * Photographs a page and lets OCR plus the model file the task.
- *
- * The recognised text is shown back rather than swallowed: it is the quickest way for the
- * user to see whether the model read the note the way they meant it.
- */
 export function ScanCapture({ disabled = false, onCreated, onDone }: Props) {
   const capture = useCaptureTaskFromImage();
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ task: Task; extractedText: string; preview: string } | null>(
-    null,
-  );
+  const [result, setResult] = useState<{
+    task: Task;
+    extractedText: string;
+    preview: string;
+  } | null>(null);
 
   const busy = disabled || capture.isPending;
 
@@ -86,16 +80,16 @@ export function ScanCapture({ disabled = false, onCreated, onDone }: Props) {
             accessibilityLabel="The photo you scanned"
           />
           <View className="p-4">
-            <Text className="text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
+            <Text className="text-xs font-semibold uppercase tracking-widest text-brand-ink">
               Read from your photo
             </Text>
-            <Text className="mt-2 text-sm text-slate-700 dark:text-slate-300">
+            <Text className="mt-2 text-sm text-body">
               {result.extractedText || 'The page did not give us any readable text.'}
             </Text>
           </View>
         </Card>
 
-        <Text className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+        <Text className="mt-3 text-sm text-muted">
           Filed as “{result.task.title}”. Open it from the list to change the date or category.
         </Text>
 
@@ -108,14 +102,13 @@ export function ScanCapture({ disabled = false, onCreated, onDone }: Props) {
 
   return (
     <View>
-      <View className="rounded-3xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-        <Text className="text-sm text-slate-700 dark:text-slate-300">
+      <View className="rounded-3xl border border-border bg-surface p-4">
+        <Text className="text-sm text-body">
           Point the camera at a page of notes, a whiteboard or a receipt. Kova reads the text and
           files a task, and shows you what it read.
         </Text>
 
         <View className="mt-4" style={{ gap: 10 }}>
-          {/* The web has no camera roll behind `launchCameraAsync`, so only offer a file pick. */}
           {Platform.OS !== 'web' ? (
             <Button
               label={capture.isPending ? 'Reading your photo' : 'Take a photo'}
@@ -136,9 +129,7 @@ export function ScanCapture({ disabled = false, onCreated, onDone }: Props) {
         </View>
       </View>
 
-      {error ? (
-        <Text className="mt-3 text-sm font-medium text-red-500 dark:text-red-400">{error}</Text>
-      ) : null}
+      {error ? <Text className="mt-3 text-sm font-medium text-danger-ink">{error}</Text> : null}
     </View>
   );
 }

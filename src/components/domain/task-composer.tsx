@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 
-import type { Task } from '@/api/types';
+import type { Task } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,7 @@ import {
   type TaskDraft,
 } from '@/components/domain/task-fields';
 import { VoiceCapture } from '@/components/domain/voice-capture';
-import { useCaptureTask, useCreateTask, useSuggestTitle } from '@/hooks/queries/tasks';
+import { useCaptureTask, useCreateTask, useSuggestTitle } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
 
 type Mode = 'manual' | 'prompt' | 'voice' | 'scan';
@@ -29,16 +29,9 @@ const MODES: { value: Mode; label: string }[] = [
 type Props = {
   visible: boolean;
   onClose: () => void;
-  /** Fired after the server has stored the task. */
   onCreated?: (task: Task) => void;
 };
 
-/**
- * Four ways in, one sheet: a plain form, one sentence for the model, a voice note, or a photo.
- *
- * Voice and scan both close the sheet through `finish`, except for a scan, which stays open
- * long enough to show the text the OCR actually read.
- */
 export function TaskComposerSheet({ visible, onClose, onCreated }: Props) {
   const [mode, setMode] = useState<Mode>('manual');
   const [draft, setDraft] = useState<TaskDraft>(EMPTY_DRAFT);
@@ -118,11 +111,13 @@ export function TaskComposerSheet({ visible, onClose, onCreated }: Props) {
       visible={visible}
       onClose={handleClose}
       title="Capture a task"
-      subtitle="Get it out of your head now, organise it later.">
+      subtitle="Get it out of your head now, organise it later."
+    >
       <ScrollView
         style={{ maxHeight: 460 }}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         <View className="mb-4 flex-row flex-wrap" style={{ gap: 8 }}>
           {MODES.map((option) => (
             <Chip
@@ -199,9 +194,7 @@ export function TaskComposerSheet({ visible, onClose, onCreated }: Props) {
           />
         ) : null}
 
-        {error ? (
-          <Text className="mt-3 text-sm font-medium text-red-500 dark:text-red-400">{error}</Text>
-        ) : null}
+        {error ? <Text className="mt-3 text-sm font-medium text-danger-ink">{error}</Text> : null}
 
         <View className="mt-5">
           <Button

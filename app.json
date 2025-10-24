@@ -9,10 +9,15 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.kova.app",
-      "supportsTablet": true
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.kova.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#EDE9FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -32,14 +37,16 @@
         {
           "backgroundColor": "#7C3AED",
           "image": "./assets/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 200
         }
       ],
       "expo-secure-store",
       [
         "expo-audio",
         {
-          "microphonePermission": "Kova uses the microphone so one spoken sentence can become a task."
+          "microphonePermission": "Kova uses the microphone so one spoken sentence can become a task.",
+          "enableBackgroundRecording": false,
+          "enableBackgroundPlayback": false
         }
       ],
       [
@@ -54,7 +61,8 @@
         {
           "color": "#7C3AED"
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,

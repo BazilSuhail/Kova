@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 
-import { setSessionExpiredHandler } from '@/api/client';
-import type { AuthUser } from '@/api/types';
+import { setSessionExpiredHandler } from '@/lib/api';
+import type { AuthUser } from '@/lib/api';
 import { bootstrapSession, useAuthStore, type AuthStatus } from '@/store/auth-store';
 
 type AuthContextValue = {
@@ -14,10 +14,6 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/**
- * Owns the session lifecycle: bootstraps it on launch and lets the API layer force a
- * sign-out the moment a rotated refresh token is refused.
- */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const status = useAuthStore((state) => state.status);
   const user = useAuthStore((state) => state.user);
@@ -44,7 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         showPermissions,
         restoreError,
         isAuthenticated: status === 'authenticated',
-      }}>
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

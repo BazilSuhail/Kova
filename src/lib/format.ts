@@ -1,15 +1,5 @@
-/**
- * Date and time formatting.
- *
- * The API mixes two shapes: date-only strings (`2026-10-06`) and full ISO timestamps
- * (`2026-10-05T18:00:00+00:00`). A date-only value must never be run through `new Date()`,
- * because that parses as UTC midnight and can render as the previous day in a western
- * timezone — so it is split by hand and rebuilt as local midnight.
- */
-
 const DAY_MS = 86_400_000;
 
-/** Parses either shape, returning `null` for empty or unusable values. */
 export function parseDate(value: string | undefined | null): Date | null {
   if (!value) return null;
 
@@ -23,7 +13,6 @@ export function parseDate(value: string | undefined | null): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-/** Midnight local time, so day comparisons ignore the clock. */
 function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
@@ -32,13 +21,11 @@ function daysFromToday(date: Date): number {
   return Math.round((startOfDay(date).getTime() - startOfDay(new Date()).getTime()) / DAY_MS);
 }
 
-/** True when a due date sits before today. */
 export function isOverdue(value: string | undefined): boolean {
   const date = parseDate(value);
   return date ? startOfDay(date).getTime() < startOfDay(new Date()).getTime() : false;
 }
 
-/** "Today", "Tomorrow", "Yesterday", a weekday, or a short date. */
 export function formatDueDate(value: string | undefined): string | null {
   const date = parseDate(value);
   if (!date) return null;
@@ -52,13 +39,6 @@ export function formatDueDate(value: string | undefined): string | null {
   return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 }
 
-/** "2:30 PM", or `null` when the value is not a usable timestamp. */
-export function formatTime(value: string | undefined): string | null {
-  const date = parseDate(value);
-  return date ? date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : null;
-}
-
-/** "Today, 2:30 PM" / "Yesterday, 9:00 AM" / "5 Oct, 6:00 PM". */
 export function formatDateTime(value: string | undefined): string | null {
   const date = parseDate(value);
   if (!date) return null;
@@ -70,7 +50,6 @@ export function formatDateTime(value: string | undefined): string | null {
   return `${date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}, ${time}`;
 }
 
-/** "just now" / "5m ago" / "3h ago" / "2d ago" / a short date. */
 export function relativeTime(value: string | undefined): string | null {
   const date = parseDate(value);
   if (!date) return null;
@@ -88,10 +67,43 @@ export function relativeTime(value: string | undefined): string | null {
   return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 }
 
-/** `YYYY-MM-DD` for today, matching what the server stores in `dueDate`. */
 export function todayIsoDate(): string {
   const now = new Date();
   const month = `${now.getMonth() + 1}`.padStart(2, '0');
   const day = `${now.getDate()}`.padStart(2, '0');
   return `${now.getFullYear()}-${month}-${day}`;
+}
+
+export function addDays(iso: string, n: number): string {
+  const [year, month, day] = iso.split('-').map(Number);
+  const date = new Date(year, month - 1, day + n);
+  const nextMonth = `${date.getMonth() + 1}`.padStart(2, '0');
+  const nextDay = `${date.getDate()}`.padStart(2, '0');
+  return `${date.getFullYear()}-${nextMonth}-${nextDay}`;
+}
+
+export function dayLabel(iso: string): string {
+  if (iso === todayIsoDate()) return 'Today';
+  const [year, month, day] = iso.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
+    weekday: 'short',
+    day: 'numeric',
+  });
+}
+
+export function shortDate(iso: string | undefined): string {
+  if (!iso) return '';
+  const [year, month, day] = iso.slice(0, 10).split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+  });
+}
+
+export function initialsOf(name: string | undefined, fallback = '?'): string {
+  const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return fallback;
+  const first = parts[0]?.charAt(0) ?? '';
+  const last = parts.length > 1 ? (parts[parts.length - 1]?.charAt(0) ?? '') : '';
+  return `${first}${last}`.toUpperCase() || fallback;
 }

@@ -51,12 +51,18 @@ Common values: `http://127.0.0.1:5000` (local) · `http://10.0.2.2:5000` (Androi
 
 ```text
 src/
-├─ app/            expo-router entry + layouts
-├─ components/     tab bar, theme toggle, shared UI
-├─ screens/        screen implementations
-├─ hooks/          reusable hooks (persisted theme)
-└─ theme/          theme-aware colour tokens for icons & charts
+├─ app/            expo-router routes; each route file owns its screen
+├─ components/     auth, domain, navigation and UI primitives
+├─ config/         theme tokens and environment config
+├─ constants/      shared option lists and category tones
+├─ lib/            API client and hooks, formatting, storage, validation
+├─ providers/      theme, auth, query and push providers
+├─ store/          auth state
+└─ theme/          icon name types
 ```
+
+Each route under `src/app` contains the full implementation of its screen. Shared
+presentational pieces live in `src/components`; shared logic lives in `src/lib`.
 
 ## Navigation
 
@@ -65,11 +71,23 @@ indicator, swipeable pager, and tabs that mount on first visit.
 
 ## Theming
 
-Light and dark are handled by **plain Tailwind classes** via Uniwind (`bg-white dark:bg-slate-900`) —
-there is no custom colour palette to configure. The only raw colour values live in
-`src/theme/colors.ts`, used by `useThemeColors()` for APIs that can't take a `className`
-(Ionicons `color`, chart strokes). Accent policy: violet = brand/primary/AI,
-emerald = success/streak, red/amber = danger/warning.
+The design system is two brand greens on neutral surfaces:
+
+- Forest `#123F36` is the primary fill and light-mode heading.
+- Pine `#2A6B5C` is the secondary fill and light-mode body text.
+- Backgrounds are white and true neutral grays in light mode; near-black and neutral grays in
+  dark mode.
+
+Every colour is a semantic token. `global.css` declares the Uniwind palette and the light/dark
+values; `src/config/theme.ts` mirrors those values for JavaScript consumers such as Ionicons
+`color`, chart strokes, and the skeleton shimmer. Components use semantic classes
+(`bg-surface`, `text-body`, `border-border`) and never a `dark:` variant.
+
+Theme choice — light, dark, or system — is persisted by
+`src/providers/theme-provider.tsx` under `@kova/theme` and exposed through `useTheme()`.
+`useThemeColors()` and `useIsDark()` come from `src/config/theme.ts`.
+
+See **[docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md)** for the full token and contrast reference.
 
 ## Roadmap
 

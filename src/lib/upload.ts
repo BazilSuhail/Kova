@@ -1,20 +1,11 @@
 import { Platform } from 'react-native';
 
 export type UploadFile = {
-  /** Local `file://` (native) or `blob:` / `data:` (web) URI from the picker. */
   uri: string;
   name: string;
-  /** MIME type, e.g. `image/jpeg`, `audio/m4a`, `application/pdf`. */
   type: string;
 };
 
-/**
- * Builds a `multipart/form-data` body for one file.
- *
- * Native accepts React Native's `{ uri, name, type }` descriptor directly. The web build
- * needs a real `Blob`, so the URI is fetched first — which also covers the picker's
- * `blob:` URLs. The client leaves `Content-Type` unset so fetch can supply the boundary.
- */
 export async function fileFormData(file: UploadFile, field = 'file'): Promise<FormData> {
   const form = new FormData();
 
@@ -28,7 +19,6 @@ export async function fileFormData(file: UploadFile, field = 'file'): Promise<Fo
   return form;
 }
 
-/** Best-effort file extension from a MIME type, used when the picker sends no name. */
 export function extensionFor(mimeType: string | undefined | null, fallback: string): string {
   if (!mimeType) return fallback;
   const known: Record<string, string> = {

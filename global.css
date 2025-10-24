@@ -1,2 +1,93 @@
 @import 'tailwindcss';
 @import 'uniwind';
+
+@theme {
+  --color-forest: #123f36;
+  --color-pine: #2a6b5c;
+  --color-white: #ffffff;
+  --color-ink: #0a0a0a;
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #e5e5e5;
+  --color-gray-300: #d4d4d4;
+  --color-gray-400: #a3a3a3;
+  --color-gray-500: #737373;
+  --color-gray-600: #525252;
+  --color-gray-700: #404040;
+  --color-gray-800: #262626;
+  --color-gray-900: #171717;
+}
+
+@layer theme {
+  :root {
+    @variant light {
+      --color-background: #ffffff;
+      --color-surface: #ffffff;
+      --color-surface-alt: #f5f5f5;
+      --color-on-surface-alt: #123f36;
+
+      --color-border: #e5e5e5;
+      --color-focus: #2a6b5c;
+
+      --color-heading: #123f36;
+      --color-body: #2a6b5c;
+      --color-muted: #525252;
+
+      --color-brand: #123f36;
+      --color-brand-ink: #123f36;
+      --color-on-brand: #ffffff;
+      --color-accent: #2a6b5c;
+      --color-on-accent: #ffffff;
+
+      --color-nav: #123f36;
+      --color-on-nav: #ffffff;
+      --color-nav-active: #ffffff;
+      --color-nav-muted: #e5e5e5;
+
+      --color-info: #f5f5f5;
+      --color-on-info: #123f36;
+      --color-success: #123f36;
+      --color-on-success: #ffffff;
+      --color-warning: #525252;
+      --color-on-warning: #ffffff;
+      --color-danger: #171717;
+      --color-on-danger: #ffffff;
+      --color-danger-ink: #123f36;
+    }
+
+    @variant dark {
+      --color-background: #0a0a0a;
+      --color-surface: #171717;
+      --color-surface-alt: #262626;
+      --color-on-surface-alt: #e5e5e5;
+
+      --color-border: #525252;
+      --color-focus: #d4d4d4;
+
+      --color-heading: #f5f5f5;
+      --color-body: #d4d4d4;
+      --color-muted: #a3a3a3;
+
+      --color-brand: #2a6b5c;
+      --color-brand-ink: #e5e5e5;
+      --color-on-brand: #ffffff;
+      --color-accent: #2a6b5c;
+      --color-on-accent: #ffffff;
+
+      --color-nav: #2a6b5c;
+      --color-on-nav: #ffffff;
+      --color-nav-active: #ffffff;
+      --color-nav-muted: #e5e5e5;
+
+      --color-info: #262626;
+      --color-on-info: #e5e5e5;
+      --color-success: #2a6b5c;
+      --color-on-success: #ffffff;
+      --color-warning: #525252;
+      --color-on-warning: #ffffff;
+      --color-danger: #404040;
+      --color-on-danger: #ffffff;
+      --color-danger-ink: #f5f5f5;
+    }
+  }
+}

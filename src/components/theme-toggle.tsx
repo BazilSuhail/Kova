@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable } from 'react-native';
 
-import { useThemePreference } from '@/providers/theme-provider';
-import { useIsDark, useThemeColors } from '@/theme/colors';
+import { useTheme } from '@/providers/theme-provider';
+import { useIsDark, useThemeColors } from '@/config/theme';
 
 export function ThemeToggle() {
-  const { setTheme, isHydrated } = useThemePreference();
+  const { setTheme, isHydrated } = useTheme();
   const isDark = useIsDark();
   const colors = useThemeColors();
 
@@ -17,12 +17,9 @@ export function ThemeToggle() {
       accessibilityRole="switch"
       accessibilityState={{ checked: isDark }}
       accessibilityLabel={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-      className="h-10 w-10 items-center justify-center rounded-full bg-slate-100 active:opacity-70 dark:bg-slate-800">
-      <Ionicons
-        name={isDark ? 'sunny' : 'moon'}
-        size={18}
-        color={isDark ? colors.warning : colors.textMuted}
-      />
+      className="h-10 w-10 items-center justify-center rounded-full bg-surface-alt active:opacity-70"
+    >
+      <Ionicons name={isDark ? 'sunny' : 'moon'} size={18} color={colors.onSurfaceAlt} />
     </Pressable>
   );
 }

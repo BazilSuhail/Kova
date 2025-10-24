@@ -1,15 +1,35 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState, type ComponentProps } from 'react';
-import { Animated, Pressable, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Animated, Keyboard, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { Tabs } from 'expo-router';
+import type {
+  Descriptor,
+  NavigationHelpers,
+  ParamListBase,
+  RouteProp,
+  TabNavigationState,
+} from 'expo-router/react-navigation';
+import type {
+  MaterialTopTabNavigationEventMap,
+  MaterialTopTabNavigationOptions,
+  MaterialTopTabNavigationProp,
+} from 'expo-router/js-top-tabs';
 
-import { selectFeedback } from '@/lib/haptics';
-import { useThemeColors } from '@/theme/colors';
+import { spacing, useThemeColors } from '@/config/theme';
 import type { IconName } from '@/theme/icons';
 
-/** The props React Navigation hands to a custom `tabBar`. */
-type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
+export type AppTabBarProps = {
+  state: TabNavigationState<ParamListBase>;
+  navigation: NavigationHelpers<ParamListBase, MaterialTopTabNavigationEventMap>;
+  descriptors: Record<
+    string,
+    Descriptor<
+      MaterialTopTabNavigationOptions,
+      MaterialTopTabNavigationProp<ParamListBase>,
+      RouteProp<ParamListBase>
+    >
+  >;
+};
 
 type TabConfig = {
   label: string;
@@ -17,7 +37,6 @@ type TabConfig = {
   iconActive: IconName;
 };
 
-/** Keyed by route name, so it works whether the file is `(home)` or a folder. */
 const TABS: Record<string, TabConfig> = {
   '(home)': { label: 'Home', icon: 'home-outline', iconActive: 'home' },
   tasks: { label: 'Tasks', icon: 'checkbox-outline', iconActive: 'checkbox' },
@@ -26,15 +45,29 @@ const TABS: Record<string, TabConfig> = {
   profile: { label: 'Profile', icon: 'person-outline', iconActive: 'person' },
 };
 
-/**
- * Bottom bar for the tab shell.
- *
- * The active tab gets a scaling violet bubble. Each tab's screen stays mounted once
- * visited (React Navigation's default), so switching tabs never refetches.
- */
-export function AppTabBar({ state, descriptors, navigation }: TabBarProps) {
+const SLOT_WIDTH = 58;
+const SLOT_HEIGHT = 34;
+
+function useKeyboardVisible() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () => setVisible(true));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setVisible(false));
+
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
+  return visible;
+}
+
+export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
+  const keyboardVisible = useKeyboardVisible();
 
   const [bubbles] = useState(() =>
     state.routes.map((_, index) => new Animated.Value(index === state.index ? 1 : 0)),
@@ -51,12 +84,15 @@ export function AppTabBar({ state, descriptors, navigation }: TabBarProps) {
     });
   }, [bubbles, state.index]);
 
-  const bottomInset = insets.bottom || 14;
+  if (keyboardVisible) return null;
+
+  const bottomInset = insets.bottom || spacing.sm;
 
   return (
     <View
-      className="flex-row border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
-      style={{ height: 72 + bottomInset, paddingBottom: bottomInset }}>
+      className="flex-row border-t border-border bg-nav"
+      style={{ height: 56 + bottomInset, paddingTop: 4, paddingBottom: bottomInset }}
+    >
       {state.routes.map((route, index) => {
         const config = TABS[route.name];
         if (!config) return null;
@@ -72,9 +108,8 @@ export function AppTabBar({ state, descriptors, navigation }: TabBarProps) {
             canPreventDefault: true,
           });
 
-          if (!focused && !event.defaultPrevented) {
-            selectFeedback();
-            navigation.navigate(route.name, route.params);
+          if (!event.defaultPrevented) {
+            navigation.navigate(route.name, { screen: 'index' });
           }
         }
 
@@ -91,31 +126,38 @@ export function AppTabBar({ state, descriptors, navigation }: TabBarProps) {
             accessibilityLabel={options?.tabBarAccessibilityLabel ?? label}
             accessibilityState={{ selected: focused }}
             className="flex-1 items-center justify-center active:opacity-70"
-            style={{ gap: 4 }}>
-            <Animated.View
-              pointerEvents="none"
+            style={{ gap: 2 }}
+          >
+            <View
               style={{
-                position: 'absolute',
-                width: 66,
-                height: 48,
-                borderRadius: 26,
-                backgroundColor: colors.primarySoft,
-                transform: [{ scale: bubbles[index] }],
+                width: SLOT_WIDTH,
+                height: SLOT_HEIGHT,
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
-            />
+            >
+              <Animated.View
+                pointerEvents="none"
+                style={{
+                  position: 'absolute',
+                  width: SLOT_WIDTH,
+                  height: SLOT_HEIGHT,
+                  borderRadius: SLOT_HEIGHT / 2,
+                  backgroundColor: colors.navActive,
+                  transform: [{ scale: bubbles[index] }],
+                }}
+              />
 
-            <Ionicons
-              name={focused ? config.iconActive : config.icon}
-              size={21}
-              color={focused ? colors.primary : colors.textMuted}
-            />
+              <Ionicons
+                name={focused ? config.iconActive : config.icon}
+                size={21}
+                color={focused ? colors.nav : colors.navMuted}
+              />
+            </View>
 
             <Text
-              className={`text-xs font-semibold ${
-                focused
-                  ? 'text-violet-700 dark:text-violet-300'
-                  : 'text-slate-500 dark:text-slate-400'
-              }`}>
+              className={`text-[11px] font-semibold ${focused ? 'text-nav-active' : 'text-nav-muted'}`}
+            >
               {label}
             </Text>
           </Pressable>

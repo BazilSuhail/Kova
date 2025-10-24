@@ -10,11 +10,6 @@ const REFRESH_KEY = 'kova.refreshToken';
 
 const isWeb = Platform.OS === 'web';
 
-/**
- * Tokens live in the OS keychain on native and never in `AsyncStorage` or the query cache.
- * Web has no keychain, so `localStorage` is the fallback (an accepted trade-off for the
- * web preview only).
- */
 const webStore = {
   get(key: string): string | null {
     try {
@@ -26,16 +21,12 @@ const webStore = {
   set(key: string, value: string): void {
     try {
       globalThis.localStorage?.setItem(key, value);
-    } catch {
-      // Storage disabled — the session simply will not persist.
-    }
+    } catch {}
   },
   remove(key: string): void {
     try {
       globalThis.localStorage?.removeItem(key);
-    } catch {
-      // Nothing to clean up.
-    }
+    } catch {}
   },
 };
 
@@ -64,10 +55,12 @@ async function removeItem(key: string): Promise<void> {
 }
 
 export const tokenStorage = {
-  /** Returns `null` unless both halves of the pair are present. */
   async load(): Promise<TokenPair | null> {
     try {
-      const [accessToken, refreshToken] = await Promise.all([readItem(ACCESS_KEY), readItem(REFRESH_KEY)]);
+      const [accessToken, refreshToken] = await Promise.all([
+        readItem(ACCESS_KEY),
+        readItem(REFRESH_KEY),
+      ]);
       if (!accessToken || !refreshToken) return null;
       return { accessToken, refreshToken };
     } catch {
@@ -76,14 +69,16 @@ export const tokenStorage = {
   },
 
   async save(pair: TokenPair): Promise<void> {
-    await Promise.all([writeItem(ACCESS_KEY, pair.accessToken), writeItem(REFRESH_KEY, pair.refreshToken)]);
+    await Promise.all([
+      writeItem(ACCESS_KEY, pair.accessToken),
+      writeItem(REFRESH_KEY, pair.refreshToken),
+    ]);
   },
 
   async clear(): Promise<void> {
     await Promise.all([removeItem(ACCESS_KEY), removeItem(REFRESH_KEY)]);
   },
 
-  /** Access token only, for callers that just need the header value. */
   async accessToken(): Promise<string | null> {
     try {
       return await readItem(ACCESS_KEY);

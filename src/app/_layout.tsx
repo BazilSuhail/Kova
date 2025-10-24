@@ -2,25 +2,28 @@ import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import '../../global.css';
+import { palette } from '@/config/theme';
 import { AuthProvider, useAuth } from '@/providers/auth-provider';
 import { PushProvider } from '@/providers/push-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
-import { BootScreen } from '@/screens/boot-splash';
 
-// Keep the native splash up until the stored session has been resolved.
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-/**
- * The session decides which half of the tree exists at all: the auth stack, the tab
- * shell, or the one-time permissions step that follows a fresh signup.
- *
- * `Stack.Protected` swaps the groups by guard, so no screen has to navigate on sign-in
- * or sign-out and there is never a frame where both are mounted.
- */
+function BootScreen() {
+  return (
+    <View className="flex-1 items-center justify-center bg-brand">
+      <Text className="text-4xl font-bold tracking-tight text-on-brand">Kova</Text>
+      <Text className="mt-2 text-sm text-on-brand">Plan, focus, reflect</Text>
+      <ActivityIndicator style={{ marginTop: 32 }} color={palette.white} />
+    </View>
+  );
+}
+
 function RootNavigator() {
   const { status, showPermissions } = useAuth();
   const isAuthenticated = status === 'authenticated';

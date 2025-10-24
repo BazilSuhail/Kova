@@ -31,7 +31,7 @@ which exists in `src/api/sync.ts` but nothing enqueues into it (see Phase 4 "Def
 ## Phase 2 — Navigation shell ✅ done
 expo-router adopted: `(auth)` / `(tabs)` groups, a `<Stack>` per tab, modal routes, declarative `Stack.Protected`
 gating, animated custom `tabBar`, UI kit (Card, Button, Input, Chip, Sheet, EmptyState, ErrorState, Skeleton, FAB,
-Row, Screen), loading/empty/error states. Screens live in `src/screens/` with thin route files under `src/app/`.
+Row, Screen), loading/empty/error states. Each screen lives in its route file under `src/app/`.
 Theme preference hoisted into `ThemeProvider` so the stored choice applies before the first paint.
 
 ## Phase 3 — MVP screens ✅ done

@@ -1,7 +1,12 @@
 import { create } from 'zustand';
 
-import { fetchMe, login as loginRequest, logout as logoutRequest, signup as signupRequest } from '@/api/auth';
-import type { AuthUser, TokenPairPayload } from '@/api/types';
+import {
+  fetchMe,
+  login as loginRequest,
+  logout as logoutRequest,
+  signup as signupRequest,
+} from '@/lib/api';
+import type { AuthUser, TokenPairPayload } from '@/lib/api';
 import { errorMessage, isAuthError } from '@/lib/errors';
 import { queryClient } from '@/lib/query-client';
 import { tokenStorage } from '@/lib/storage';
@@ -11,27 +16,18 @@ export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 type AuthState = {
   status: AuthStatus;
   user: AuthUser | null;
-  /** Set after a fresh signup so the flow can ask for notification permission once. */
   showPermissions: boolean;
-  /** Set when a session restore could not reach the server. */
   restoreError: string | null;
 
   signUp: (name: string, email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  /** Drops the session locally without a server round trip. */
   forceSignOut: () => Promise<void>;
   restoreSession: () => Promise<void>;
   completePermissions: () => void;
   setUser: (user: AuthUser) => void;
 };
 
-/**
- * Stores the rotated pair, then loads the profile.
- *
- * If the profile call fails the tokens are only removed when the server says they are
- * invalid — a network blip should not cost the user their session.
- */
 async function startSession(
   payload: TokenPairPayload,
   set: (partial: Partial<AuthState>) => void,
@@ -71,11 +67,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   async signOut() {
     const tokens = await tokenStorage.load();
     try {
-      // Best effort: revokes the access token (and the refresh token) server side.
       await logoutRequest(tokens?.refreshToken);
-    } catch {
-      // Already expired or revoked — local cleanup is what matters.
-    }
+    } catch {}
     await tokenStorage.clear();
     queryClient.clear();
     set({ status: 'unauthenticated', user: null, showPermissions: false, restoreError: null });
@@ -105,7 +98,6 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ status: 'unauthenticated', user: null, restoreError: null });
         return;
       }
-      // Server unreachable: the tokens stay put so a retry can recover the session.
       set({ status: 'unauthenticated', user: null, restoreError: errorMessage(error) });
     }
   },
@@ -121,13 +113,11 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 let bootstrap: Promise<void> | null = null;
 
-/** Restores the session once per launch, no matter how many components ask for it. */
 export function bootstrapSession(): Promise<void> {
   bootstrap ??= useAuthStore.getState().restoreSession();
   return bootstrap;
 }
 
-/** Retries a failed restore (used by the Welcome screen when the server was unreachable). */
 export function retrySession(): Promise<void> {
   bootstrap = useAuthStore.getState().restoreSession();
   return bootstrap;

@@ -1,13 +1,11 @@
 import { View } from 'react-native';
 
-import type { CreateTaskInput, UpdateTaskInput } from '@/api/tasks';
-import type { Task } from '@/api/types';
+import type { CreateTaskInput, UpdateTaskInput, Task } from '@/lib/api';
 import { Chip } from '@/components/ui/chip';
 import { Input } from '@/components/ui/input';
 import { TASK_CATEGORY_SUGGESTIONS } from '@/constants/tasks';
 import { formatDueDate, todayIsoDate } from '@/lib/format';
 
-/** The editable shape of a task, shared by the composer and the detail screen. */
 export type TaskDraft = {
   title: string;
   description: string;
@@ -27,7 +25,6 @@ export function draftFromTask(task: Task | undefined): TaskDraft {
   };
 }
 
-/** `YYYY-MM-DD` for tomorrow, so the quick chip never has to format a date. */
 function tomorrowIsoDate(): string {
   const date = new Date();
   date.setDate(date.getDate() + 1);
@@ -36,7 +33,6 @@ function tomorrowIsoDate(): string {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
-/** Trims the draft into a create body; empty optional fields are dropped. */
 export function draftToCreateInput(draft: TaskDraft): CreateTaskInput {
   const title = draft.title.trim();
   const description = draft.description.trim();
@@ -51,17 +47,12 @@ export function draftToCreateInput(draft: TaskDraft): CreateTaskInput {
   };
 }
 
-/**
- * Sends only what actually changed.
- *
- * ⚠️ The server answers 404 when a `PUT` carries no real change, so an unchanged draft must
- * never be submitted — callers check that the patch has at least one key first.
- */
 export function draftToPatch(draft: TaskDraft, task: Task): UpdateTaskInput {
   const patch: UpdateTaskInput = {};
 
   if (draft.title.trim() !== task.title) patch.title = draft.title.trim();
-  if (draft.description.trim() !== (task.description ?? '')) patch.description = draft.description.trim();
+  if (draft.description.trim() !== (task.description ?? ''))
+    patch.description = draft.description.trim();
   if (draft.category.trim() !== (task.category ?? '')) patch.category = draft.category.trim();
   if (draft.dueDate.trim() !== (task.dueDate ?? '')) patch.dueDate = draft.dueDate.trim();
 
@@ -74,7 +65,6 @@ type Props = {
   disabled?: boolean;
 };
 
-/** The task form fields, so the composer and the edit sheet cannot drift apart. */
 export function TaskFields({ draft, onChange, disabled = false }: Props) {
   const due = formatDueDate(draft.dueDate);
   const today = todayIsoDate();
@@ -104,13 +94,19 @@ export function TaskFields({ draft, onChange, disabled = false }: Props) {
       <View className="mb-4">
         <View className="mb-2 flex-row items-center justify-between">
           <View className="flex-row items-center" style={{ gap: 8 }}>
-            <Chip label="Today" selected={draft.dueDate === today} onPress={() => onChange({ dueDate: today })} />
+            <Chip
+              label="Today"
+              selected={draft.dueDate === today}
+              onPress={() => onChange({ dueDate: today })}
+            />
             <Chip
               label="Tomorrow"
               selected={draft.dueDate === tomorrow}
               onPress={() => onChange({ dueDate: tomorrow })}
             />
-            {draft.dueDate ? <Chip label="Clear" onPress={() => onChange({ dueDate: '' })} /> : null}
+            {draft.dueDate ? (
+              <Chip label="Clear" onPress={() => onChange({ dueDate: '' })} />
+            ) : null}
           </View>
         </View>
         <Input

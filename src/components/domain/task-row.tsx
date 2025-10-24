@@ -1,24 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
-import type { Task } from '@/api/types';
+import type { Task } from '@/lib/api';
 import { TaskCheckbox } from '@/components/domain/task-checkbox';
-import { categoryToneClass } from '@/constants/tasks';
+import { categoryInkClass, categoryToneClass } from '@/constants/tasks';
 import { formatDueDate, isOverdue } from '@/lib/format';
-import { useThemeColors } from '@/theme/colors';
+import { useThemeColors } from '@/config/theme';
 
 type Props = {
   task: Task;
   onToggle: () => void;
-  /** Tapping the row body; omit to keep the row read only. */
   onPress?: () => void;
-  /** Long press, used for the delete affordance. */
   onLongPress?: () => void;
-  /** Shows a spinner on the checkbox while the toggle is in flight. */
   toggling?: boolean;
 };
 
-/** One task, as it appears on the list and on the home screen. */
 export function TaskRow({ task, onToggle, onPress, onLongPress, toggling = false }: Props) {
   const colors = useThemeColors();
   const done = Boolean(task.isCompleted);
@@ -31,10 +27,11 @@ export function TaskRow({ task, onToggle, onPress, onLongPress, toggling = false
       onLongPress={onLongPress}
       disabled={!onPress && !onLongPress}
       accessibilityRole={onPress ? 'button' : undefined}
-      className={`flex-row items-center rounded-2xl border bg-white px-4 py-3 dark:bg-slate-900 ${
-        late ? 'border-red-200 dark:border-red-900' : 'border-slate-200 dark:border-slate-800'
+      className={`flex-row items-center rounded-2xl border bg-surface px-4 py-3 ${
+        late ? 'border-danger' : 'border-border'
       } ${onPress ? 'active:opacity-70' : ''}`}
-      style={{ gap: 12 }}>
+      style={{ gap: 12 }}
+    >
       <TaskCheckbox
         checked={done}
         busy={toggling}
@@ -45,9 +42,8 @@ export function TaskRow({ task, onToggle, onPress, onLongPress, toggling = false
       <View className="flex-1">
         <Text
           numberOfLines={2}
-          className={`text-sm font-semibold ${
-            done ? 'text-slate-400 line-through dark:text-slate-600' : 'text-slate-900 dark:text-slate-100'
-          }`}>
+          className={`text-sm font-semibold ${done ? 'text-muted line-through' : 'text-heading'}`}
+        >
           {task.title}
         </Text>
 
@@ -55,17 +51,20 @@ export function TaskRow({ task, onToggle, onPress, onLongPress, toggling = false
           <View className="mt-1.5 flex-row items-center" style={{ gap: 8 }}>
             {task.category ? (
               <View className={`rounded-full px-2 py-0.5 ${categoryToneClass(task.category)}`}>
-                <Text className="text-xs font-semibold">{task.category}</Text>
+                <Text className={`text-xs font-semibold ${categoryInkClass(task.category)}`}>
+                  {task.category}
+                </Text>
               </View>
             ) : null}
 
             {due ? (
               <View className="flex-row items-center" style={{ gap: 3 }}>
-                <Ionicons name="calendar-outline" size={11} color={late ? colors.danger : colors.textMuted} />
-                <Text
-                  className={`text-xs font-medium ${
-                    late ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'
-                  }`}>
+                <Ionicons
+                  name="calendar-outline"
+                  size={11}
+                  color={late ? colors.dangerInk : colors.muted}
+                />
+                <Text className={`text-xs font-medium ${late ? 'text-danger-ink' : 'text-muted'}`}>
                   {due}
                 </Text>
               </View>
@@ -73,15 +72,15 @@ export function TaskRow({ task, onToggle, onPress, onLongPress, toggling = false
 
             {task.hasSubtasks ? (
               <View className="flex-row items-center" style={{ gap: 3 }}>
-                <Ionicons name="list-outline" size={11} color={colors.textMuted} />
-                <Text className="text-xs font-medium text-slate-500 dark:text-slate-400">Steps</Text>
+                <Ionicons name="list-outline" size={11} color={colors.muted} />
+                <Text className="text-xs font-medium text-muted">Steps</Text>
               </View>
             ) : null}
           </View>
         ) : null}
       </View>
 
-      {onPress ? <Ionicons name="chevron-forward" size={16} color={colors.textMuted} /> : null}
+      {onPress ? <Ionicons name="chevron-forward" size={16} color={colors.muted} /> : null}
     </Pressable>
   );
 }

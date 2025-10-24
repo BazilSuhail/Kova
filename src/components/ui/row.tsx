@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { useThemeColors } from '@/theme/colors';
+import { useThemeColors } from '@/config/theme';
 import type { IconName } from '@/theme/icons';
 
 export type RowTone = 'neutral' | 'primary' | 'success' | 'danger';
@@ -12,32 +12,37 @@ type Props = {
   subtitle?: string;
   icon?: IconName;
   tone?: RowTone;
-  /** Trailing content; defaults to a chevron when the row is tappable. */
   right?: ReactNode;
   onPress?: () => void;
-  /** Skip the bottom divider on the last row of a group. */
   last?: boolean;
 };
 
 const TONE_BG: Record<RowTone, string> = {
-  neutral: 'bg-slate-100 dark:bg-slate-800',
-  primary: 'bg-violet-50 dark:bg-violet-950',
-  success: 'bg-emerald-50 dark:bg-emerald-950',
-  danger: 'bg-red-50 dark:bg-red-950',
+  neutral: 'bg-surface-alt',
+  primary: 'bg-brand',
+  success: 'bg-success',
+  danger: 'bg-danger',
 };
 
-/** Settings-style row used inside cards and grouped lists. */
-export function Row({ title, subtitle, icon, tone = 'neutral', right, onPress, last = false }: Props) {
+export function Row({
+  title,
+  subtitle,
+  icon,
+  tone = 'neutral',
+  right,
+  onPress,
+  last = false,
+}: Props) {
   const colors = useThemeColors();
 
   const iconColor =
     tone === 'primary'
-      ? colors.primary
+      ? colors.onBrand
       : tone === 'success'
-        ? colors.success
+        ? colors.onSuccessFill
         : tone === 'danger'
-          ? colors.danger
-          : colors.textMuted;
+          ? colors.onDangerFill
+          : colors.onSurfaceAlt;
 
   const body = (
     <>
@@ -48,24 +53,24 @@ export function Row({ title, subtitle, icon, tone = 'neutral', right, onPress, l
       ) : null}
 
       <View className={`flex-1 ${icon ? 'ml-3' : ''}`}>
-        <Text className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</Text>
-        {subtitle ? (
-          <Text className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{subtitle}</Text>
-        ) : null}
+        <Text className="text-sm font-semibold text-heading">{title}</Text>
+        {subtitle ? <Text className="mt-0.5 text-xs text-muted">{subtitle}</Text> : null}
       </View>
 
-      {right ?? (onPress ? <Ionicons name="chevron-forward" size={16} color={colors.textMuted} /> : null)}
+      {right ??
+        (onPress ? <Ionicons name="chevron-forward" size={16} color={colors.muted} /> : null)}
     </>
   );
 
-  const divider = last ? '' : 'border-b border-slate-200 dark:border-slate-800';
+  const divider = last ? '' : 'border-b border-border';
 
   if (onPress) {
     return (
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
-        className={`flex-row items-center px-4 py-3 active:opacity-70 ${divider}`}>
+        className={`flex-row items-center px-4 py-3 active:opacity-70 ${divider}`}
+      >
         {body}
       </Pressable>
     );
