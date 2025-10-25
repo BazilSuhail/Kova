@@ -49,3 +49,6 @@ Thumbs.db
 .idea/
 *.orig.*
 *.bak
+
+# Local export check output (never commit)
+.expo-check-android/
