@@ -21,7 +21,7 @@ export function ChipRow({ label, options, value, onChange, feedback = false }: P
 
   return (
     <View>
-      <Text className="mb-2 text-xs font-medium text-muted">{label}</Text>
+      <Text className="mb-2 text-sm font-medium text-heading">{label}</Text>
       <View className="flex-row flex-wrap" style={{ gap: 8 }}>
         {options.map((option) => (
           <Chip

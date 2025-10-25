@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import type { SubtaskGroup } from '@/lib/api';
@@ -12,17 +13,18 @@ import {
   draftToPatch,
   type TaskDraft,
 } from '@/components/domain/task-fields';
+import { AppBar, IconButton } from '@/components/ui/app-bar';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Chip } from '@/components/ui/chip';
+import { useDialog } from '@/components/ui/dialog';
+import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
+import { FormError } from '@/components/ui/form-error';
 import { Screen } from '@/components/ui/screen';
-import { ScreenHeader } from '@/components/ui/screen-header';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Sheet } from '@/components/ui/sheet';
 import { SkeletonCard } from '@/components/ui/skeleton';
-import { BackButton } from '@/components/ui/back-button';
-import { categoryInkClass, categoryToneClass, createdFromLabel } from '@/constants/tasks';
+import { createdFromLabel } from '@/constants/tasks';
 import {
   useCategorizeTask,
   useDeleteSubtask,
@@ -35,13 +37,14 @@ import {
   useToggleTask,
   useUpdateTask,
 } from '@/lib/api';
-import { errorMessage, isNotFound } from '@/lib/errors';
+import { errorMessage, friendlyErrorMessage, isNotFound } from '@/lib/errors';
 import { formatDueDate, isOverdue, relativeTime } from '@/lib/format';
-import { useThemeColors } from '@/config/theme';
+import { layout, spacing, useThemeColors } from '@/config/theme';
+import type { IconName } from '@/theme/icons';
 
 type Status = { tone: 'error' | 'success'; text: string };
 
-function SubtaskGroupCard({
+function SubtaskGroupRow({
   group,
   busy,
   onToggle,
@@ -57,8 +60,8 @@ function SubtaskGroupCard({
   const steps = group.subTasks ?? [];
 
   return (
-    <Card padded={false} className="overflow-hidden rounded-2xl">
-      <View className="flex-row items-center px-4 py-3" style={{ gap: 12 }}>
+    <View className="border-b border-border py-3">
+      <View className="flex-row items-center" style={{ gap: spacing.md }}>
         <TaskCheckbox
           checked={done}
           busy={busy}
@@ -67,7 +70,7 @@ function SubtaskGroupCard({
         />
         <View className="flex-1">
           <Text
-            className={`text-sm font-semibold ${done ? 'text-muted line-through' : 'text-heading'}`}
+            className={`text-[15px] font-medium ${done ? 'text-muted line-through' : 'text-heading'}`}
           >
             {group.title ?? 'Steps'}
           </Text>
@@ -75,33 +78,70 @@ function SubtaskGroupCard({
             {steps.length} {steps.length === 1 ? 'step' : 'steps'}
           </Text>
         </View>
-        <Pressable
-          onPress={onDelete}
-          hitSlop={8}
-          accessibilityRole="button"
+        <IconButton
+          icon="trash-outline"
+          size={18}
+          color={colors.muted}
           accessibilityLabel="Delete these steps"
-          className="h-8 w-8 items-center justify-center rounded-full active:opacity-70"
-        >
-          <Ionicons name="trash-outline" size={16} color={colors.danger} />
-        </Pressable>
+          onPress={onDelete}
+        />
       </View>
 
       {steps.map((step, index) => (
         <View
           key={`${index}-${step}`}
-          className="flex-row items-start border-t border-border px-4 py-3"
-          style={{ gap: 10 }}
+          className="mt-2 flex-row items-start"
+          style={{ gap: spacing.md, paddingLeft: 36 }}
         >
-          <Text className="text-xs font-bold text-brand-ink">{index + 1}</Text>
+          <Text className="w-4 text-xs font-bold text-brand-ink">{index + 1}</Text>
           <Text className="flex-1 text-sm leading-5 text-body">{step}</Text>
         </View>
       ))}
-    </Card>
+    </View>
+  );
+}
+
+function DetailRow({
+  icon,
+  label,
+  value,
+  tone = 'default',
+  onPress,
+}: {
+  icon: IconName;
+  label: string;
+  value: string;
+  tone?: 'default' | 'danger' | 'muted';
+  onPress?: () => void;
+}) {
+  const colors = useThemeColors();
+  const color =
+    tone === 'danger' ? colors.dangerInk : tone === 'muted' ? colors.muted : colors.heading;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      className="min-h-14 flex-row items-center border-b border-border py-3 active:bg-surface-alt"
+      style={{ gap: spacing.lg }}
+    >
+      <Ionicons name={icon} size={20} color={colors.muted} />
+      <View className="flex-1">
+        <Text className="text-xs text-muted">{label}</Text>
+        <Text className="mt-0.5 text-[15px]" style={{ color }}>
+          {value}
+        </Text>
+      </View>
+      {onPress ? <Ionicons name="chevron-forward" size={16} color={colors.muted} /> : null}
+    </Pressable>
   );
 }
 
 export default function TaskDetailScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
+  const { confirm } = useDialog();
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const taskId = Array.isArray(params.id) ? (params.id[0] ?? '') : (params.id ?? '');
 
@@ -118,13 +158,15 @@ export default function TaskDetailScreen() {
 
   const [status, setStatus] = useState<Status | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [draft, setDraft] = useState<TaskDraft>(EMPTY_DRAFT);
 
   const current = task.data;
   const done = Boolean(current?.isCompleted);
   const due = formatDueDate(current?.dueDate);
   const late = !done && isOverdue(current?.dueDate);
-  const aiBusy = rewriteTitle.isPending || categorize.isPending;
+  const aiBusy = rewriteTitle.isPending || categorize.isPending || generateSubtasks.isPending;
+  const canSplit = Boolean(current?.description) && !aiBusy;
 
   function goBack() {
     if (router.canGoBack()) {
@@ -159,7 +201,7 @@ export default function TaskDetailScreen() {
       setEditOpen(false);
       setStatus({ tone: 'success', text: 'Task updated.' });
     } catch (failure) {
-      setStatus({ tone: 'error', text: errorMessage(failure) });
+      setStatus({ tone: 'error', text: friendlyErrorMessage(failure, 'task') });
     }
   }
 
@@ -168,251 +210,301 @@ export default function TaskDetailScreen() {
     try {
       setStatus({ tone: 'success', text: describe(await action()) });
     } catch (failure) {
-      setStatus({ tone: 'error', text: errorMessage(failure) });
+      setStatus({ tone: 'error', text: friendlyErrorMessage(failure, 'ai') });
     }
   }
 
-  function confirmDeleteTask() {
-    removeTask.mutate(taskId, { onSuccess: goBack });
+  function splitIntoSteps() {
+    void runAi(
+      () => generateSubtasks.mutateAsync(undefined).then((group) => group.title ?? 'Steps'),
+      (title) => `Added "${title}".`,
+    );
+  }
+
+  async function confirmDeleteTask() {
+    const ok = await confirm({
+      title: 'Delete task',
+      message: `"${current?.title ?? 'This task'}" and its steps will be removed for good.`,
+      icon: 'trash-outline',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!ok) return;
+    removeTask.mutate(taskId, {
+      onSuccess: goBack,
+      onError: (failure) =>
+        setStatus({ tone: 'error', text: friendlyErrorMessage(failure, 'task') }),
+    });
+  }
+
+  async function confirmDeleteSteps(group: SubtaskGroup) {
+    const ok = await confirm({
+      title: 'Delete steps',
+      message: `"${group.title ?? 'These steps'}" will be removed.`,
+      icon: 'trash-outline',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (ok) removeSubtask.mutate(group.subtaskId);
   }
 
   const back = <BackButton fallback="/tasks" />;
 
-  if (task.isPending) {
+  if (task.isPending || task.isError || !current) {
+    const gone = task.isError && isNotFound(task.error);
     return (
-      <Screen contentContainerStyle={{ paddingBottom: 32 }}>
-        <View className="mb-4">{back}</View>
-        <SkeletonCard lines={3} />
-      </Screen>
-    );
-  }
-
-  if (task.isError || !current) {
-    const gone = isNotFound(task.error);
-
-    return (
-      <Screen contentContainerStyle={{ paddingBottom: 32 }}>
-        <View className="mb-4">{back}</View>
-        <ErrorState
-          title="Could not open this task"
-          message={gone ? 'This task no longer exists.' : errorMessage(task.error)}
-          onRetry={gone ? undefined : () => void task.refetch()}
-        />
-      </Screen>
-    );
-  }
-
-  return (
-    <Screen contentContainerStyle={{ paddingBottom: 40 }}>
-      <View className="mb-4 flex-row items-center justify-between">
-        {back}
-        <Chip label={done ? 'Completed' : 'Open'} selected={done} />
-      </View>
-
-      <ScreenHeader
-        icon="document-text-outline"
-        eyebrow="Task"
-        title={current.title}
-        subtitle={
-          createdFromLabel(current.createdFrom)
-            ? `${createdFromLabel(current.createdFrom)} · ${relativeTime(current.createdAt) ?? 'just now'}`
-            : (relativeTime(current.createdAt) ?? undefined)
-        }
-      />
-
-      <Card className="mt-5">
-        <View className="flex-row items-center" style={{ gap: 12 }}>
-          <TaskCheckbox
-            checked={done}
-            busy={toggleTask.isPending}
-            onPress={() => toggleTask.mutate({ taskId, isCompleted: !done })}
-            accessibilityLabel={done ? 'Reopen this task' : 'Complete this task'}
-          />
-          <View className="flex-1">
-            <Text className="text-sm font-semibold text-heading">
-              {done ? 'Done' : 'Still open'}
-            </Text>
-            <Text className="mt-0.5 text-xs text-muted">{due ? `Due ${due}` : 'No due date'}</Text>
-          </View>
-          {late ? <Chip label="Overdue" /> : null}
-        </View>
-
-        <View className="mt-4 flex-row flex-wrap items-center" style={{ gap: 8 }}>
-          {current.category ? (
-            <View className={`rounded-full px-3 py-1.5 ${categoryToneClass(current.category)}`}>
-              <Text className={`text-xs font-semibold ${categoryInkClass(current.category)}`}>
-                {current.category}
-              </Text>
-            </View>
+      <Screen scroll={false}>
+        <AppBar left={back} brand={false} title="Task" />
+        <View style={{ paddingHorizontal: layout.gutter }}>
+          {task.isPending ? (
+            <SkeletonCard lines={3} />
           ) : (
-            <Chip label="No category" />
+            <ErrorState
+              title="Could not open this task"
+              message={gone ? 'This task no longer exists.' : errorMessage(task.error)}
+              onRetry={gone ? undefined : () => void task.refetch()}
+            />
           )}
         </View>
+      </Screen>
+    );
+  }
 
-        {current.description ? (
-          <Text className="mt-4 text-sm leading-6 text-muted">{current.description}</Text>
-        ) : (
-          <Text className="mt-4 text-sm text-muted">
-            No details yet. A description also lets Kova split this into steps.
-          </Text>
-        )}
-      </Card>
+  const source = createdFromLabel(current.createdFrom);
+  const created = relativeTime(current.createdAt) ?? 'just now';
+  const groups = subtasks.data ?? [];
 
-      {status ? (
-        <View
-          className={`mt-4 rounded-2xl p-3 ${
-            status.tone === 'error' ? 'bg-surface-alt' : 'bg-surface-alt'
+  return (
+    <Screen scroll={false}>
+      <AppBar
+        left={back}
+        brand={false}
+        title="Task"
+        actions={[
+          { icon: 'create-outline', accessibilityLabel: 'Edit task', onPress: openEdit },
+          {
+            icon: 'ellipsis-vertical',
+            accessibilityLabel: 'More actions',
+            onPress: () => setMoreOpen(true),
+          },
+        ]}
+      />
+
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: layout.gutter, paddingBottom: spacing.xxxl }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text
+          className={`text-2xl font-bold tracking-tight ${
+            done ? 'text-muted line-through' : 'text-heading'
           }`}
         >
-          <Text
-            className={`text-sm font-medium ${
-              status.tone === 'error' ? 'text-danger-ink' : 'text-brand-ink'
-            }`}
-          >
-            {status.text}
-          </Text>
+          {current.title}
+        </Text>
+        <Text className="mt-1 text-sm text-muted">
+          {source ? `${source} · ${created}` : `Added ${created}`}
+        </Text>
+
+        <Button
+          className="mt-4"
+          label={done ? 'Mark as not done' : 'Mark as done'}
+          icon={done ? 'arrow-undo-outline' : 'checkmark-circle-outline'}
+          variant={done ? 'secondary' : 'primary'}
+          size="md"
+          loading={toggleTask.isPending}
+          onPress={() => toggleTask.mutate({ taskId, isCompleted: !done })}
+        />
+
+        {aiBusy ? (
+          <View className="mt-4 flex-row items-center" style={{ gap: spacing.sm }}>
+            <ActivityIndicator size="small" color={colors.brandInk} />
+            <Text className="text-sm text-muted">Kova is working on it…</Text>
+          </View>
+        ) : null}
+
+        {status && !editOpen ? (
+          <View className="mt-4">
+            {status.tone === 'error' ? (
+              <FormError message={status.text} />
+            ) : (
+              <View className="flex-row items-center" style={{ gap: spacing.sm }}>
+                <Ionicons name="checkmark-circle" size={18} color={colors.successInk} />
+                <Text className="flex-1 text-sm text-body">{status.text}</Text>
+              </View>
+            )}
+          </View>
+        ) : null}
+
+        <View className="mt-4">
+          <DetailRow
+            icon={done ? 'checkmark-circle-outline' : 'ellipse-outline'}
+            label="Status"
+            value={done ? 'Done' : 'Open'}
+          />
+          <DetailRow
+            icon={late ? 'alert-circle-outline' : 'calendar-outline'}
+            label="Due date"
+            value={due ? (late ? `Overdue · ${due}` : due) : 'No due date'}
+            tone={late ? 'danger' : due ? 'default' : 'muted'}
+            onPress={openEdit}
+          />
+          <DetailRow
+            icon="pricetag-outline"
+            label="Category"
+            value={current.category || 'No category'}
+            tone={current.category ? 'default' : 'muted'}
+            onPress={openEdit}
+          />
+          <DetailRow
+            icon="document-text-outline"
+            label="Details"
+            value={current.description || 'Add details so Kova can split this into steps'}
+            tone={current.description ? 'default' : 'muted'}
+            onPress={openEdit}
+          />
         </View>
-      ) : null}
 
-      <SectionHeading>
-        <Text className="text-base font-bold text-heading">Actions</Text>
-      </SectionHeading>
-
-      <View className="flex-row flex-wrap" style={{ gap: 8 }}>
-        <Button label="Edit" variant="secondary" size="sm" icon="pencil" onPress={openEdit} />
-        <Button
-          label="Rewrite title"
-          variant="secondary"
-          size="sm"
-          icon="sparkles"
-          loading={rewriteTitle.isPending}
-          disabled={aiBusy}
-          onPress={() =>
-            void runAi(
-              () => rewriteTitle.mutateAsync(taskId),
-              (title) => `Title is now "${title}".`,
-            )
+        <SectionHeading
+          action={
+            current.description ? (
+              <Button
+                label={generateSubtasks.isPending ? 'Splitting' : 'Split into steps'}
+                icon="sparkles-outline"
+                variant="ghost"
+                size="sm"
+                disabled={!canSplit}
+                onPress={splitIntoSteps}
+              />
+            ) : undefined
           }
-        />
-        <Button
-          label="Re-categorize"
-          variant="secondary"
-          size="sm"
-          icon="pricetag-outline"
-          loading={categorize.isPending}
-          disabled={aiBusy}
-          onPress={() =>
-            void runAi(
-              () => categorize.mutateAsync(taskId),
-              (category) => `Filed under ${category}.`,
-            )
-          }
-        />
-      </View>
+        >
+          <View className="flex-row items-center" style={{ gap: spacing.sm }}>
+            <Ionicons name="list-outline" size={18} color={colors.heading} />
+            <Text className="text-base font-semibold text-heading">Steps</Text>
+          </View>
+        </SectionHeading>
 
-      <SectionHeading
-        action={
-          <Pressable
-            onPress={() =>
-              void runAi(
-                () =>
-                  generateSubtasks.mutateAsync(undefined).then((group) => group.title ?? 'Steps'),
-                (title) => `Added "${title}".`,
-              )
-            }
-            disabled={generateSubtasks.isPending || !current.description}
-            accessibilityRole="button"
-          >
-            <Text
-              className={`text-sm font-semibold ${
-                !current.description || generateSubtasks.isPending ? 'text-muted' : 'text-brand-ink'
-              }`}
-            >
-              {generateSubtasks.isPending ? 'Splitting' : 'Split into steps'}
-            </Text>
-          </Pressable>
-        }
-      >
-        <Text className="text-base font-bold text-heading">Steps</Text>
-      </SectionHeading>
-
-      {!current.description ? (
-        <Card>
-          <Text className="text-sm text-muted">
-            Add a description, then Kova can break this task into ordered steps.
-          </Text>
-        </Card>
-      ) : subtasks.isPending ? (
-        <SkeletonCard lines={2} />
-      ) : subtasks.isError ? (
-        <ErrorState
-          title="Could not load the steps"
-          message={errorMessage(subtasks.error)}
-          onRetry={() => void subtasks.refetch()}
-        />
-      ) : (subtasks.data ?? []).length === 0 ? (
-        <Card>
-          <Text className="text-sm text-muted">
-            No steps yet. Use “Split into steps” to generate them from the description.
-          </Text>
-        </Card>
-      ) : (
-        <View style={{ gap: 8 }}>
-          {(subtasks.data ?? []).map((group) => (
-            <SubtaskGroupCard
+        {!current.description ? (
+          <EmptyState
+            icon="list-outline"
+            title="No steps yet"
+            description="Add details first, then Kova can break it into steps."
+            actionLabel="Add details"
+            onAction={openEdit}
+            className="py-6"
+          />
+        ) : subtasks.isPending ? (
+          <SkeletonCard lines={2} />
+        ) : subtasks.isError ? (
+          <ErrorState
+            title="Could not load the steps"
+            message={errorMessage(subtasks.error)}
+            onRetry={() => void subtasks.refetch()}
+          />
+        ) : groups.length === 0 ? (
+          <EmptyState
+            icon="sparkles-outline"
+            title="No steps yet"
+            description="Let Kova turn the details into ordered steps."
+            actionLabel="Split into steps"
+            onAction={splitIntoSteps}
+            className="py-6"
+          />
+        ) : (
+          groups.map((group, index) => (
+            <Animated.View
               key={group.subtaskId}
-              group={group}
-              busy={toggleSubtask.isPending}
-              onToggle={() =>
-                toggleSubtask.mutate({ subtaskId: group.subtaskId, done: !group.done })
-              }
-              onDelete={() => removeSubtask.mutate(group.subtaskId)}
-            />
-          ))}
-        </View>
-      )}
+              entering={FadeInDown.duration(220).delay(index * 40)}
+            >
+              <SubtaskGroupRow
+                group={group}
+                busy={toggleSubtask.isPending}
+                onToggle={() =>
+                  toggleSubtask.mutate({ subtaskId: group.subtaskId, done: !group.done })
+                }
+                onDelete={() => void confirmDeleteSteps(group)}
+              />
+            </Animated.View>
+          ))
+        )}
+      </ScrollView>
 
-      <View className="mt-8">
-        <Button
-          label="Delete task"
-          variant="danger"
-          icon="trash"
-          loading={removeTask.isPending}
-          onPress={confirmDeleteTask}
-        />
-      </View>
+      <Sheet
+        visible={moreOpen}
+        onClose={() => setMoreOpen(false)}
+        title={current.title}
+        actions={[
+          { icon: 'create-outline', label: 'Edit task', onPress: openEdit },
+          {
+            icon: 'sparkles-outline',
+            label: 'Rewrite title with AI',
+            disabled: aiBusy,
+            onPress: () =>
+              void runAi(
+                () => rewriteTitle.mutateAsync(taskId),
+                (title) => `Title is now "${title}".`,
+              ),
+          },
+          {
+            icon: 'pricetag-outline',
+            label: 'Pick category with AI',
+            disabled: aiBusy,
+            onPress: () =>
+              void runAi(
+                () => categorize.mutateAsync(taskId),
+                (category) => `Filed under ${category}.`,
+              ),
+          },
+          {
+            icon: 'list-outline',
+            label: 'Split into steps',
+            subtitle: current.description ? undefined : 'Add details first',
+            disabled: !canSplit,
+            onPress: splitIntoSteps,
+          },
+          {
+            icon: 'trash-outline',
+            label: 'Delete task',
+            destructive: true,
+            disabled: removeTask.isPending,
+            onPress: () => void confirmDeleteTask(),
+          },
+        ]}
+      />
 
       <Sheet
         visible={editOpen}
         onClose={() => setEditOpen(false)}
         title="Edit task"
-        subtitle="Only what you change is sent."
+        subtitle="Only what you change is saved."
+        icon="create-outline"
       >
-        <ScrollView
-          style={{ maxHeight: 460 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <TaskFields
-            draft={draft}
-            onChange={(patch) => setDraft((value) => ({ ...value, ...patch }))}
-            disabled={updateTask.isPending}
-          />
+        {status?.tone === 'error' ? <FormError message={status.text} /> : null}
+        <TaskFields
+          draft={draft}
+          onChange={(patch) => setDraft((value) => ({ ...value, ...patch }))}
+          disabled={updateTask.isPending}
+        />
 
-          <View className="mt-2 flex-row" style={{ gap: 8 }}>
-            <View className="flex-1">
-              <Button label="Save" loading={updateTask.isPending} onPress={() => void saveEdit()} />
-            </View>
-            <View className="flex-1">
-              <Button
-                label="Cancel"
-                variant="secondary"
-                disabled={updateTask.isPending}
-                onPress={() => setEditOpen(false)}
-              />
-            </View>
-          </View>
-        </ScrollView>
+        <View className="mt-6 flex-row" style={{ gap: spacing.sm }}>
+          <Button
+            className="flex-1"
+            label="Save"
+            icon="checkmark"
+            size="md"
+            loading={updateTask.isPending}
+            onPress={() => void saveEdit()}
+          />
+          <Button
+            className="flex-1"
+            label="Cancel"
+            variant="secondary"
+            size="md"
+            disabled={updateTask.isPending}
+            onPress={() => setEditOpen(false)}
+          />
+        </View>
       </Sheet>
     </Screen>
   );

@@ -11,22 +11,24 @@ type Props = {
 export function FormError({ message, tone = 'error' }: Props) {
   const colors = useThemeColors();
   const isWarning = tone === 'warning';
-  const icon = isWarning ? 'cloud-offline' : 'alert-circle';
 
   return (
     <View
-      className={`mb-4 flex-row items-start rounded-2xl border p-3 ${
-        isWarning ? 'border-warning bg-warning' : 'border-danger bg-danger'
+      accessibilityRole="alert"
+      accessibilityLiveRegion="polite"
+      className={`mb-4 flex-row items-start rounded-lg border p-3.5 ${
+        isWarning ? 'border-warning bg-warning' : 'border-error-border bg-error-soft'
       }`}
     >
       <Ionicons
-        name={icon}
+        name={isWarning ? 'cloud-offline' : 'alert-circle'}
         size={18}
-        color={isWarning ? colors.onWarningFill : colors.onDangerFill}
+        color={isWarning ? colors.onWarningFill : colors.error}
+        style={{ marginTop: 1 }}
       />
       <Text
-        className={`ml-2 flex-1 text-sm font-medium ${
-          isWarning ? 'text-on-warning' : 'text-on-danger'
+        className={`ml-2.5 flex-1 text-sm font-medium ${
+          isWarning ? 'text-on-warning' : 'text-error-ink'
         }`}
       >
         {message}

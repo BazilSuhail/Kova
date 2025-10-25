@@ -41,7 +41,7 @@ function CountPill({ count }: { count: number }) {
   const active = count > 0;
 
   return (
-    <View className={`rounded-full px-2.5 py-1 ${active ? 'bg-surface-alt' : 'bg-surface-alt'}`}>
+    <View className={`rounded-full px-2.5 py-1 ${active ? 'bg-brand-soft' : 'bg-surface-alt'}`}>
       <Text className={`text-xs font-bold ${active ? 'text-brand-ink' : 'text-muted'}`}>
         {count}
       </Text>
@@ -75,29 +75,17 @@ export default function SyncScreen() {
   }
 
   return (
-    <Screen edges={['top', 'bottom']}>
+    <Screen>
       <ScreenHeader
         icon="cloud-upload-outline"
         eyebrow="Sync"
-        title="Sync with the server"
-        subtitle="Pull the server's latest copy of everything."
+        title="Sync"
+        subtitle="Pull the latest copy of your data from the server."
         back
         backFallback="/profile"
       />
 
       <Card className="mt-5">
-        <Text className="text-sm leading-6 text-muted">
-          This server is the source of truth. The app refetches whatever it shows, and a manual sync
-          pulls every document that changed since the last one — so it repairs anything stale. A
-          deletion comes back as a tombstone, and conflicts resolve last-write-wins.
-        </Text>
-        <Text className="mt-3 text-sm leading-6 text-muted">
-          There is no offline queue: a change made without a connection fails, and you retry it
-          yourself once you are back online.
-        </Text>
-      </Card>
-
-      <Card className="mt-4">
         <View className="flex-row items-center justify-between">
           <Text className="text-sm font-semibold text-heading">Last synced</Text>
           <Text className="text-sm text-muted">
@@ -116,14 +104,14 @@ export default function SyncScreen() {
             label="Full sync"
             variant="secondary"
             size="md"
-            icon="cloud-download"
+            icon="cloud-download-outline"
+            disabled={syncPull.isPending}
             onPress={fullSync}
           />
         </View>
 
         <Text className="mt-3 text-xs leading-5 text-muted">
-          Full sync clears the last-synced time so the pull returns every document, not just what
-          changed since.
+          Sync now fetches what changed. Full sync fetches everything again.
         </Text>
       </Card>
 
@@ -139,7 +127,7 @@ export default function SyncScreen() {
             <Text className="text-base font-bold text-heading">Last pull</Text>
           </SectionHeading>
 
-          <Card padded={false} className="overflow-hidden rounded-2xl">
+          <Card padded={false} className="overflow-hidden">
             {COLLECTIONS.map((collection) => (
               <Row
                 key={collection.key}

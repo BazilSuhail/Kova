@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { useThemeColors } from '@/config/theme';
 import type { IconName } from '@/theme/icons';
+import { PressableScale } from './pressable-scale';
 
 type Props = {
   label: string;
@@ -11,18 +12,19 @@ type Props = {
   icon?: IconName;
 };
 
+/** YouTube filter chip: pill, brand fill when selected, surface-alt otherwise. */
 export function Chip({ label, selected = false, onPress, icon }: Props) {
   const colors = useThemeColors();
-  const iconColor = selected ? colors.onBrand : colors.muted;
+  const iconColor = selected ? colors.onBrand : colors.body;
 
-  const surface = `flex-row items-center rounded-full px-3 py-1.5 ${
-    selected ? 'bg-brand' : 'border border-border bg-surface'
+  const surface = `h-8 flex-row items-center rounded-full px-3 ${
+    selected ? 'bg-brand' : 'bg-surface-alt'
   }`;
 
   const body = (
     <>
-      {icon ? <Ionicons name={icon} size={13} color={iconColor} /> : null}
-      <Text className={`text-xs font-semibold ${selected ? 'text-on-brand' : 'text-body'}`}>
+      {icon ? <Ionicons name={icon} size={14} color={iconColor} /> : null}
+      <Text className={`text-sm font-medium ${selected ? 'text-on-brand' : 'text-body'}`}>
         {label}
       </Text>
     </>
@@ -37,14 +39,14 @@ export function Chip({ label, selected = false, onPress, icon }: Props) {
   }
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      className={`${surface} active:opacity-70`}
+      className={surface}
       style={{ gap: 6 }}
     >
       {body}
-    </Pressable>
+    </PressableScale>
   );
 }

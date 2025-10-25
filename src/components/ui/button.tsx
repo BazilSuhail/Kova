@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, Pressable, Text, type StyleProp, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Text, type StyleProp, type ViewStyle } from 'react-native';
 
 import { controlSizes, useThemeColors } from '@/config/theme';
 import type { IconName } from '@/theme/icons';
+import { PressableScale } from './pressable-scale';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -57,22 +58,23 @@ export function Button({
           : colors.heading;
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       disabled={blocked}
+      haptic={variant === 'primary' || variant === 'danger'}
       accessibilityRole="button"
       accessibilityState={{ disabled: blocked, busy: loading }}
-      className={`flex-row items-center justify-center rounded-2xl ${controlSizes[size]} ${SURFACE[variant]} ${blocked ? 'opacity-60' : 'active:opacity-80'} ${className ?? ''}`}
+      className={`flex-row items-center justify-center rounded-md ${controlSizes[size]} ${SURFACE[variant]} ${blocked ? 'opacity-50' : ''} ${className ?? ''}`}
       style={style}
     >
       {loading ? (
         <ActivityIndicator color={contentColor} />
       ) : (
         <>
-          {icon ? <Ionicons name={icon} size={17} color={contentColor} /> : null}
+          {icon ? <Ionicons name={icon} size={18} color={contentColor} /> : null}
           <Text className={`font-semibold ${LABEL[variant]} ${icon ? 'ml-2' : ''}`}>{label}</Text>
         </>
       )}
-    </Pressable>
+    </PressableScale>
   );
 }

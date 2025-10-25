@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" fill="none">
+  <circle cx="160" cy="122" r="96" fill="currentColor" fill-opacity=".07"/>
+  <rect x="64" y="56" width="52" height="88" rx="26" fill="#7FB5A3"/>
+  <rect x="82" y="78" width="16" height="4" rx="2" fill="#123F36" fill-opacity=".5"/>
+  <rect x="82" y="90" width="16" height="4" rx="2" fill="#123F36" fill-opacity=".5"/>
+  <rect x="82" y="102" width="16" height="4" rx="2" fill="#123F36" fill-opacity=".5"/>
+  <path d="M50 116c0 22 18 40 40 40s40-18 40-40M90 156v24M70 184h40" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+  <path d="M138 92v20M148 84v36M158 96v12" stroke="#E3B178" stroke-width="5" stroke-linecap="round"/>
+  <rect x="176" y="50" width="104" height="140" rx="10" fill="#9DB0D8"/>
+  <rect x="194" y="74" width="68" height="9" rx="4.5" fill="#123F36" fill-opacity=".55"/>
+  <rect x="194" y="94" width="52" height="9" rx="4.5" fill="#123F36" fill-opacity=".55"/>
+  <rect x="194" y="134" width="60" height="9" rx="4.5" fill="#123F36" fill-opacity=".55"/>
+  <rect x="194" y="154" width="40" height="9" rx="4.5" fill="#123F36" fill-opacity=".55"/>
+  <rect x="168" y="114" width="120" height="6" rx="3" fill="#D79A9A"/>
+  <path d="M166 62V48a6 6 0 0 1 6-6h14M290 62V48a6 6 0 0 0-6-6h-14M166 180v14a6 6 0 0 0 6 6h14M290 180v14a6 6 0 0 1-6 6h-14" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+</svg>

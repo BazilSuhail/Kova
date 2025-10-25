@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, type StyleProp, type ViewStyle } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 
-import { useThemeColors } from '@/config/theme';
+import { radii, useThemeColors } from '@/config/theme';
 import type { IconName } from '@/theme/icons';
+import { PressableScale } from './pressable-scale';
 
 type Props = {
   onPress: () => void;
@@ -16,24 +17,26 @@ export function Fab({ onPress, accessibilityLabel, icon = 'add', bottom = 24, st
   const colors = useThemeColors();
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
+      haptic
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      className="absolute right-6 h-16 w-16 items-center justify-center rounded-full bg-brand active:opacity-90"
+      className="absolute right-4 h-14 w-14 items-center justify-center bg-brand"
       style={[
         {
           bottom,
+          borderRadius: radii.lg,
           shadowColor: colors.ink,
-          shadowOpacity: 0.35,
-          shadowRadius: 14,
-          shadowOffset: { width: 0, height: 6 },
-          elevation: 6,
+          shadowOpacity: 0.18,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 4,
         },
         style,
       ]}
     >
       <Ionicons name={icon} size={26} color={colors.onBrand} />
-    </Pressable>
+    </PressableScale>
   );
 }

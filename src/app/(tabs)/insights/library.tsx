@@ -2,17 +2,20 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { router, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, FlatList, Platform, Pressable, Text, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import type { Summary } from '@/lib/api';
+import { AppBar, IconButton } from '@/components/ui/app-bar';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Chip } from '@/components/ui/chip';
+import { useDialog } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { FormError } from '@/components/ui/form-error';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
-import { ScreenHeader } from '@/components/ui/screen-header';
 import { Sheet } from '@/components/ui/sheet';
 import { Skeleton, SkeletonCard } from '@/components/ui/skeleton';
 import {
@@ -23,15 +26,28 @@ import {
 } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
 import { relativeTime } from '@/lib/format';
-import { successFeedback, warnFeedback } from '@/lib/haptics';
+import { selectFeedback, successFeedback, warnFeedback } from '@/lib/haptics';
 import { extensionFor, type UploadFile } from '@/lib/upload';
-import { useThemeColors } from '@/config/theme';
+import { layout, spacing, useThemeColors } from '@/config/theme';
+import type { IconName } from '@/theme/icons';
 
 const MIN_TEXT_LENGTH = 20;
 
+type Filter = 'all' | 'note' | 'pdf';
+
+const FILTERS: { value: Filter; label: string; icon: IconName }[] = [
+  { value: 'all', label: 'All', icon: 'albums-outline' },
+  { value: 'note', label: 'Notes', icon: 'reader-outline' },
+  { value: 'pdf', label: 'PDFs', icon: 'document-text-outline' },
+];
+
+function isPdf(summary: Summary): boolean {
+  return summary.sourceType.toLowerCase() === 'pdf';
+}
+
 function summaryTitle(summary: Summary): string {
-  const label = summary.sourceType.toLowerCase() === 'pdf' ? 'PDF' : 'Note';
-  return summary.originalFileName ? `${label} Â· ${summary.originalFileName}` : label;
+  const label = isPdf(summary) ? 'PDF' : 'Note';
+  return summary.originalFileName ? `${label} · ${summary.originalFileName}` : label;
 }
 
 function summaryHref(summaryId: string): Href {
@@ -40,20 +56,24 @@ function summaryHref(summaryId: string): Href {
 
 export default function LibraryScreen() {
   const colors = useThemeColors();
+  const { confirm } = useDialog();
   const summaries = useSummaries();
   const createFromText = useCreateSummaryFromText();
   const createFromPdf = useCreateSummaryFromPdf();
   const remove = useDeleteSummary();
 
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [selected, setSelected] = useState<Summary | null>(null);
+  const [filter, setFilter] = useState<Filter>('all');
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
 
-  const items = useMemo(
-    () => summaries.data?.pages.flatMap((page) => page.items) ?? [],
-    [summaries.data],
-  );
+  const items = useMemo(() => {
+    const all = summaries.data?.pages.flatMap((page) => page.items) ?? [];
+    // shortcut: filters only the pages loaded so far; move to the API if libraries get long.
+    return filter === 'all' ? all : all.filter((item) => isPdf(item) === (filter === 'pdf'));
+  }, [summaries.data, filter]);
 
   function resetForm() {
     setText('');
@@ -118,27 +138,23 @@ export default function LibraryScreen() {
     }
   }
 
-  function confirmDelete(summary: Summary) {
-    const run = () => {
-      warnFeedback();
-      remove.mutate(summary.summaryId);
-    };
-
-    if (Platform.OS === 'web') {
-      run();
-      return;
-    }
-
-    Alert.alert('Delete summary', 'This removes the bullets from your library.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: run },
-    ]);
+  async function confirmDelete(summary: Summary) {
+    const ok = await confirm({
+      title: 'Delete summary',
+      message: 'This removes the bullets from your library.',
+      icon: 'trash-outline',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!ok) return;
+    warnFeedback();
+    remove.mutate(summary.summaryId);
   }
 
   function emptyState() {
     if (summaries.isPending) {
       return (
-        <View style={{ gap: 12, marginTop: 12 }}>
+        <View style={{ gap: spacing.md, marginTop: spacing.md }}>
           <SkeletonCard lines={1} />
           <SkeletonCard lines={1} />
           <SkeletonCard lines={1} />
@@ -156,6 +172,18 @@ export default function LibraryScreen() {
       );
     }
 
+    if (filter !== 'all') {
+      return (
+        <EmptyState
+          icon={filter === 'pdf' ? 'document-text-outline' : 'reader-outline'}
+          title={filter === 'pdf' ? 'No PDFs yet' : 'No notes yet'}
+          description="Switch to All, or add a new one."
+          actionLabel="Add a summary"
+          onAction={openSheet}
+        />
+      );
+    }
+
     return (
       <EmptyState
         icon="document-text-outline"
@@ -167,25 +195,45 @@ export default function LibraryScreen() {
     );
   }
 
+  const busy = createFromText.isPending || createFromPdf.isPending;
+
   return (
-    <Screen
-      scroll={false}
-      contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 16 }}
-    >
-      <ScreenHeader
-        icon="library-outline"
-        eyebrow="Insights"
-        title="Summaries"
-        subtitle="Turn notes, transcripts and PDFs into clear bullets."
-        back
-        backFallback="/insights"
+    <Screen scroll={false}>
+      <AppBar
+        title="Library"
+        left={<BackButton fallback="/insights" />}
+        actions={[{ icon: 'add', accessibilityLabel: 'Add a summary', onPress: openSheet }]}
       />
+
+      <View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            gap: spacing.sm,
+            paddingHorizontal: layout.gutter,
+            paddingBottom: spacing.md,
+          }}
+        >
+          {FILTERS.map((option) => (
+            <Chip
+              key={option.value}
+              label={option.label}
+              icon={option.icon}
+              selected={filter === option.value}
+              onPress={() => {
+                selectFeedback();
+                setFilter(option.value);
+              }}
+            />
+          ))}
+        </ScrollView>
+      </View>
 
       <FlatList
         data={items}
         keyExtractor={(item) => item.summaryId}
-        style={{ marginTop: 16 }}
-        contentContainerStyle={{ gap: 8, paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: layout.gutter, paddingBottom: spacing.xxxl }}
         showsVerticalScrollIndicator={false}
         refreshing={summaries.isRefetching && !summaries.isFetchingNextPage}
         onRefresh={() => void summaries.refetch()}
@@ -195,94 +243,115 @@ export default function LibraryScreen() {
             void summaries.fetchNextPage();
           }
         }}
-        ListHeaderComponent={
-          <Card onPress={openSheet} className="flex-row items-center border-border">
-            <View className="h-10 w-10 items-center justify-center rounded-xl bg-surface-alt">
-              <Ionicons name="add" size={20} color={colors.brandInk} />
-            </View>
-            <View className="ml-3 flex-1">
-              <Text className="text-sm font-semibold text-heading">Add a summary</Text>
-              <Text className="mt-0.5 text-xs text-muted">Paste a note or upload a PDF</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.muted} />
-          </Card>
-        }
         ListEmptyComponent={emptyState}
         ListFooterComponent={
           summaries.isFetchingNextPage ? (
-            <Skeleton height={72} radius={24} style={{ marginTop: 8 }} />
-          ) : null
+            <Skeleton height={56} style={{ marginTop: spacing.sm }} />
+          ) : undefined
         }
-        renderItem={({ item }) => {
+        renderItem={({ item, index }) => {
           const preview = item.summaryBullets[0];
           const count = item.summaryBullets.length;
           const when = relativeTime(item.createdAt);
 
           return (
-            <Pressable
-              onPress={() => router.push(summaryHref(item.summaryId))}
-              onLongPress={() => confirmDelete(item)}
-              accessibilityRole="button"
-              accessibilityLabel={`Open ${summaryTitle(item)}`}
-              className="rounded-2xl border border-border bg-surface px-4 py-3 active:opacity-70"
-            >
-              <View className="flex-row items-center" style={{ gap: 8 }}>
-                <Ionicons
-                  name={
-                    item.sourceType.toLowerCase() === 'pdf'
-                      ? 'document-text-outline'
-                      : 'reader-outline'
-                  }
-                  size={15}
-                  color={colors.brandInk}
+            <Animated.View entering={FadeInDown.duration(220).delay(Math.min(index, 8) * 40)}>
+              <Pressable
+                onPress={() => router.push(summaryHref(item.summaryId))}
+                onLongPress={() => setSelected(item)}
+                accessibilityRole="button"
+                accessibilityLabel={`Open ${summaryTitle(item)}`}
+                className="flex-row items-start border-b border-border py-3 active:bg-surface-alt"
+                style={{ gap: spacing.md }}
+              >
+                <View className="h-10 w-10 items-center justify-center rounded-md bg-brand-soft">
+                  <Ionicons
+                    name={isPdf(item) ? 'document-text-outline' : 'reader-outline'}
+                    size={18}
+                    color={colors.brandInk}
+                  />
+                </View>
+                <View className="flex-1">
+                  <Text numberOfLines={1} className="text-[15px] font-medium text-heading">
+                    {summaryTitle(item)}
+                  </Text>
+                  {preview ? (
+                    <Text numberOfLines={2} className="mt-0.5 text-sm leading-5 text-body">
+                      {preview}
+                    </Text>
+                  ) : null}
+                  <Text className="mt-1 text-xs text-muted">
+                    {count} {count === 1 ? 'bullet' : 'bullets'}
+                    {when ? ` · ${when}` : ''}
+                  </Text>
+                </View>
+                <IconButton
+                  icon="ellipsis-vertical"
+                  size={18}
+                  accessibilityLabel="More"
+                  onPress={() => setSelected(item)}
                 />
-                <Text numberOfLines={1} className="flex-1 text-sm font-semibold text-heading">
-                  {summaryTitle(item)}
-                </Text>
-                {when ? <Text className="text-xs text-muted">{when}</Text> : null}
-              </View>
-
-              {preview ? (
-                <Text numberOfLines={2} className="mt-1.5 text-sm leading-5 text-muted">
-                  {preview}
-                </Text>
-              ) : null}
-
-              <Text className="mt-2 text-xs text-muted">
-                {count} {count === 1 ? 'bullet' : 'bullets'}
-              </Text>
-            </Pressable>
+              </Pressable>
+            </Animated.View>
           );
         }}
       />
 
       <Sheet
+        visible={selected !== null}
+        onClose={() => setSelected(null)}
+        title={selected ? summaryTitle(selected) : undefined}
+        actions={[
+          {
+            icon: 'open-outline',
+            label: 'Open',
+            onPress: () => {
+              if (selected) router.push(summaryHref(selected.summaryId));
+            },
+          },
+          {
+            icon: 'trash-outline',
+            label: 'Delete',
+            destructive: true,
+            disabled: remove.isPending,
+            onPress: () => {
+              if (selected) void confirmDelete(selected);
+            },
+          },
+        ]}
+      />
+
+      <Sheet
         visible={sheetOpen}
         onClose={closeSheet}
+        icon="library-outline"
         title="Add a summary"
         subtitle="Turn a note, transcript or PDF into a few clear bullets."
       >
         <Input
           label="Title (optional)"
+          icon="text-outline"
           placeholder="e.g. Lecture 4"
           value={title}
           onChangeText={setTitle}
-          editable={!createFromText.isPending && !createFromPdf.isPending}
+          editable={!busy}
         />
         <Input
           label="Note or transcript"
-          placeholder="Paste the text you want summarisedâ€¦"
+          icon="reader-outline"
+          placeholder="Paste the text you want summarised…"
           value={text}
           onChangeText={setText}
           multiline
           hint="At least 20 characters."
-          editable={!createFromText.isPending && !createFromPdf.isPending}
+          editable={!busy}
         />
 
         {formError ? <FormError message={formError} /> : null}
 
         <Button
           label="Create summary"
+          icon="sparkles-outline"
           loading={createFromText.isPending}
           disabled={createFromPdf.isPending}
           onPress={() => void createFromNote()}

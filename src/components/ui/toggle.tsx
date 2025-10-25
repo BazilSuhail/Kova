@@ -1,5 +1,7 @@
 import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
+import { selectFeedback } from '@/lib/haptics';
+
 type Props = {
   value: boolean;
   onChange: (next: boolean) => void;
@@ -35,7 +37,10 @@ export function Toggle({
   if (!label) {
     return (
       <Pressable
-        onPress={() => onChange(!value)}
+        onPress={() => {
+        selectFeedback();
+        onChange(!value);
+      }}
         disabled={disabled}
         accessibilityRole="switch"
         accessibilityState={{ checked: value, disabled }}
@@ -50,7 +55,10 @@ export function Toggle({
 
   return (
     <Pressable
-      onPress={() => onChange(!value)}
+      onPress={() => {
+        selectFeedback();
+        onChange(!value);
+      }}
       disabled={disabled}
       accessibilityRole="switch"
       accessibilityState={{ checked: value, disabled }}

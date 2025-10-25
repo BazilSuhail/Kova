@@ -1,90 +1,39 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Pressable, Text, View } from 'react-native';
-
-import { ThemeToggle } from '@/components/theme-toggle';
-import { Row } from '@/components/ui/row';
+import { Sheet } from '@/components/ui/sheet';
+import { useIsDark } from '@/config/theme';
 import { selectFeedback } from '@/lib/haptics';
-import { useTheme } from '@/providers/theme-provider';
-import { useIsDark, useThemeColors } from '@/config/theme';
+import { useTheme, type ThemeName } from '@/providers/theme-provider';
 import type { IconName } from '@/theme/icons';
 
-type Choice = 'light' | 'dark' | 'system';
-
-const OPTIONS: { value: Choice; label: string; icon: IconName }[] = [
-  { value: 'light', label: 'Light', icon: 'sunny-outline' },
-  { value: 'dark', label: 'Dark', icon: 'moon-outline' },
-  { value: 'system', label: 'System', icon: 'phone-portrait-outline' },
+export const THEME_OPTIONS: { value: ThemeName; label: string; icon: IconName; detail: string }[] = [
+  { value: 'light', label: 'Light', icon: 'sunny-outline', detail: 'Always light' },
+  { value: 'dark', label: 'Dark', icon: 'moon-outline', detail: 'Always dark' },
+  { value: 'system', label: 'System', icon: 'phone-portrait-outline', detail: 'Match this device' },
 ];
 
-const DETAIL: Record<Choice, string> = {
-  light: 'Always light, whatever your device does',
-  dark: 'Always dark, whatever your device does',
-  system: 'Follows your device light or dark setting',
-};
+type Props = { visible: boolean; onClose: () => void };
 
-export function ThemePicker() {
-  const { themeChoice, setTheme, isHydrated } = useTheme();
+/** Appearance sheet. Uniwind.setTheme flips colors and the root StatusBar follows useIsDark. */
+export function ThemePicker({ visible, onClose }: Props) {
+  const { themeChoice, setTheme } = useTheme();
   const isDark = useIsDark();
-  const colors = useThemeColors();
-
-  function choose(next: Choice) {
-    if (next === themeChoice) return;
-
-    selectFeedback();
-    void setTheme(next);
-  }
 
   return (
-    <>
-      <Row
-        title="Theme"
-        subtitle={DETAIL[themeChoice]}
-        icon={isDark ? 'moon' : 'sunny'}
-        tone="primary"
-        right={<ThemeToggle />}
-        last
-      />
-
-      <View className="px-4 pb-4">
-        <View className="flex-row rounded-2xl bg-surface-alt p-1">
-          {OPTIONS.map((option) => {
-            const selected = isHydrated && themeChoice === option.value;
-
-            return (
-              <Pressable
-                key={option.value}
-                onPress={() => choose(option.value)}
-                accessibilityRole="radio"
-                accessibilityState={{ selected }}
-                accessibilityLabel={`${option.label} theme`}
-                className={`flex-1 flex-row items-center justify-center rounded-xl py-2.5 active:opacity-70 ${
-                  selected ? 'bg-surface' : ''
-                }`}
-                style={{ gap: 6 }}
-              >
-                <Ionicons
-                  name={option.icon}
-                  size={15}
-                  color={selected ? colors.heading : colors.onSurfaceAlt}
-                />
-                <Text
-                  className={`text-xs font-semibold ${
-                    selected ? 'text-heading' : 'text-on-surface-alt'
-                  }`}
-                >
-                  {option.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {themeChoice === 'system' ? (
-          <Text className="mt-2 text-xs text-muted">
-            Currently {isDark ? 'dark' : 'light'} on this device.
-          </Text>
-        ) : null}
-      </View>
-    </>
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      title="Theme"
+      subtitle={themeChoice === 'system' ? `Following device (${isDark ? 'dark' : 'light'})` : undefined}
+      icon="color-palette-outline"
+      actions={THEME_OPTIONS.map((option) => ({
+        icon: themeChoice === option.value ? 'checkmark-circle' : option.icon,
+        label: option.label,
+        subtitle: themeChoice === option.value ? `${option.detail} · In use` : option.detail,
+        onPress: () => {
+          if (option.value === themeChoice) return;
+          selectFeedback();
+          void setTheme(option.value);
+        },
+      }))}
+    />
   );
 }

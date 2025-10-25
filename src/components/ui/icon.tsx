@@ -22,7 +22,7 @@ const TONES: Record<IconTone, keyof ThemeColors> = {
   heading: 'heading',
   brand: 'brandInk',
   accent: 'brandInk',
-  nav: 'navActive',
+  nav: 'navForeground',
   onBrand: 'onBrand',
   onAccent: 'onAccent',
   info: 'info',

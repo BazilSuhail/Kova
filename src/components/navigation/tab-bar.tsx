@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Animated, Keyboard, Pressable, Text, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type {
   Descriptor,
@@ -16,6 +16,7 @@ import type {
 } from 'expo-router/js-top-tabs';
 
 import { spacing, useThemeColors } from '@/config/theme';
+import { selectFeedback } from '@/lib/haptics';
 import type { IconName } from '@/theme/icons';
 
 export type AppTabBarProps = {
@@ -45,9 +46,6 @@ const TABS: Record<string, TabConfig> = {
   profile: { label: 'Profile', icon: 'person-outline', iconActive: 'person' },
 };
 
-const SLOT_WIDTH = 58;
-const SLOT_HEIGHT = 34;
-
 function useKeyboardVisible() {
   const [visible, setVisible] = useState(false);
 
@@ -69,29 +67,22 @@ export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
   const colors = useThemeColors();
   const keyboardVisible = useKeyboardVisible();
 
-  const [bubbles] = useState(() =>
-    state.routes.map((_, index) => new Animated.Value(index === state.index ? 1 : 0)),
-  );
-
-  useEffect(() => {
-    bubbles.forEach((bubble, index) => {
-      Animated.spring(bubble, {
-        toValue: index === state.index ? 1 : 0,
-        useNativeDriver: true,
-        tension: 140,
-        friction: 9,
-      }).start();
-    });
-  }, [bubbles, state.index]);
-
   if (keyboardVisible) return null;
 
   const bottomInset = insets.bottom || spacing.sm;
 
   return (
     <View
-      className="flex-row border-t border-border bg-nav"
-      style={{ height: 56 + bottomInset, paddingTop: 4, paddingBottom: bottomInset }}
+      className="flex-row border-border"
+      style={{
+        height: 52 + bottomInset,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        paddingTop: 4,
+        paddingBottom: bottomInset,
+        paddingLeft: insets.left,
+        paddingRight: insets.right,
+        backgroundColor: colors.navBackground,
+      }}
     >
       {state.routes.map((route, index) => {
         const config = TABS[route.name];
@@ -108,6 +99,7 @@ export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
             canPreventDefault: true,
           });
 
+          if (!focused) selectFeedback();
           if (!event.defaultPrevented) {
             navigation.navigate(route.name, { screen: 'index' });
           }
@@ -125,38 +117,20 @@ export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
             accessibilityRole="tab"
             accessibilityLabel={options?.tabBarAccessibilityLabel ?? label}
             accessibilityState={{ selected: focused }}
-            className="flex-1 items-center justify-center active:opacity-70"
-            style={{ gap: 2 }}
+            className="flex-1 items-center justify-center active:opacity-60"
+            style={{ gap: 3 }}
           >
-            <View
-              style={{
-                width: SLOT_WIDTH,
-                height: SLOT_HEIGHT,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Animated.View
-                pointerEvents="none"
-                style={{
-                  position: 'absolute',
-                  width: SLOT_WIDTH,
-                  height: SLOT_HEIGHT,
-                  borderRadius: SLOT_HEIGHT / 2,
-                  backgroundColor: colors.navActive,
-                  transform: [{ scale: bubbles[index] }],
-                }}
-              />
+            <Ionicons
+              name={focused ? config.iconActive : config.icon}
+              size={24}
+              color={focused ? colors.navActive : colors.navMuted}
+            />
 
-              <Ionicons
-                name={focused ? config.iconActive : config.icon}
-                size={21}
-                color={focused ? colors.nav : colors.navMuted}
-              />
-            </View>
-
+            {/* Fixed-height bar: cap scaling so labels don't clip. */}
             <Text
-              className={`text-[11px] font-semibold ${focused ? 'text-nav-active' : 'text-nav-muted'}`}
+              maxFontSizeMultiplier={1.3}
+              numberOfLines={1}
+              className={`text-[11px] ${focused ? 'font-semibold text-nav-active' : 'font-medium text-nav-muted'}`}
             >
               {label}
             </Text>

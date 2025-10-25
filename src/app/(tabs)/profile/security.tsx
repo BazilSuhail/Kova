@@ -117,7 +117,7 @@ export default function ChangePasswordScreen() {
   }
 
   return (
-    <Screen edges={['top', 'bottom']}>
+    <Screen>
       <ScreenHeader
         icon="lock-closed-outline"
         eyebrow="Security"
@@ -128,11 +128,10 @@ export default function ChangePasswordScreen() {
       />
 
       {success ? (
-        <View className="mt-5 flex-row items-start rounded-2xl border border-border bg-surface-alt p-3">
+        <View className="mt-5 flex-row items-start rounded-lg border border-border bg-surface-alt p-3">
           <Ionicons name="checkmark-circle" size={18} color={colors.successInk} />
           <Text className="ml-2 flex-1 text-sm font-medium text-brand-ink">
-            Password updated. Sessions that are already signed in stay valid, and the new password
-            is required the next time you sign in.
+            Password updated. Use it the next time you sign in.
           </Text>
         </View>
       ) : null}
@@ -158,7 +157,7 @@ export default function ChangePasswordScreen() {
           value={next}
           onChangeText={setNext}
           error={errors.next}
-          hint="At least 8 characters â€” the only rule the server enforces."
+          hint="Use 8 characters or more."
           visible={visible.next}
           onToggle={() => toggle('next')}
           autoComplete="new-password"

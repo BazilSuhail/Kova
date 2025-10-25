@@ -2,11 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import type * as Notifications from 'expo-notifications';
 import { useEffect, useState } from 'react';
-import { Alert, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Linking, Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import type { Device } from '@/lib/api';
+import { IconButton } from '@/components/ui/app-bar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useDialog } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { FormError } from '@/components/ui/form-error';
@@ -20,7 +23,7 @@ import { errorMessage } from '@/lib/errors';
 import { relativeTime } from '@/lib/format';
 import { successFeedback, warnFeedback } from '@/lib/haptics';
 import { loadNotifications } from '@/lib/notifications';
-import { useThemeColors } from '@/config/theme';
+import { layout, spacing, useThemeColors } from '@/config/theme';
 import type { IconName } from '@/theme/icons';
 
 type PermissionState = 'granted' | 'denied' | 'undetermined';
@@ -69,7 +72,7 @@ function PermissionPill({ state, ready }: { state: PermissionState; ready: boole
   if (!ready) {
     return (
       <View className="rounded-full border border-border bg-surface px-3 py-1.5">
-        <Text className="text-xs font-semibold text-muted">Checkingâ€¦</Text>
+        <Text className="text-xs font-semibold text-muted">Checking…</Text>
       </View>
     );
   }
@@ -94,6 +97,7 @@ export default function DevicesScreen() {
   const devicesQuery = useDevices();
   const registerDevice = useRegisterDevice();
   const unregisterDevice = useUnregisterDevice();
+  const { confirm } = useDialog();
 
   const [permission, setPermission] = useState<PermissionState>('undetermined');
   const [permissionReady, setPermissionReady] = useState(Platform.OS === 'web');
@@ -142,6 +146,11 @@ export default function DevicesScreen() {
 
   async function askAgain() {
     if (Platform.OS === 'web') return;
+    // The OS will not show the prompt again once denied; only system settings can change it.
+    if (permission === 'denied') {
+      void Linking.openSettings();
+      return;
+    }
 
     setPermissionBusy(true);
     try {
@@ -193,38 +202,35 @@ export default function DevicesScreen() {
     }
   }
 
-  function confirmRemove(device: Device) {
-    function remove() {
-      setFormError(null);
-      warnFeedback();
-      void unregisterDevice.mutateAsync(device.deviceId).catch((failure: unknown) => {
-        setFormError(errorMessage(failure));
-      });
-    }
+  async function confirmRemove(device: Device) {
+    const ok = await confirm({
+      title: 'Remove device?',
+      message: `Reminders will stop reaching ${platformLabel(device.platform)}.`,
+      icon: 'trash-outline',
+      confirmLabel: 'Remove',
+      destructive: true,
+    });
+    if (!ok) return;
 
-    if (Platform.OS === 'web') {
-      remove();
-      return;
-    }
-
-    Alert.alert('Remove device', `Push will stop for ${platformLabel(device.platform)}.`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: remove },
-    ]);
+    setFormError(null);
+    warnFeedback();
+    unregisterDevice.mutateAsync(device.deviceId).catch((failure: unknown) => {
+      setFormError(errorMessage(failure));
+    });
   }
 
   function deviceSubtitle(device: Device): string {
     const parts: string[] = [];
     const when = relativeTime(device.registeredAt ?? device.updatedAt);
     if (when) parts.push(when);
-    if (device.expoPushToken) parts.push(`â€¦${device.expoPushToken.slice(-6)}`);
-    return parts.join(' Â· ') || 'Registered';
+    if (device.expoPushToken) parts.push(`…${device.expoPushToken.slice(-6)}`);
+    return parts.join(' · ') || 'Registered';
   }
 
   return (
-    <Screen scroll={false} edges={['top', 'bottom']}>
+    <Screen scroll={false}>
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 32 }}
+        contentContainerStyle={{ paddingHorizontal: layout.gutter, paddingTop: spacing.md, paddingBottom: spacing.xxxl }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -269,10 +275,10 @@ export default function DevicesScreen() {
 
           <View className="mt-4">
             <Button
-              label="Ask again"
+              label={permission === 'denied' ? 'Open system settings' : 'Ask again'}
               variant="secondary"
               size="md"
-              icon="refresh"
+              icon={permission === 'denied' ? 'open-outline' : 'refresh'}
               loading={permissionBusy}
               onPress={() => void askAgain()}
             />
@@ -319,7 +325,8 @@ export default function DevicesScreen() {
             />
           </Card>
         ) : (
-          <Card padded={false} className="overflow-hidden rounded-2xl">
+          <Animated.View entering={FadeInDown.duration(220)}>
+          <Card padded={false} className="overflow-hidden">
             {devices.map((device, index) => (
               <Row
                 key={device.deviceId}
@@ -329,20 +336,19 @@ export default function DevicesScreen() {
                 subtitle={deviceSubtitle(device)}
                 icon={device.platform === 'ios' ? 'logo-apple' : 'logo-android'}
                 right={
-                  <Pressable
-                    onPress={() => confirmRemove(device)}
-                    accessibilityRole="button"
+                  <IconButton
+                    icon="trash-outline"
+                    size={18}
+                    color={colors.dangerInk}
+                    onPress={() => void confirmRemove(device)}
                     accessibilityLabel={`Remove ${platformLabel(device.platform)}`}
-                    hitSlop={8}
-                    className="h-9 w-9 items-center justify-center rounded-full active:opacity-70"
-                  >
-                    <Ionicons name="trash-outline" size={18} color={colors.danger} />
-                  </Pressable>
+                  />
                 }
                 last={index === devices.length - 1}
               />
             ))}
           </Card>
+          </Animated.View>
         )}
       </ScrollView>
     </Screen>

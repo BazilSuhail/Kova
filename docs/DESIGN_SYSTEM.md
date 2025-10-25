@@ -199,7 +199,7 @@ Every component below renders from the same code in light and dark.
 | --- | --- |
 | `AppTabBar` | Forest base, white active bubble, neutral muted labels |
 | `AuthScaffold` | keyboard-aware auth shell |
-| `ThemeToggle`, `ThemePicker` | drive the persisted `Uniwind` theme |
+| `ThemePicker` | drives the persisted `Uniwind` theme |
 
 ### Category rotation — `src/constants/tasks.ts`
 

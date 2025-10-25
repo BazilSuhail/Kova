@@ -44,7 +44,7 @@ export function Skeleton({ width = '100%', height = 16, radius = radii.sm, style
 
 export function SkeletonCard({ lines = 2 }: { lines?: number }) {
   return (
-    <View className="rounded-3xl border border-border bg-surface p-4">
+    <View className="rounded-lg border border-border bg-surface p-4">
       <Skeleton width="55%" height={14} />
       {Array.from({ length: lines }).map((_, index) => (
         <Skeleton

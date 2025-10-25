@@ -6,6 +6,25 @@ export type UploadFile = {
   type: string;
 };
 
+function uriToBlob(uri: string): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', uri);
+    xhr.responseType = 'blob';
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 0 || xhr.status === 200) {
+          resolve(xhr.response);
+        } else {
+          reject(new Error(`Failed to read file: HTTP ${xhr.status}`));
+        }
+      }
+    };
+    xhr.onerror = () => reject(new Error(`Failed to read file at ${uri}`));
+    xhr.send();
+  });
+}
+
 export async function fileFormData(file: UploadFile, field = 'file'): Promise<FormData> {
   const form = new FormData();
 
@@ -15,7 +34,8 @@ export async function fileFormData(file: UploadFile, field = 'file'): Promise<Fo
     return form;
   }
 
-  form.append(field, { uri: file.uri, name: file.name, type: file.type } as unknown as Blob);
+  const blob = await uriToBlob(file.uri);
+  form.append(field, blob, file.name);
   return form;
 }
 

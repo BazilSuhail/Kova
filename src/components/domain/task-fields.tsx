@@ -1,9 +1,14 @@
-import { View } from 'react-native';
+import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import type { CreateTaskInput, UpdateTaskInput, Task } from '@/lib/api';
+import { CalendarPicker } from '@/components/ui/calendar-picker';
+import { CategoryPicker } from '@/components/ui/category-picker';
 import { Chip } from '@/components/ui/chip';
 import { Input } from '@/components/ui/input';
-import { TASK_CATEGORY_SUGGESTIONS } from '@/constants/tasks';
+import { spacing, useThemeColors } from '@/config/theme';
+import type { IconName } from '@/theme/icons';
 import { formatDueDate, todayIsoDate } from '@/lib/format';
 
 export type TaskDraft = {
@@ -66,14 +71,20 @@ type Props = {
 };
 
 export function TaskFields({ draft, onChange, disabled = false }: Props) {
+  const colors = useThemeColors();
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+
   const due = formatDueDate(draft.dueDate);
   const today = todayIsoDate();
   const tomorrow = tomorrowIsoDate();
+  const custom = Boolean(draft.dueDate) && draft.dueDate !== today && draft.dueDate !== tomorrow;
 
   return (
     <View>
       <Input
-        label="What needs doing?"
+        label="Title"
+        icon="create-outline"
         placeholder="Call the dentist"
         value={draft.title}
         onChangeText={(title) => onChange({ title })}
@@ -84,52 +95,84 @@ export function TaskFields({ draft, onChange, disabled = false }: Props) {
 
       <Input
         label="Details (optional)"
+        icon="document-text-outline"
         placeholder="Anything worth remembering when you pick this up"
         value={draft.description}
         onChangeText={(description) => onChange({ description })}
         editable={!disabled}
         multiline
+        style={{ minHeight: 96 }}
       />
 
-      <View className="mb-4">
-        <View className="mb-2 flex-row items-center justify-between">
-          <View className="flex-row items-center" style={{ gap: 8 }}>
-            <Chip
-              label="Today"
-              selected={draft.dueDate === today}
-              onPress={() => onChange({ dueDate: today })}
-            />
-            <Chip
-              label="Tomorrow"
-              selected={draft.dueDate === tomorrow}
-              onPress={() => onChange({ dueDate: tomorrow })}
-            />
-            {draft.dueDate ? (
-              <Chip label="Clear" onPress={() => onChange({ dueDate: '' })} />
-            ) : null}
-          </View>
-        </View>
-        <Input
-          placeholder="YYYY-MM-DD"
-          value={draft.dueDate}
-          onChangeText={(dueDate) => onChange({ dueDate })}
-          editable={!disabled}
-          hint={due ? `Due ${due}` : 'Leave empty for a task with no date.'}
+      <FieldLabel icon="calendar-outline" label="Due date" />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ gap: spacing.sm }}
+      >
+        <Chip
+          label="Today"
+          icon="today-outline"
+          selected={draft.dueDate === today}
+          onPress={() => onChange({ dueDate: today })}
         />
+        <Chip
+          label="Tomorrow"
+          icon="sunny-outline"
+          selected={draft.dueDate === tomorrow}
+          onPress={() => onChange({ dueDate: tomorrow })}
+        />
+        <Chip
+          label={custom && due ? due : 'Pick a date'}
+          icon="calendar-outline"
+          selected={custom}
+          onPress={() => setCalendarOpen(true)}
+        />
+        {draft.dueDate ? (
+          <Chip label="No date" icon="close" onPress={() => onChange({ dueDate: '' })} />
+        ) : null}
+      </ScrollView>
+
+      <View className="mt-6">
+        <FieldLabel icon="pricetag-outline" label="Category" />
+        <Pressable
+          onPress={() => setCategoryOpen(true)}
+          disabled={disabled}
+          accessibilityRole="button"
+          accessibilityLabel="Choose a category"
+          className="flex-row items-center rounded-md border border-border bg-surface px-3 py-3.5 active:bg-surface-alt"
+          style={{ gap: spacing.sm }}
+        >
+          <Text className={`flex-1 text-base ${draft.category ? 'text-heading' : 'text-muted'}`}>
+            {draft.category || 'Choose one'}
+          </Text>
+          <Ionicons name="chevron-down" size={16} color={colors.muted} />
+        </Pressable>
       </View>
 
-      <View className="mb-1">
-        <View className="mb-2 flex-row flex-wrap" style={{ gap: 8 }}>
-          {TASK_CATEGORY_SUGGESTIONS.map((category) => (
-            <Chip
-              key={category}
-              label={category}
-              selected={draft.category.toLowerCase() === category.toLowerCase()}
-              onPress={() => onChange({ category: draft.category === category ? '' : category })}
-            />
-          ))}
-        </View>
-      </View>
+      <CategoryPicker
+        visible={categoryOpen}
+        value={draft.category}
+        onClose={() => setCategoryOpen(false)}
+        onSelect={(category) => onChange({ category })}
+      />
+      <CalendarPicker
+        visible={calendarOpen}
+        onClose={() => setCalendarOpen(false)}
+        onSelect={(dueDate) => onChange({ dueDate })}
+        initialDate={draft.dueDate || undefined}
+      />
+    </View>
+  );
+}
+
+function FieldLabel({ icon, label }: { icon: IconName; label: string }) {
+  const colors = useThemeColors();
+  return (
+    <View className="mb-2 flex-row items-center" style={{ gap: 6 }}>
+      <Ionicons name={icon} size={14} color={colors.muted} />
+      <Text className="text-sm font-medium text-heading">{label}</Text>
     </View>
   );
 }

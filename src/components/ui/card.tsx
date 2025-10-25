@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
-import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
+import { View, type StyleProp, type ViewStyle } from 'react-native';
+
+import { PressableScale } from './pressable-scale';
 
 type Props = {
   children: ReactNode;
@@ -10,20 +12,21 @@ type Props = {
 };
 
 export function Card({ children, onPress, padded = true, className, style }: Props) {
-  const surface = `rounded-3xl border border-border bg-surface ${
-    padded ? 'p-4' : ''
-  } ${className ?? ''}`;
+  const surface = `rounded-lg border border-border bg-surface ${padded ? 'p-4' : ''} ${
+    className ?? ''
+  }`;
 
   if (onPress) {
     return (
-      <Pressable
+      <PressableScale
         onPress={onPress}
+        scaleTo={0.98}
         accessibilityRole="button"
-        className={`${surface} active:opacity-80`}
+        className={surface}
         style={style}
       >
         {children}
-      </Pressable>
+      </PressableScale>
     );
   }
 

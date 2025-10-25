@@ -1,47 +1,52 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
+import { LineChart } from 'react-native-gifted-charts';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
+import { AppBar } from '@/components/ui/app-bar';
+import { BackButton } from '@/components/ui/back-button';
 import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { Screen } from '@/components/ui/screen';
-import { ScreenHeader } from '@/components/ui/screen-header';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { SkeletonCard } from '@/components/ui/skeleton';
+import { StatTile } from '@/components/ui/stat-tile';
 import { useMoodTrends } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
 import { parseDate } from '@/lib/format';
 import { selectFeedback } from '@/lib/haptics';
-import { useThemeColors } from '@/config/theme';
+import { chartColors, layout, spacing, useThemeColors } from '@/config/theme';
 
 const RANGES = [7, 30, 90];
 
-function scoreSurface(score: number): string {
-  if (score >= 4) return 'bg-brand';
-  if (score === 3) return 'bg-accent';
-  return 'bg-border';
-}
-
-function labelSurface(label: string): string {
+function moodColor(label: string): string {
   switch (label.toLowerCase()) {
     case 'great':
     case 'amazing':
+      return chartColors[0];
     case 'good':
-      return 'bg-brand';
+      return chartColors[1];
     case 'okay':
     case 'ok':
     case 'neutral':
-      return 'bg-accent';
+      return chartColors[2];
+    case 'low':
+      return chartColors[3];
     default:
-      return 'bg-border';
+      return chartColors[4];
   }
+}
+
+function shortDay(date: string): string {
+  return parseDate(date)?.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) ?? '';
 }
 
 export default function MoodTrendsScreen() {
   const colors = useThemeColors();
+  const { width } = useWindowDimensions();
   const [days, setDays] = useState(30);
   const trends = useMoodTrends(days);
 
@@ -50,53 +55,36 @@ export default function MoodTrendsScreen() {
     .sort((a, b) => b[1] - a[1]);
   const maxCount = Math.max(1, ...buckets.map(([, count]) => count));
 
-  const series = trends.data?.series ?? [];
-  const firstLabel =
-    parseDate(series[0]?.date)?.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) ??
-    '';
-  const lastLabel =
-    parseDate(series[series.length - 1]?.date)?.toLocaleDateString(undefined, {
-      day: 'numeric',
-      month: 'short',
-    }) ?? '';
+  const points = (trends.data?.series ?? []).filter((point) => point.score !== null);
+  // Label only first, middle and last points so the axis never crowds.
+  const labelAt = new Set([0, Math.floor((points.length - 1) / 2), points.length - 1]);
+  const lineData = points.map((point, index) => ({
+    value: point.score ?? 0,
+    label: labelAt.has(index) ? shortDay(point.date) : '',
+    labelTextStyle: { color: colors.muted, fontSize: 10, width: 48 },
+  }));
+  const chartWidth = width - layout.gutter * 2 - spacing.lg * 2;
 
-  return (
-    <Screen contentContainerStyle={{ paddingBottom: 32 }}>
-      <ScreenHeader
-        icon="trending-up-outline"
-        eyebrow="Mood"
-        title="How it has been"
-        subtitle="Your check-ins over time, at a glance."
-        back
-        backFallback="/insights"
-      />
-
-      <View className="mt-4 flex-row" style={{ gap: 8 }}>
-        {RANGES.map((range) => (
-          <Chip
-            key={range}
-            label={`${range} days`}
-            selected={days === range}
-            onPress={() => {
-              selectFeedback();
-              setDays(range);
-            }}
-          />
-        ))}
-      </View>
-
-      {trends.isPending ? (
-        <View className="mt-5" style={{ gap: 12 }}>
+  function body() {
+    if (trends.isPending) {
+      return (
+        <View style={{ gap: spacing.md }}>
           <SkeletonCard lines={1} />
-          <SkeletonCard lines={3} />
+          <SkeletonCard lines={4} />
         </View>
-      ) : trends.isError ? (
+      );
+    }
+    if (trends.isError) {
+      return (
         <ErrorState
           title="Could not load your trends"
           message={errorMessage(trends.error)}
           onRetry={() => void trends.refetch()}
         />
-      ) : trends.data && trends.data.entries === 0 ? (
+      );
+    }
+    if (trends.data.entries === 0) {
+      return (
         <EmptyState
           icon="stats-chart"
           title="No mood data yet"
@@ -104,85 +92,127 @@ export default function MoodTrendsScreen() {
           actionLabel="Log today's mood"
           onAction={() => router.push('/insights/mood')}
         />
-      ) : trends.data ? (
-        <>
-          <View className="mt-5 flex-row" style={{ gap: 12 }}>
-            <Card className="flex-1 rounded-2xl">
-              <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-alt">
-                <Ionicons name="happy" size={18} color={colors.brandInk} />
-              </View>
-              <Text className="mt-3 text-2xl font-bold text-heading">
-                {trends.data.averageScore.toFixed(1)}
+      );
+    }
+
+    return (
+      <>
+        <Animated.View
+          entering={FadeInDown.duration(220)}
+          className="flex-row"
+          style={{ gap: spacing.md }}
+        >
+          <StatTile icon="happy-outline" value={trends.data.averageScore.toFixed(1)} label="Average of 5" />
+          <StatTile icon="flame-outline" value={trends.data.streak} label="Day streak" />
+          <StatTile icon="checkmark-done" value={trends.data.entries} label="Check-ins" />
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.duration(220).delay(40)}>
+          <SectionHeading>
+            <Text className="text-base font-semibold text-heading">Daily score</Text>
+          </SectionHeading>
+          <Card>
+            {lineData.length > 1 ? (
+              <LineChart
+                data={lineData}
+                areaChart
+                curved
+                isAnimated
+                adjustToWidth
+                parentWidth={chartWidth}
+                width={chartWidth - 28}
+                height={160}
+                maxValue={5}
+                noOfSections={5}
+                color={chartColors[0]}
+                thickness={2}
+                startFillColor={chartColors[0]}
+                endFillColor={chartColors[0]}
+                startOpacity={0.28}
+                endOpacity={0.02}
+                hideDataPoints={lineData.length > 31}
+                dataPointsColor={chartColors[0]}
+                dataPointsRadius={3}
+                initialSpacing={8}
+                endSpacing={16}
+                yAxisLabelWidth={24}
+                yAxisThickness={0}
+                xAxisColor={colors.border}
+                rulesColor={colors.border}
+                rulesType="solid"
+                yAxisTextStyle={{ color: colors.muted, fontSize: 10 }}
+                disableScroll
+              />
+            ) : (
+              <Text className="text-sm text-muted">
+                Check in on a second day to see the line take shape.
               </Text>
-              <Text className="text-sm text-muted">average out of 5</Text>
-            </Card>
+            )}
+            <Text className="mt-2 text-xs text-muted">Score 1 (awful) to 5 (great), per day</Text>
+          </Card>
+        </Animated.View>
 
-            <Card className="flex-1 rounded-2xl">
-              <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-alt">
-                <Ionicons name="flame" size={18} color={colors.successInk} />
-              </View>
-              <Text className="mt-3 text-2xl font-bold text-heading">{trends.data.streak}</Text>
-              <Text className="text-sm text-muted">day streak</Text>
-            </Card>
-          </View>
-
-          {buckets.length > 0 ? (
-            <>
-              <SectionHeading>
-                <Text className="text-base font-bold text-heading">How the days felt</Text>
-              </SectionHeading>
-
-              <Card style={{ gap: 10 }}>
-                {buckets.map(([label, count]) => (
-                  <View key={label} className="flex-row items-center" style={{ gap: 10 }}>
-                    <Text className="w-16 text-sm font-bold capitalize text-heading">{label}</Text>
-                    <View className="h-3 flex-1 overflow-hidden rounded-full bg-surface-alt">
-                      <View
-                        className={`h-full rounded-full ${labelSurface(label)}`}
-                        style={{ width: `${Math.round((count / maxCount) * 100)}%` }}
-                      />
-                    </View>
-                    <Text className="w-6 text-right text-sm text-muted">{count}</Text>
+        {buckets.length > 0 ? (
+          <Animated.View entering={FadeInDown.duration(220).delay(80)}>
+            <SectionHeading>
+              <Text className="text-base font-semibold text-heading">How the days felt</Text>
+            </SectionHeading>
+            <Card style={{ gap: spacing.md }}>
+              {buckets.map(([label, count]) => (
+                <View key={label} className="flex-row items-center" style={{ gap: spacing.md }}>
+                  <Text className="w-16 text-sm font-medium capitalize text-heading">{label}</Text>
+                  <View className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-alt">
+                    <View
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${Math.round((count / maxCount) * 100)}%`,
+                        backgroundColor: moodColor(label),
+                      }}
+                    />
                   </View>
-                ))}
-              </Card>
-            </>
-          ) : null}
-
-          {series.length > 0 ? (
-            <>
-              <SectionHeading>
-                <Text className="text-base font-bold text-heading">Daily score</Text>
-              </SectionHeading>
-
-              <Card>
-                <View className="flex-row items-end" style={{ height: 120, gap: 2 }}>
-                  {series.map((point) => (
-                    <View key={point.date} className="flex-1 justify-end" style={{ height: 120 }}>
-                      <View
-                        className={`w-full rounded-full ${
-                          point.score === null ? 'bg-surface-alt' : scoreSurface(point.score)
-                        }`}
-                        style={{
-                          height:
-                            point.score === null
-                              ? 4
-                              : Math.max(4, Math.round((point.score / 5) * 116)),
-                        }}
-                      />
-                    </View>
-                  ))}
+                  <Text className="w-6 text-right text-sm text-muted">{count}</Text>
                 </View>
+              ))}
+            </Card>
+          </Animated.View>
+        ) : null}
+      </>
+    );
+  }
 
-                <View className="mt-2 flex-row justify-between">
-                  <Text className="text-xs text-muted">{firstLabel}</Text>
-                  <Text className="text-xs text-muted">{lastLabel}</Text>
-                </View>
-              </Card>
-            </>
-          ) : null}
-        </>
-      ) : null}
+  return (
+    <Screen scroll={false}>
+      <AppBar
+        title="Mood trends"
+        left={<BackButton fallback="/insights" />}
+        actions={[
+          {
+            icon: 'time-outline',
+            accessibilityLabel: 'Mood history',
+            onPress: () => router.push('/insights/mood-history'),
+          },
+        ]}
+      />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: layout.gutter, paddingBottom: spacing.xxxl }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="mb-4 flex-row" style={{ gap: spacing.sm }}>
+          {RANGES.map((range) => (
+            <Chip
+              key={range}
+              label={`${range} days`}
+              selected={days === range}
+              onPress={() => {
+                selectFeedback();
+                setDays(range);
+              }}
+            />
+          ))}
+        </View>
+        {body()}
+      </ScrollView>
     </Screen>
   );
 }

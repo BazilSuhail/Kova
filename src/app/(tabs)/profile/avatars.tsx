@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import { Pressable, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
 
 import type { Avatar } from '@/lib/api';
+import { IconButton } from '@/components/ui/app-bar';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
@@ -13,16 +15,18 @@ import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { assetUrl } from '@/config/env';
-import { useAvatars, useProfile, useUpdateProfile } from '@/lib/api';
+import { Sheet } from '@/components/ui/sheet';
+import { useAvatars, useProfile, useUpdateProfile, useUploadAvatar } from '@/lib/api';
+import { extensionFor } from '@/lib/upload';
 import { errorMessage } from '@/lib/errors';
 import { selectFeedback, successFeedback } from '@/lib/haptics';
-import { useThemeColors } from '@/config/theme';
 
 export default function AvatarsScreen() {
-  const colors = useThemeColors();
   const avatars = useAvatars();
   const profile = useProfile();
   const updateProfile = useUpdateProfile();
+  const uploadAvatar = useUploadAvatar();
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +38,52 @@ export default function AvatarsScreen() {
     setBusyId(avatar.id);
     try {
       await updateProfile.mutateAsync({ avatarId: avatar.id });
+      successFeedback();
+      router.back();
+    } catch (failure) {
+      setError(errorMessage(failure));
+      setBusyId(null);
+    }
+  }
+
+  async function upload(source: 'camera' | 'library') {
+    setError(null);
+    try {
+      // Let the sheet's modal finish closing; iOS will not present the picker over a dismissing modal.
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const permission =
+        source === 'camera'
+          ? await ImagePicker.requestCameraPermissionsAsync()
+          : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        setError(
+          source === 'camera'
+            ? 'Kova needs camera access to take your photo.'
+            : 'Kova needs access to your photos to pick one.',
+        );
+        return;
+      }
+
+      // Square crop + JPEG compression keeps uploads well under the 5 MB server limit.
+      const options: ImagePicker.ImagePickerOptions = {
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.6,
+      };
+      const picked =
+        source === 'camera'
+          ? await ImagePicker.launchCameraAsync(options)
+          : await ImagePicker.launchImageLibraryAsync(options);
+      const asset = picked.canceled ? undefined : picked.assets[0];
+      if (!asset) return;
+
+      setBusyId('upload');
+      await uploadAvatar.mutateAsync({
+        uri: asset.uri,
+        name: `avatar.${extensionFor(asset.mimeType, 'jpg')}`,
+        type: asset.mimeType ?? 'image/jpeg',
+      });
       successFeedback();
       router.back();
     } catch (failure) {
@@ -55,17 +105,7 @@ export default function AvatarsScreen() {
     }
   }
 
-  const close = (
-    <Pressable
-      onPress={() => router.back()}
-      hitSlop={8}
-      accessibilityRole="button"
-      accessibilityLabel="Close"
-      className="h-11 w-11 items-center justify-center rounded-2xl border border-border bg-surface active:opacity-70"
-    >
-      <Ionicons name="close" size={20} color={colors.heading} />
-    </Pressable>
-  );
+  const close = <IconButton icon="close" onPress={() => router.back()} accessibilityLabel="Close" />;
 
   function catalogue() {
     if (avatars.isPending) {
@@ -103,10 +143,15 @@ export default function AvatarsScreen() {
 
     return (
       <View className="flex-row flex-wrap">
-        {items.map((avatar) => {
+        {items.map((avatar, index) => {
           const selected = current.length > 0 && avatar.url === current;
           return (
-            <View key={avatar.id} style={{ width: '25%' }} className="items-center pb-5">
+            <Animated.View
+              key={avatar.id}
+              entering={FadeInDown.duration(220).delay(Math.min(index, 12) * 30)}
+              style={{ width: '25%' }}
+              className="items-center pb-5"
+            >
               <Pressable
                 onPress={() => {
                   selectFeedback();
@@ -127,7 +172,7 @@ export default function AvatarsScreen() {
                   style={{ width: 56, height: 56, borderRadius: 28 }}
                 />
               </Pressable>
-            </View>
+            </Animated.View>
           );
         })}
       </View>
@@ -137,10 +182,8 @@ export default function AvatarsScreen() {
   return (
     <Screen edges={['top', 'bottom']} contentContainerStyle={{ paddingBottom: 40 }}>
       <ScreenHeader
-        icon="images-outline"
-        eyebrow="Profile"
-        title="Choose an avatar"
-        subtitle="Pick the face Kova shows next to your name."
+        title="Avatars"
+        subtitle="Tap one to use it. It saves right away."
         right={close}
       />
 
@@ -150,10 +193,20 @@ export default function AvatarsScreen() {
         </View>
       ) : null}
 
+      <View className="mt-5">
+        <Button
+          label={busyId === 'upload' ? 'Uploading photo…' : 'Upload photo'}
+          icon="camera-outline"
+          loading={busyId === 'upload'}
+          disabled={busyId !== null}
+          onPress={() => setPickerOpen(true)}
+        />
+      </View>
+
       <View className="mt-5">{catalogue()}</View>
 
       <Button
-        label="Remove my avatar"
+        label="Use initials instead"
         variant="secondary"
         icon="trash-outline"
         loading={busyId === 'remove'}
@@ -161,9 +214,17 @@ export default function AvatarsScreen() {
         onPress={() => void remove()}
       />
 
-      <Text className="mt-4 text-center text-xs text-muted">
-        Your choice saves straight away and follows you to every device.
-      </Text>
+      <Sheet
+        visible={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        title="Upload photo"
+        subtitle="JPEG, PNG or WebP, up to 5 MB"
+        icon="image-outline"
+        actions={[
+          { icon: 'camera-outline', label: 'Take photo', onPress: () => void upload('camera') },
+          { icon: 'images-outline', label: 'Choose from library', onPress: () => void upload('library') },
+        ]}
+      />
     </Screen>
   );
 }

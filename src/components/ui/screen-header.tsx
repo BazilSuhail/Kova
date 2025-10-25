@@ -27,29 +27,29 @@ export function ScreenHeader({
   backFallback,
 }: Props) {
   return (
-    <View className="flex-row items-start justify-between">
+    <View className="mb-2 flex-row items-start justify-between">
       <View className="flex-1 pr-3">
         {back ? (
-          <View className="mb-3">
+          <View className="-ml-2 mb-2">
             <BackButton fallback={backFallback} />
           </View>
         ) : null}
         {icon || eyebrow ? (
           <View className="mb-2 flex-row items-center" style={{ gap: spacing.sm }}>
             {icon ? (
-              <View className="h-8 w-8 items-center justify-center rounded-xl bg-surface-alt">
-                <Icon name={icon} size={16} tone="brand" />
+              <View className="h-7 w-7 items-center justify-center rounded-md bg-brand-soft">
+                <Icon name={icon} size={15} tone="brand" />
               </View>
             ) : null}
             {eyebrow ? (
-              <Text className="text-xs font-semibold uppercase tracking-widest text-brand-ink">
+              <Text className="text-xs font-semibold uppercase tracking-wider text-muted">
                 {eyebrow}
               </Text>
             ) : null}
           </View>
         ) : null}
-        <Text className="text-3xl font-bold text-heading">{title}</Text>
-        {subtitle ? <Text className="mt-1.5 text-sm text-muted">{subtitle}</Text> : null}
+        <Text className="text-2xl font-bold tracking-tight text-heading">{title}</Text>
+        {subtitle ? <Text className="mt-1 text-sm text-muted">{subtitle}</Text> : null}
       </View>
       {right}
     </View>

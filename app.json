@@ -19,23 +19,20 @@
       "package": "com.kova.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#EDE9FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#184437",
+        "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "static",
-      "favicon": "./assets/favicon.png"
+      "output": "static"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#7C3AED",
+          "backgroundColor": "#184437",
           "image": "./assets/splash-icon.png",
           "imageWidth": 200
         }
@@ -59,10 +56,14 @@
       [
         "expo-notifications",
         {
-          "color": "#7C3AED"
+          "color": "#184437"
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "expo-font",
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

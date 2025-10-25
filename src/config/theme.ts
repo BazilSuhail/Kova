@@ -1,22 +1,50 @@
 import { useColorScheme } from 'react-native';
 import { useUniwind } from 'uniwind';
 
+// Mirrors the light/dark variants in global.css. Change both together.
 export const palette = {
   forest: '#123F36',
   pine: '#2A6B5C',
   white: '#FFFFFF',
   ink: '#0A0A0A',
-  gray50: '#FAFAFA',
-  gray100: '#F5F5F5',
-  gray200: '#E5E5E5',
-  gray300: '#D4D4D4',
-  gray400: '#A3A3A3',
-  gray500: '#737373',
-  gray600: '#525252',
-  gray700: '#404040',
-  gray800: '#262626',
-  gray900: '#171717',
+
+  // Light neutrals
+  mist: '#F7F8F6',
+  sage50: '#EEF2EF',
+  sage100: '#E1E6E2',
+  sage200: '#DDEBE5',
+  slate: '#2E4A43',
+  stone: '#6B7C76',
+
+  // Dark neutrals (soft, never pure black)
+  night: '#121816',
+  night50: '#1A2220',
+  night100: '#222C29',
+  night200: '#2E3A36',
+  night300: '#1F3A33',
+  nightInk: '#0F1513',
+  frost: '#E8F0EC',
+  fog: '#C3D1CB',
+  haze: '#8A9C95',
+  jade: '#4F9A85',
+  mint: '#7FB5A3',
+
+  // Accents
+  apricot: '#E3B178',
+  periwinkle: '#9DB0D8',
+  rose: '#D79A9A',
+  red: '#C0392B',
+  redSoft: '#E58A80',
 } as const;
+
+/** Chart series, in order. Same in both modes. Mirrors --color-chart-1..5 in global.css. */
+export const chartColors = [
+  palette.pine,
+  palette.mint,
+  palette.apricot,
+  palette.periwinkle,
+  palette.rose,
+] as const;
 
 export type ThemeColors = {
   background: string;
@@ -32,12 +60,15 @@ export type ThemeColors = {
 
   brand: string;
   brandInk: string;
+  brandSoft: string;
   onBrand: string;
   accent: string;
   onAccent: string;
 
   nav: string;
   onNav: string;
+  navBackground: string;
+  navForeground: string;
   navActive: string;
   navMuted: string;
 
@@ -51,6 +82,11 @@ export type ThemeColors = {
   onDangerFill: string;
   dangerInk: string;
 
+  error: string;
+  errorSoft: string;
+  errorBorder: string;
+  errorInk: string;
+
   success: string;
   successInk: string;
   warning: string;
@@ -59,92 +95,111 @@ export type ThemeColors = {
 
   ink: string;
   skeleton: string;
+  backdrop: string;
 };
 
 const light: ThemeColors = {
-  background: palette.white,
+  background: palette.mist,
   surface: palette.white,
-  surfaceAlt: palette.gray100,
+  surfaceAlt: palette.sage50,
   onSurfaceAlt: palette.forest,
-  border: palette.gray200,
+  border: palette.sage100,
   focus: palette.pine,
 
   heading: palette.forest,
-  body: palette.pine,
-  muted: palette.gray600,
+  body: palette.slate,
+  muted: palette.stone,
 
   brand: palette.forest,
   brandInk: palette.forest,
+  brandSoft: palette.sage200,
   onBrand: palette.white,
   accent: palette.pine,
   onAccent: palette.white,
 
   nav: palette.forest,
   onNav: palette.white,
-  navActive: palette.white,
-  navMuted: palette.gray200,
+  navBackground: palette.mist,
+  navForeground: palette.forest,
+  navActive: palette.forest,
+  navMuted: palette.stone,
 
-  infoFill: palette.gray100,
+  infoFill: palette.sage50,
   onInfoFill: palette.forest,
-  successFill: palette.forest,
-  onSuccessFill: palette.white,
-  warningFill: palette.gray600,
-  onWarningFill: palette.white,
-  dangerFill: palette.gray900,
-  onDangerFill: palette.white,
-  dangerInk: palette.forest,
+  successFill: palette.sage200,
+  onSuccessFill: palette.forest,
+  warningFill: '#F6E9D6',
+  onWarningFill: '#7A4E1D',
+  dangerFill: '#F8E3E0',
+  onDangerFill: palette.red,
+  dangerInk: palette.red,
 
-  success: palette.forest,
+  error: palette.red,
+  errorSoft: '#FBEEEC',
+  errorBorder: '#F0C7C1',
+  errorInk: palette.red,
+
+  success: palette.pine,
   successInk: palette.forest,
-  warning: palette.gray600,
-  danger: palette.gray900,
+  warning: '#B7791F',
+  danger: palette.red,
   info: palette.pine,
 
   ink: palette.ink,
-  skeleton: palette.gray200,
+  skeleton: palette.sage100,
+  backdrop: 'rgba(18, 24, 22, 0.45)',
 };
 
 const dark: ThemeColors = {
-  background: palette.ink,
-  surface: palette.gray900,
-  surfaceAlt: palette.gray800,
-  onSurfaceAlt: palette.gray200,
-  border: palette.gray600,
-  focus: palette.gray300,
+  background: palette.night,
+  surface: palette.night50,
+  surfaceAlt: palette.night100,
+  onSurfaceAlt: palette.frost,
+  border: palette.night200,
+  focus: palette.mint,
 
-  heading: palette.gray100,
-  body: palette.gray300,
-  muted: palette.gray400,
+  heading: palette.frost,
+  body: palette.fog,
+  muted: palette.haze,
 
-  brand: palette.pine,
-  brandInk: palette.gray200,
-  onBrand: palette.white,
-  accent: palette.pine,
-  onAccent: palette.white,
+  brand: palette.jade,
+  brandInk: palette.mint,
+  brandSoft: palette.night300,
+  onBrand: palette.nightInk,
+  accent: palette.mint,
+  onAccent: palette.nightInk,
 
-  nav: palette.pine,
-  onNav: palette.white,
-  navActive: palette.white,
-  navMuted: palette.gray200,
+  nav: palette.jade,
+  onNav: palette.nightInk,
+  navBackground: palette.night,
+  navForeground: palette.frost,
+  navActive: palette.mint,
+  navMuted: palette.haze,
 
-  infoFill: palette.gray800,
-  onInfoFill: palette.gray200,
-  successFill: palette.pine,
-  onSuccessFill: palette.white,
-  warningFill: palette.gray600,
-  onWarningFill: palette.white,
-  dangerFill: palette.gray700,
-  onDangerFill: palette.white,
-  dangerInk: palette.gray100,
+  infoFill: palette.night100,
+  onInfoFill: palette.frost,
+  successFill: palette.night300,
+  onSuccessFill: palette.mint,
+  warningFill: '#3A3022',
+  onWarningFill: palette.apricot,
+  dangerFill: '#3A2321',
+  onDangerFill: palette.redSoft,
+  dangerInk: palette.redSoft,
 
-  success: palette.pine,
-  successInk: palette.gray200,
-  warning: palette.gray400,
-  danger: palette.gray100,
-  info: palette.gray400,
+  error: palette.redSoft,
+  errorSoft: '#2E1D1B',
+  errorBorder: '#5A302B',
+  errorInk: palette.redSoft,
+
+  success: palette.mint,
+  successInk: palette.mint,
+  warning: palette.apricot,
+  danger: palette.redSoft,
+  info: palette.mint,
 
   ink: palette.ink,
-  skeleton: palette.gray700,
+  skeleton: palette.night100,
+  backdrop: 'rgba(0, 0, 0, 0.55)',
 };
 
 export const themes: { light: ThemeColors; dark: ThemeColors } = { light, dark };
@@ -159,18 +214,25 @@ export const spacing = {
   xxxl: 32,
 } as const;
 
+/** Screen side padding and gap between sections (DESIGN.md). */
+export const layout = {
+  gutter: spacing.lg,
+  sectionGap: spacing.xxl,
+} as const;
+
 export const radii = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
+  sm: 4,
+  md: 8,
+  lg: 10,
+  /** Sheet top corners only. */
+  xl: 12,
   full: 999,
 } as const;
 
 export const controlSizes = {
-  sm: 'h-10 px-4 text-sm',
-  md: 'h-12 px-5 text-sm',
-  lg: 'h-14 px-6 text-base',
+  sm: 'h-9 px-3 text-sm',
+  md: 'h-11 px-4 text-sm',
+  lg: 'h-12 px-5 text-base',
 } as const;
 
 export function useIsDark(): boolean {

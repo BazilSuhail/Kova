@@ -1,23 +1,31 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { useState, type ReactNode } from 'react';
+import { Pressable, RefreshControl, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter, type Href } from 'expo-router';
+import { BarChart, LineChart } from 'react-native-gifted-charts';
 
-import type { Task } from '@/lib/api';
+import { useDashboard, useToggleTask } from '@/lib/api';
+import type { Dashboard, Task } from '@/lib/api';
+import { TaskComposerSheet, type CaptureMode } from '@/components/domain/task-composer';
 import { TaskRow } from '@/components/domain/task-row';
+import { AppBar } from '@/components/ui/app-bar';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Chip } from '@/components/ui/chip';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
+import { FloatingShapes } from '@/components/ui/floating-shapes';
+import { Icon } from '@/components/ui/icon';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { Row } from '@/components/ui/row';
 import { Screen } from '@/components/ui/screen';
-import { ScreenHeader } from '@/components/ui/screen-header';
-import { SectionHeading } from '@/components/ui/section-heading';
-import { SkeletonCard } from '@/components/ui/skeleton';
-import { useDailyRecap, useDashboard, useToggleTask } from '@/lib/api';
+import { Skeleton, SkeletonCard } from '@/components/ui/skeleton';
+import { StatTile } from '@/components/ui/stat-tile';
+import { assetUrl } from '@/config/env';
+import { chartColors, layout, spacing, useThemeColors } from '@/config/theme';
 import { errorMessage } from '@/lib/errors';
-import { formatDateTime } from '@/lib/format';
+import { formatDateTime, initialsOf, relativeTime } from '@/lib/format';
 import { useAuthStore } from '@/store/auth-store';
-import { useThemeColors } from '@/config/theme';
 import type { IconName } from '@/theme/icons';
 
 function greetingFor(date: Date): string {
@@ -27,27 +35,211 @@ function greetingFor(date: Date): string {
   return 'Good evening';
 }
 
-function todayLabel(date: Date): string {
-  return date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+/** 'YYYY-MM-DD' -> 'Mon' (local date, no TZ shift). */
+function weekday(iso: string): string {
+  const [year, month, day] = iso.slice(0, 10).split('-').map(Number);
+  if (!year || !month || !day) return iso.slice(5);
+  return new Date(year, month - 1, day).toLocaleDateString(undefined, { weekday: 'short' });
 }
 
-const QUICK_ACTIONS: { label: string; icon: IconName; href: Href }[] = [
-  { label: 'Add task', icon: 'add-circle', href: '/tasks' },
-  { label: 'Plan day', icon: 'flash', href: '/plan' },
-  { label: 'Journal', icon: 'book', href: '/insights' },
+type QuickAction = { label: string; icon: IconName } & (
+  | { compose: CaptureMode }
+  | { href: Href }
+);
+
+const QUICK_ACTIONS: QuickAction[] = [
+  { label: 'New task', icon: 'add-circle-outline', compose: 'manual' },
+  { label: 'Voice', icon: 'mic-outline', compose: 'voice' },
+  { label: 'Scan', icon: 'camera-outline', compose: 'scan' },
+  { label: 'Mood', icon: 'happy-outline', href: '/insights/mood' },
+  { label: 'Plan day', icon: 'calendar-outline', href: '/plan/editor' },
 ];
+
+function Section({ index, children }: { index: number; children: ReactNode }) {
+  return (
+    <Animated.View
+      entering={FadeInDown.duration(220).delay(index * 40)}
+      style={{ marginTop: layout.sectionGap }}
+    >
+      {children}
+    </Animated.View>
+  );
+}
+
+function Heading({ title, action }: { title: string; action?: ReactNode }) {
+  return (
+    <View className="mb-3 flex-row items-center justify-between">
+      <Text className="text-base font-semibold text-heading">{title}</Text>
+      {action}
+    </View>
+  );
+}
+
+function WeeklyChart({ days, width }: { days: Dashboard['weeklyCompletion']; width: number }) {
+  const colors = useThemeColors();
+  if (!days.some((day) => day.total > 0)) {
+    return (
+      <EmptyState
+        icon="bar-chart-outline"
+        title="No tasks this week"
+        description="Tasks due this week will chart here."
+        className="py-6"
+      />
+    );
+  }
+  const peak = Math.max(1, ...days.map((day) => day.total));
+  const step = Math.ceil(peak / 3);
+
+  return (
+    <>
+      <BarChart
+        stackData={days.map((day) => ({
+          label: weekday(day.date),
+          stacks: [
+            { value: day.completed, color: chartColors[0] },
+            { value: Math.max(0, day.total - day.completed), color: chartColors[1], marginBottom: 2 },
+          ],
+        }))}
+        adjustToWidth
+        parentWidth={width}
+        width={width - 28}
+        height={120}
+        barBorderRadius={4}
+        maxValue={step * 3}
+        stepValue={step}
+        noOfSections={3}
+        yAxisLabelWidth={24}
+        yAxisThickness={0}
+        xAxisColor={colors.border}
+        rulesColor={colors.border}
+        rulesType="solid"
+        yAxisTextStyle={{ color: colors.muted, fontSize: 10 }}
+        xAxisLabelTextStyle={{ color: colors.muted, fontSize: 10 }}
+        disablePress
+        disableScroll
+      />
+      <View className="mt-3 flex-row" style={{ gap: spacing.lg }}>
+        <Legend color={chartColors[0]} label="Completed" />
+        <Legend color={chartColors[1]} label="Still open" />
+      </View>
+    </>
+  );
+}
+
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <View className="flex-row items-center" style={{ gap: spacing.xs }}>
+      <View className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+      <Text className="text-xs text-muted">{label}</Text>
+    </View>
+  );
+}
+
+function MoodChart({ days, width }: { days: Dashboard['moodTrend']; width: number }) {
+  const colors = useThemeColors();
+  const router = useRouter();
+  // Days without a check-in are skipped rather than plotted as zero.
+  const points = days
+    .filter((day) => day.score !== null)
+    .map((day) => ({ value: day.score ?? 0, label: weekday(day.date) }));
+
+  if (points.length === 0) {
+    return (
+      <EmptyState
+        icon="happy-outline"
+        title="No mood check-ins yet"
+        description="Log how you feel to see your week."
+        actionLabel="Check in"
+        onAction={() => router.push('/insights/mood')}
+        className="py-6"
+      />
+    );
+  }
+
+  return (
+    <LineChart
+      data={points}
+      areaChart
+      curved
+      adjustToWidth
+      parentWidth={width}
+      width={width - 28}
+      height={120}
+      maxValue={5}
+      noOfSections={5}
+      color={chartColors[0]}
+      thickness={2}
+      startFillColor={chartColors[0]}
+      endFillColor={chartColors[0]}
+      startOpacity={0.24}
+      endOpacity={0.02}
+      dataPointsColor={chartColors[0]}
+      dataPointsRadius={3}
+      initialSpacing={12}
+      endSpacing={12}
+      yAxisLabelWidth={24}
+      yAxisThickness={0}
+      xAxisColor={colors.border}
+      rulesColor={colors.border}
+      rulesType="solid"
+      yAxisTextStyle={{ color: colors.muted, fontSize: 10 }}
+      xAxisLabelTextStyle={{ color: colors.muted, fontSize: 10 }}
+      disableScroll
+    />
+  );
+}
+
+function LoadingBody() {
+  return (
+    <View style={{ gap: layout.sectionGap, marginTop: layout.sectionGap }}>
+      <View className="flex-row" style={{ gap: spacing.md }}>
+        {QUICK_ACTIONS.map((action) => (
+          <Skeleton key={action.label} width={56} height={56} radius={8} />
+        ))}
+      </View>
+      <View className="flex-row" style={{ gap: spacing.md }}>
+        <View className="flex-1">
+          <SkeletonCard lines={1} />
+        </View>
+        <View className="flex-1">
+          <SkeletonCard lines={1} />
+        </View>
+      </View>
+      <SkeletonCard lines={3} />
+      <SkeletonCard lines={4} />
+    </View>
+  );
+}
 
 export default function HomeScreen() {
   const colors = useThemeColors();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const dashboard = useDashboard();
-  const recap = useDailyRecap();
   const toggleTask = useToggleTask();
+  const { width: windowWidth } = useWindowDimensions();
   const [busyTaskId, setBusyTaskId] = useState<string | null>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [composerMode, setComposerMode] = useState<CaptureMode>('manual');
 
-  const firstName = user?.name.trim().split(/\s+/)[0] ?? 'there';
+  const data = dashboard.data;
   const now = new Date();
+  const firstName = user?.name.trim().split(/\s+/)[0] || 'there';
+  const avatarUri = assetUrl(user?.profilePicture);
+  // Screen gutter + card padding on both sides.
+  const chartWidth = Math.max(220, windowWidth - layout.gutter * 2 - spacing.lg * 2);
+
+  const progress = data?.todayProgress ?? { total: 0, completed: 0, pending: 0 };
+  const percent = progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0;
+  const scores = (data?.moodTrend ?? []).flatMap((day) => (day.score === null ? [] : [day.score]));
+  const avgMood = scores.length
+    ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(1)
+    : '–';
+
+  function openComposer(mode: CaptureMode) {
+    setComposerMode(mode);
+    setComposerOpen(true);
+  }
 
   function toggle(task: Task) {
     setBusyTaskId(task.taskId);
@@ -57,273 +249,293 @@ export default function HomeScreen() {
     );
   }
 
-  const data = dashboard.data;
-  const stats = data?.tasks;
-  const unread = data?.unreadNotifications ?? 0;
-  const completion =
-    stats && stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
-  const todayTasks = data?.todayTasks ?? [];
-  const reminders = data?.nextReminders ?? [];
-  const suggestions = (data?.suggestions ?? []).slice(0, 2);
-
-  const bell = (
+  const avatar = (
     <Pressable
-      onPress={() => router.push('/notifications')}
+      onPress={() => router.navigate('/profile')}
       accessibilityRole="button"
-      accessibilityLabel={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
-      className="h-11 w-11 items-center justify-center rounded-2xl border border-border bg-surface active:opacity-70"
+      accessibilityLabel="Profile"
+      className="ml-1 h-10 w-10 items-center justify-center rounded-full active:opacity-70"
     >
-      <Ionicons name="notifications-outline" size={20} color={colors.heading} />
-      {unread > 0 ? (
-        <View className="absolute -right-1 -top-1 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 py-0.5">
-          <Text className="text-xs font-bold text-on-brand">{unread > 9 ? '9+' : unread}</Text>
+      {avatarUri ? (
+        <Image
+          source={{ uri: avatarUri }}
+          contentFit="cover"
+          style={{ width: 30, height: 30, borderRadius: 15 }}
+        />
+      ) : (
+        <View className="h-[30px] w-[30px] items-center justify-center rounded-full bg-brand">
+          <Text className="text-xs font-bold text-on-brand">{initialsOf(user?.name, 'K')}</Text>
         </View>
-      ) : null}
+      )}
     </Pressable>
   );
 
-  if (dashboard.isPending) {
-    return (
-      <Screen>
-        <ScreenHeader
-          icon="home-outline"
-          eyebrow={todayLabel(now)}
-          title={`${greetingFor(now)}, ${firstName}.`}
-          subtitle="A clear mind starts with one small step."
-          right={bell}
-        />
-        <View className="mt-6" style={{ gap: 12 }}>
-          <SkeletonCard lines={2} />
-          <SkeletonCard lines={1} />
-          <SkeletonCard lines={1} />
-        </View>
-      </Screen>
-    );
-  }
+  const header = (
+    <View className="relative overflow-hidden rounded-lg border border-border bg-surface p-4">
+      <FloatingShapes />
+      <Text className="text-xs font-medium uppercase tracking-wide text-muted">
+        {now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+      </Text>
+      <Text className="mt-1 text-2xl font-bold tracking-tight text-heading">
+        {greetingFor(now)}, {firstName}
+      </Text>
 
-  if (dashboard.isError && !data) {
-    return (
-      <Screen>
-        <ScreenHeader
-          icon="home-outline"
-          eyebrow={todayLabel(now)}
-          title={`${greetingFor(now)}, ${firstName}.`}
-          right={bell}
-        />
-        <ErrorState
-          title="Could not load your day"
-          message={errorMessage(dashboard.error)}
-          onRetry={() => void dashboard.refetch()}
-        />
-      </Screen>
+      {data ? (
+        <>
+          <View className="mt-4 flex-row items-end justify-between">
+            <Text className="text-sm text-body">
+              <Text className="text-lg font-bold text-heading">{progress.completed}</Text> of{' '}
+              {progress.total} due today done
+            </Text>
+            <View className="flex-row items-center" style={{ gap: spacing.xs }}>
+              <Icon name="flame" size={16} tone="warning" />
+              <Text className="text-sm font-semibold text-heading">{data.streak} day streak</Text>
+            </View>
+          </View>
+          <View
+            className="mt-2 h-2 overflow-hidden rounded-full bg-surface-alt"
+            accessibilityRole="progressbar"
+            accessibilityValue={{ min: 0, max: 100, now: percent }}
+          >
+            <View className="h-full rounded-full bg-brand" style={{ width: `${percent}%` }} />
+          </View>
+        </>
+      ) : (
+        <Skeleton height={36} style={{ marginTop: spacing.lg }} />
+      )}
+    </View>
+  );
+
+  let body: ReactNode;
+  if (dashboard.isPending) {
+    body = <LoadingBody />;
+  } else if (!data) {
+    body = (
+      <ErrorState
+        title="Could not load your day"
+        message={errorMessage(dashboard.error)}
+        onRetry={() => void dashboard.refetch()}
+      />
+    );
+  } else {
+    const todayTasks = data.todayTasks.slice(0, 4);
+    const suggestions = data.suggestions.slice(0, 2);
+
+    body = (
+      <>
+        <Section index={0}>
+          <View className="flex-row justify-between">
+            {QUICK_ACTIONS.map((action) => (
+              <PressableScale
+                key={action.label}
+                haptic
+                onPress={() =>
+                  'compose' in action ? openComposer(action.compose) : router.push(action.href)
+                }
+                accessibilityRole="button"
+                accessibilityLabel={action.label}
+                className="items-center"
+                style={{ width: 60 }}
+              >
+                <View className="h-12 w-12 items-center justify-center rounded-lg bg-brand-soft">
+                  <Icon name={action.icon} size={22} tone="brand" />
+                </View>
+                <Text numberOfLines={1} className="mt-1.5 text-xs font-medium text-body">
+                  {action.label}
+                </Text>
+              </PressableScale>
+            ))}
+          </View>
+        </Section>
+
+        <Section index={1}>
+          <View style={{ gap: spacing.md }}>
+            <View className="flex-row" style={{ gap: spacing.md }}>
+              <StatTile icon="checkmark-done" value={progress.completed} label="Done today" />
+              <StatTile icon="hourglass-outline" value={progress.pending} label="Pending today" />
+            </View>
+            <View className="flex-row" style={{ gap: spacing.md }}>
+              <StatTile icon="flame-outline" value={data.streak} label="Day streak" />
+              <StatTile
+                icon="happy-outline"
+                value={avgMood}
+                label="Avg mood (7d)"
+                onPress={() => router.push('/insights/mood-trends')}
+              />
+            </View>
+          </View>
+        </Section>
+
+        <Section index={2}>
+          <Heading
+            title="Today's tasks"
+            action={
+              <Button
+                variant="ghost"
+                size="sm"
+                label="See all"
+                onPress={() => router.navigate('/tasks')}
+              />
+            }
+          />
+          {todayTasks.length > 0 ? (
+            todayTasks.map((task) => (
+              <TaskRow
+                key={task.taskId}
+                task={task}
+                toggling={busyTaskId === task.taskId}
+                onToggle={() => toggle(task)}
+                onPress={() => router.push(`/tasks/${task.taskId}`)}
+              />
+            ))
+          ) : (
+            <Card>
+              <EmptyState
+                icon="checkmark-done-circle-outline"
+                title="Nothing due today"
+                description="Add a task with today's date and it shows up here."
+                actionLabel="New task"
+                onAction={() => openComposer('manual')}
+                className="py-6"
+              />
+            </Card>
+          )}
+        </Section>
+
+        <Section index={3}>
+          <Heading title="This week" />
+          <Card>
+            <WeeklyChart days={data.weeklyCompletion} width={chartWidth} />
+          </Card>
+        </Section>
+
+        <Section index={4}>
+          <Heading
+            title="Mood, last 7 days"
+            action={
+              <Button
+                variant="ghost"
+                size="sm"
+                label="Trends"
+                onPress={() => router.push('/insights/mood-trends')}
+              />
+            }
+          />
+          <Card>
+            <MoodChart days={data.moodTrend} width={chartWidth} />
+          </Card>
+        </Section>
+
+        {data.nextReminders.length > 0 ? (
+          <Section index={5}>
+            <Heading title="Upcoming reminders" />
+            <Card padded={false}>
+              {data.nextReminders.map((reminder, i, all) => (
+                <Row
+                  key={reminder.reminderId}
+                  icon="alarm-outline"
+                  tone="primary"
+                  title={reminder.title}
+                  subtitle={formatDateTime(reminder.fireAt) ?? 'No time set'}
+                  onPress={() => router.push('/plan/reminders')}
+                  last={i === all.length - 1}
+                />
+              ))}
+            </Card>
+          </Section>
+        ) : null}
+
+        {data.recentSummaries.length > 0 ? (
+          <Section index={6}>
+            <Heading
+              title="Recent summaries"
+              action={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  label="Library"
+                  onPress={() => router.push('/insights/library')}
+                />
+              }
+            />
+            <Card padded={false}>
+              {data.recentSummaries.map((summary, i, all) => (
+                <Row
+                  key={summary.summaryId}
+                  icon={summary.sourceType.toLowerCase() === 'pdf' ? 'document-outline' : 'document-text-outline'}
+                  title={summary.originalFileName || summary.summaryBullets[0] || 'Summary'}
+                  subtitle={relativeTime(summary.createdAt) ?? undefined}
+                  onPress={() => router.push(`/insights/library/${summary.summaryId}` as Href)}
+                  last={i === all.length - 1}
+                />
+              ))}
+            </Card>
+          </Section>
+        ) : null}
+
+        {suggestions.length > 0 ? (
+          <Section index={7}>
+            <Heading title="For you" />
+            <Card padded={false}>
+              {suggestions.map((suggestion, i, all) => (
+                <Row
+                  key={suggestion.id}
+                  icon="sparkles-outline"
+                  tone="primary"
+                  title={suggestion.title}
+                  subtitle={suggestion.message}
+                  onPress={() => router.push('/insights/suggestions')}
+                  last={i === all.length - 1}
+                />
+              ))}
+            </Card>
+          </Section>
+        ) : null}
+      </>
     );
   }
 
   return (
-    <Screen>
-      <ScreenHeader
-        icon="home-outline"
-        eyebrow={todayLabel(now)}
-        title={`${greetingFor(now)}, ${firstName}.`}
-        subtitle="A clear mind starts with one small step."
-        right={bell}
+    <Screen scroll={false}>
+      <AppBar
+        actions={[
+          { icon: 'search', accessibilityLabel: 'Search tasks', onPress: () => router.navigate('/tasks') },
+          {
+            icon: 'notifications-outline',
+            accessibilityLabel: data?.unreadNotifications
+              ? `Notifications, ${data.unreadNotifications} unread`
+              : 'Notifications',
+            badge: (data?.unreadNotifications ?? 0) > 0,
+            onPress: () => router.push('/notifications'),
+          },
+        ]}
+        right={avatar}
       />
-
-      <View className="mt-6 rounded-3xl bg-brand p-5">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-base font-semibold text-on-brand">Your progress</Text>
-          <Ionicons name="stats-chart" size={20} color={colors.onBrand} />
-        </View>
-        <Text className="mt-4 text-5xl font-bold text-on-brand">
-          {stats?.completed ?? 0} / {stats?.total ?? 0}
-        </Text>
-        <Text className="mt-1 text-sm text-on-brand">
-          {stats && stats.total > 0
-            ? `intentions completed Â· ${stats.pending} still open`
-            : 'nothing on the list yet'}
-        </Text>
-        <View className="mt-4 h-2 overflow-hidden rounded-full bg-on-brand/20">
-          <View className="h-full rounded-full bg-surface" style={{ width: `${completion}%` }} />
-        </View>
-      </View>
-
-      <View className="mt-4 flex-row" style={{ gap: 12 }}>
-        <Card className="flex-1 rounded-2xl">
-          <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-alt">
-            <Ionicons name="calendar" size={18} color={colors.warning} />
-          </View>
-          <Text className="mt-3 text-2xl font-bold text-heading">{stats?.dueToday ?? 0}</Text>
-          <Text className="text-sm text-muted">due today</Text>
-        </Card>
-
-        <Card className="flex-1 rounded-2xl">
-          <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-alt">
-            <Ionicons name="flame" size={18} color={colors.successInk} />
-          </View>
-          <Text className="mt-3 text-2xl font-bold text-heading">{data?.streak ?? 0}</Text>
-          <Text className="text-sm text-muted">day streak</Text>
-        </Card>
-      </View>
-
-      <View className="mt-4 flex-row" style={{ gap: 10 }}>
-        {QUICK_ACTIONS.map((action) => (
-          <Pressable
-            key={action.label}
-            onPress={() => router.navigate(action.href)}
-            accessibilityRole="button"
-            className="flex-1 items-center rounded-2xl border border-border bg-surface py-4 active:opacity-70"
-          >
-            <Ionicons name={action.icon} size={22} color={colors.brandInk} />
-            <Text className="mt-2 text-xs font-semibold text-heading">{action.label}</Text>
-          </Pressable>
-        ))}
-      </View>
-
-      <SectionHeading
-        action={
-          <Pressable onPress={() => router.navigate('/tasks')} accessibilityRole="button">
-            <Text className="text-sm font-semibold text-brand-ink">See all</Text>
-          </Pressable>
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: layout.gutter,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.xxxl,
+        }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={dashboard.isRefetching}
+            onRefresh={() => void dashboard.refetch()}
+            tintColor={colors.brandInk}
+            colors={[colors.brandInk]}
+          />
         }
       >
-        <Text className="text-base font-bold text-heading">Today</Text>
-      </SectionHeading>
+        {header}
+        {body}
+      </ScrollView>
 
-      {todayTasks.length > 0 ? (
-        <View style={{ gap: 8 }}>
-          {todayTasks.map((task) => (
-            <TaskRow
-              key={task.taskId}
-              task={task}
-              toggling={busyTaskId === task.taskId}
-              onToggle={() => toggle(task)}
-              onPress={() => router.push(`/tasks/${task.taskId}`)}
-            />
-          ))}
-        </View>
-      ) : (
-        <Card>
-          <EmptyState
-            icon="checkmark-done-circle"
-            title="Nothing due today"
-            description="Add a task with today's date and it will show up here."
-            className="py-6"
-          />
-        </Card>
-      )}
-
-      <SectionHeading>
-        <Text className="text-base font-bold text-heading">Today&apos;s recap</Text>
-      </SectionHeading>
-
-      {recap.isPending ? (
-        <SkeletonCard lines={2} />
-      ) : recap.data ? (
-        <Card>
-          <View className="flex-row items-center justify-between">
-            <Text className="text-sm font-semibold text-heading">How the day is going</Text>
-            <Chip label={recap.data.mood || 'Not recorded'} icon="happy-outline" />
-          </View>
-
-          <View className="mt-4 flex-row" style={{ gap: 12 }}>
-            <View className="flex-1 rounded-2xl bg-surface-alt p-3">
-              <Text className="text-xl font-bold text-heading">
-                {recap.data.completedTasks.length}
-              </Text>
-              <Text className="text-xs text-muted">finished today</Text>
-            </View>
-            <View className="flex-1 rounded-2xl bg-surface-alt p-3">
-              <Text className="text-xl font-bold text-heading">
-                {recap.data.pendingTasks.length}
-              </Text>
-              <Text className="text-xs text-muted">waiting</Text>
-            </View>
-          </View>
-
-          {recap.data.pendingTasks.slice(0, 3).map((title) => (
-            <View key={title} className="mt-3 flex-row items-center" style={{ gap: 8 }}>
-              <View className="h-1.5 w-1.5 rounded-full bg-brand" />
-              <Text numberOfLines={1} className="flex-1 text-sm text-muted">
-                {title}
-              </Text>
-            </View>
-          ))}
-        </Card>
-      ) : (
-        <Card>
-          <Text className="text-sm text-muted">The recap is unavailable right now.</Text>
-        </Card>
-      )}
-
-      {reminders.length > 0 ? (
-        <>
-          <SectionHeading>
-            <Text className="text-base font-bold text-heading">Next reminders</Text>
-          </SectionHeading>
-
-          <Card padded={false} className="overflow-hidden rounded-2xl">
-            {reminders.slice(0, 3).map((reminder) => (
-              <View
-                key={reminder.reminderId}
-                className="flex-row items-center border-b border-border px-4 py-3 last:border-b-0"
-                style={{ gap: 12 }}
-              >
-                <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-alt">
-                  <Ionicons name="alarm-outline" size={17} color={colors.brandInk} />
-                </View>
-                <View className="flex-1">
-                  <Text numberOfLines={1} className="text-sm font-semibold text-heading">
-                    {reminder.title ?? 'Reminder'}
-                  </Text>
-                  <Text className="mt-0.5 text-xs text-muted">
-                    {formatDateTime(reminder.fireAt) ?? 'No time set'}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </Card>
-        </>
-      ) : null}
-
-      {suggestions.length > 0 ? (
-        <>
-          <SectionHeading
-            action={
-              <Pressable
-                onPress={() => router.push('/insights/suggestions')}
-                accessibilityRole="button"
-                accessibilityLabel="See all suggestions"
-                className="active:opacity-70"
-              >
-                <Text className="text-sm font-semibold text-brand-ink">See all</Text>
-              </Pressable>
-            }
-          >
-            <Text className="text-base font-bold text-heading">For you</Text>
-          </SectionHeading>
-
-          <View style={{ gap: 8 }}>
-            {suggestions.map((suggestion) => (
-              <Card
-                key={suggestion.id}
-                onPress={() => router.push('/insights/suggestions')}
-                className="border-border"
-              >
-                <View className="flex-row items-center" style={{ gap: 8 }}>
-                  <Ionicons name="sparkles" size={16} color={colors.brandInk} />
-                  <Text className="flex-1 text-sm font-semibold text-heading">
-                    {suggestion.title}
-                  </Text>
-                  {suggestion.priority === 'high' ? <Chip label="Now" /> : null}
-                </View>
-                {suggestion.message ? (
-                  <Text className="mt-2 text-sm leading-5 text-muted">{suggestion.message}</Text>
-                ) : null}
-              </Card>
-            ))}
-          </View>
-        </>
-      ) : null}
+      <TaskComposerSheet
+        visible={composerOpen}
+        initialMode={composerMode}
+        onClose={() => setComposerOpen(false)}
+      />
     </Screen>
   );
 }

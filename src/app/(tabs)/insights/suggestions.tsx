@@ -1,105 +1,110 @@
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { Text, View } from 'react-native';
+import { router, type Href } from 'expo-router';
+import { RefreshControl, ScrollView, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { PriorityChip } from '@/components/domain/priority-chip';
+import { AppBar } from '@/components/ui/app-bar';
+import { BackButton } from '@/components/ui/back-button';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
+import { Row } from '@/components/ui/row';
 import { Screen } from '@/components/ui/screen';
-import { ScreenHeader } from '@/components/ui/screen-header';
 import { SkeletonCard } from '@/components/ui/skeleton';
-import { BackButton } from '@/components/ui/back-button';
 import { useSuggestions } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
-import { useThemeColors } from '@/config/theme';
+import { layout, spacing, useThemeColors } from '@/config/theme';
 import type { IconName } from '@/theme/icons';
 
-function iconForType(type: string | undefined): IconName {
-  switch (type) {
-    case 'reschedule':
-      return 'calendar-outline';
-    case 'log_mood':
-      return 'happy-outline';
-    case 'focus':
-      return 'flash-outline';
-    case 'break':
-      return 'cafe-outline';
-    case 'journal':
-      return 'book-outline';
-    case 'celebrate':
-      return 'trophy-outline';
-    default:
-      return 'bulb-outline';
-  }
-}
+const TYPES: Record<string, { icon: IconName; href?: Href }> = {
+  reschedule: { icon: 'calendar-outline', href: '/tasks' },
+  log_mood: { icon: 'happy-outline', href: '/insights/mood' },
+  focus: { icon: 'flash-outline', href: '/tasks' },
+  break: { icon: 'cafe-outline' },
+  journal: { icon: 'book-outline', href: '/insights/journal' },
+  celebrate: { icon: 'trophy-outline' },
+};
 
 export default function SuggestionsScreen() {
   const colors = useThemeColors();
   const suggestions = useSuggestions();
   const items = suggestions.data ?? [];
 
-  const back = <BackButton fallback="/insights" />;
-
-  return (
-    <Screen contentContainerStyle={{ paddingBottom: 32 }}>
-      <View className="mb-4">{back}</View>
-
-      <ScreenHeader
-        icon="sparkles-outline"
-        eyebrow="Insights"
-        title="Suggestions"
-        subtitle="Derived from your tasks, mood and journal."
-      />
-
-      {suggestions.isPending ? (
-        <View className="mt-5" style={{ gap: 12 }}>
+  function body() {
+    if (suggestions.isPending) {
+      return (
+        <View style={{ gap: spacing.md }}>
           <SkeletonCard lines={2} />
           <SkeletonCard lines={2} />
-          <SkeletonCard lines={1} />
         </View>
-      ) : suggestions.isError ? (
+      );
+    }
+    if (suggestions.isError) {
+      return (
         <ErrorState
-          className="mt-5"
           title="Could not load your suggestions"
           message={errorMessage(suggestions.error)}
           onRetry={() => void suggestions.refetch()}
         />
-      ) : items.length === 0 ? (
+      );
+    }
+    if (items.length === 0) {
+      return (
         <EmptyState
-          className="mt-4"
           icon="sparkles-outline"
           title="Nothing to suggest yet"
           description="Nudges show up here once you have logged some tasks, moods or journal entries."
-          actionLabel="Back to progress"
-          onAction={() => router.replace('/insights')}
+          actionLabel="Log today's mood"
+          onAction={() => router.push('/insights/mood')}
         />
-      ) : (
-        <View className="mt-5" style={{ gap: 8 }}>
-          {items.map((suggestion) => (
-            <Card key={suggestion.id} className="border-border">
-              <View className="flex-row items-start" style={{ gap: 12 }}>
-                <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-alt">
-                  <Ionicons name={iconForType(suggestion.type)} size={17} color={colors.brandInk} />
-                </View>
-                <View className="flex-1">
-                  <View className="flex-row items-center" style={{ gap: 8 }}>
-                    <Text className="flex-1 text-sm font-bold text-heading">
-                      {suggestion.title}
-                    </Text>
-                    {suggestion.priority ? <PriorityChip priority={suggestion.priority} /> : null}
-                  </View>
-                  {suggestion.message ? (
-                    <Text className="mt-1.5 text-sm leading-5 text-muted">
-                      {suggestion.message}
-                    </Text>
-                  ) : null}
-                </View>
-              </View>
-            </Card>
-          ))}
-        </View>
-      )}
+      );
+    }
+    return (
+      <Card padded={false} className="overflow-hidden">
+        {items.map((suggestion, index) => {
+          const type = TYPES[suggestion.type ?? ''];
+          const href = type?.href;
+          return (
+            <Animated.View
+              key={suggestion.id}
+              entering={FadeInDown.duration(220).delay(Math.min(index, 8) * 40)}
+            >
+              <Row
+                icon={type?.icon ?? 'bulb-outline'}
+                tone="primary"
+                title={suggestion.title}
+                subtitle={suggestion.message}
+                right={
+                  suggestion.priority ? <PriorityChip priority={suggestion.priority} /> : undefined
+                }
+                onPress={href ? () => router.push(href) : undefined}
+                last={index === items.length - 1}
+              />
+            </Animated.View>
+          );
+        })}
+      </Card>
+    );
+  }
+
+  return (
+    <Screen scroll={false}>
+      <AppBar title="Suggestions" left={<BackButton fallback="/insights" />} />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: layout.gutter, paddingBottom: spacing.xxxl }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={suggestions.isRefetching}
+            onRefresh={() => void suggestions.refetch()}
+            tintColor={colors.brandInk}
+            colors={[colors.brandInk]}
+          />
+        }
+      >
+        {body()}
+      </ScrollView>
     </Screen>
   );
 }

@@ -3,19 +3,22 @@ import { Pressable, Text, View } from 'react-native';
 
 import type { Task } from '@/lib/api';
 import { TaskCheckbox } from '@/components/domain/task-checkbox';
-import { categoryInkClass, categoryToneClass } from '@/constants/tasks';
+import { IconButton } from '@/components/ui/app-bar';
 import { formatDueDate, isOverdue } from '@/lib/format';
-import { useThemeColors } from '@/config/theme';
+import { spacing, useThemeColors } from '@/config/theme';
+import type { IconName } from '@/theme/icons';
 
 type Props = {
   task: Task;
   onToggle: () => void;
   onPress?: () => void;
-  onLongPress?: () => void;
+  /** Shows a trailing "more" button (and long-press) that opens an action sheet. */
+  onMore?: () => void;
   toggling?: boolean;
 };
 
-export function TaskRow({ task, onToggle, onPress, onLongPress, toggling = false }: Props) {
+/** Flat list row: checkbox, title, icon meta line, hairline separator. */
+export function TaskRow({ task, onToggle, onPress, onMore, toggling = false }: Props) {
   const colors = useThemeColors();
   const done = Boolean(task.isCompleted);
   const due = formatDueDate(task.dueDate);
@@ -24,13 +27,11 @@ export function TaskRow({ task, onToggle, onPress, onLongPress, toggling = false
   return (
     <Pressable
       onPress={onPress}
-      onLongPress={onLongPress}
-      disabled={!onPress && !onLongPress}
+      onLongPress={onMore}
+      disabled={!onPress && !onMore}
       accessibilityRole={onPress ? 'button' : undefined}
-      className={`flex-row items-center rounded-2xl border bg-surface px-4 py-3 ${
-        late ? 'border-danger' : 'border-border'
-      } ${onPress ? 'active:opacity-70' : ''}`}
-      style={{ gap: 12 }}
+      className="min-h-16 flex-row items-center border-b border-border py-3 active:bg-surface-alt"
+      style={{ gap: spacing.md }}
     >
       <TaskCheckbox
         checked={done}
@@ -42,45 +43,60 @@ export function TaskRow({ task, onToggle, onPress, onLongPress, toggling = false
       <View className="flex-1">
         <Text
           numberOfLines={2}
-          className={`text-sm font-semibold ${done ? 'text-muted line-through' : 'text-heading'}`}
+          className={`text-[15px] font-medium ${done ? 'text-muted line-through' : 'text-heading'}`}
         >
           {task.title}
         </Text>
 
         {task.category || due || task.hasSubtasks ? (
-          <View className="mt-1.5 flex-row items-center" style={{ gap: 8 }}>
-            {task.category ? (
-              <View className={`rounded-full px-2 py-0.5 ${categoryToneClass(task.category)}`}>
-                <Text className={`text-xs font-semibold ${categoryInkClass(task.category)}`}>
-                  {task.category}
-                </Text>
-              </View>
-            ) : null}
-
+          <View className="mt-1 flex-row flex-wrap items-center" style={{ gap: spacing.md }}>
             {due ? (
-              <View className="flex-row items-center" style={{ gap: 3 }}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={11}
-                  color={late ? colors.dangerInk : colors.muted}
-                />
-                <Text className={`text-xs font-medium ${late ? 'text-danger-ink' : 'text-muted'}`}>
-                  {due}
-                </Text>
-              </View>
+              <Meta
+                icon={late ? 'alert-circle-outline' : 'calendar-outline'}
+                label={late ? `Overdue · ${due}` : due}
+                color={late ? colors.dangerInk : colors.muted}
+              />
             ) : null}
-
+            {task.category ? (
+              <Meta icon="pricetag-outline" label={task.category} color={colors.muted} />
+            ) : null}
             {task.hasSubtasks ? (
-              <View className="flex-row items-center" style={{ gap: 3 }}>
-                <Ionicons name="list-outline" size={11} color={colors.muted} />
-                <Text className="text-xs font-medium text-muted">Steps</Text>
-              </View>
+              <Meta icon="list-outline" label="Steps" color={colors.muted} />
             ) : null}
           </View>
         ) : null}
       </View>
 
-      {onPress ? <Ionicons name="chevron-forward" size={16} color={colors.muted} /> : null}
+      {onMore ? (
+        <IconButton
+          icon="ellipsis-vertical"
+          size={18}
+          color={colors.muted}
+          accessibilityLabel={`More for ${task.title}`}
+          onPress={onMore}
+        />
+      ) : onPress ? (
+        <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+      ) : null}
     </Pressable>
+  );
+}
+
+function Meta({
+  icon,
+  label,
+  color,
+}: {
+  icon: IconName;
+  label: string;
+  color: string;
+}) {
+  return (
+    <View className="flex-row items-center" style={{ gap: 4 }}>
+      <Ionicons name={icon} size={12} color={color} />
+      <Text className="text-xs" style={{ color }}>
+        {label}
+      </Text>
+    </View>
   );
 }

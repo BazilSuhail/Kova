@@ -15,6 +15,7 @@ import { Toggle } from '@/components/ui/toggle';
 import { useSettings, useUpdateSettings } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
 import { selectFeedback } from '@/lib/haptics';
+import { useTheme, type ThemeName } from '@/providers/theme-provider';
 
 const THEME_OPTIONS: ChipOption[] = [
   { value: 'system', label: 'System' },
@@ -47,6 +48,7 @@ const LANGUAGE_OPTIONS: ChipOption[] = [
 export default function SettingsScreen() {
   const settingsQuery = useSettings();
   const updateSettings = useUpdateSettings();
+  const { setTheme } = useTheme();
 
   const [pending, setPending] = useState<Partial<UserSettings>>({});
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +78,7 @@ export default function SettingsScreen() {
 
   if (settingsQuery.isPending) {
     return (
-      <Screen edges={['top', 'bottom']}>
+      <Screen>
         <ScreenHeader
           icon="settings-outline"
           eyebrow="Settings"
@@ -96,7 +98,7 @@ export default function SettingsScreen() {
 
   if (settingsQuery.isError && !settings) {
     return (
-      <Screen edges={['top', 'bottom']}>
+      <Screen>
         <ScreenHeader
           icon="settings-outline"
           eyebrow="Settings"
@@ -117,7 +119,7 @@ export default function SettingsScreen() {
   if (!settings) return null;
 
   return (
-    <Screen edges={['top', 'bottom']}>
+    <Screen>
       <ScreenHeader
         icon="settings-outline"
         eyebrow="Settings"
@@ -142,11 +144,12 @@ export default function SettingsScreen() {
           label="Theme"
           options={THEME_OPTIONS}
           value={settings.theme}
-          onChange={(value) => change('theme', value)}
+          onChange={(value) => {
+            // Apply on this device too, not just the account record.
+            void setTheme(value as ThemeName);
+            change('theme', value);
+          }}
         />
-        <Text className="mt-3 text-xs text-muted">
-          Saved to your account. Kova&apos;s own appearance still follows your device setting.
-        </Text>
       </Card>
 
       <SectionHeading>
@@ -179,7 +182,7 @@ export default function SettingsScreen() {
         <Text className="text-base font-bold text-heading">Notifications</Text>
       </SectionHeading>
 
-      <Card padded={false} className="overflow-hidden rounded-2xl">
+      <Card padded={false} className="overflow-hidden">
         <Row
           title="Reminders"
           subtitle="Due dates, focus blocks and daily nudges"
@@ -217,8 +220,7 @@ export default function SettingsScreen() {
       </Card>
 
       <Text className="mt-6 text-center text-xs text-muted">
-        These preferences are saved to your account, so they follow you to every device you sign in
-        on.
+        Saved to your account and follows you to every device.
       </Text>
     </Screen>
   );

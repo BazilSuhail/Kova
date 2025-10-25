@@ -1,17 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import type { Planner, Task } from '@/lib/api';
+import { AppBar, IconButton } from '@/components/ui/app-bar';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
+import { useDialog } from '@/components/ui/dialog';
+import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { FormError } from '@/components/ui/form-error';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
-import { ScreenHeader } from '@/components/ui/screen-header';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Skeleton, SkeletonCard } from '@/components/ui/skeleton';
 import {
@@ -24,12 +26,28 @@ import {
 import { errorMessage } from '@/lib/errors';
 import { addDays, dayLabel, todayIsoDate } from '@/lib/format';
 import { selectFeedback, successFeedback, tapFeedback, warnFeedback } from '@/lib/haptics';
-import { useThemeColors } from '@/config/theme';
+import { layout, spacing, useThemeColors } from '@/config/theme';
+import type { IconName } from '@/theme/icons';
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-export default function PlanEditorScreen() {
+function close() {
+  if (router.canGoBack()) router.back();
+  else router.replace('/plan');
+}
+
+function Heading({ icon, title, meta }: { icon: IconName; title: string; meta?: string }) {
   const colors = useThemeColors();
+  return (
+    <View className="flex-1 flex-row items-center" style={{ gap: spacing.sm }}>
+      <Ionicons name={icon} size={18} color={colors.heading} />
+      <Text className="flex-1 text-base font-semibold text-heading">{title}</Text>
+      {meta ? <Text className="text-xs text-muted">{meta}</Text> : null}
+    </View>
+  );
+}
+
+export default function PlanEditorScreen() {
   const params = useLocalSearchParams<{ date?: string | string[] }>();
 
   const initialDate = useMemo(() => {
@@ -38,7 +56,7 @@ export default function PlanEditorScreen() {
   }, [params.date]);
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
-  const [showPast, setShowPast] = useState(false);
+  const [showPast, setShowPast] = useState(() => initialDate < todayIsoDate());
 
   const planners = usePlanners();
   const existing = useMemo(
@@ -48,8 +66,10 @@ export default function PlanEditorScreen() {
 
   const dayOptions = useMemo(() => {
     const start = showPast ? addDays(todayIsoDate(), -14) : todayIsoDate();
-    return Array.from({ length: 14 }, (_, index) => addDays(start, index));
-  }, [showPast]);
+    const options = Array.from({ length: 14 }, (_, index) => addDays(start, index));
+    // Keep a date opened from the calendar selectable even when it is outside the window.
+    return options.includes(selectedDate) ? options : [selectedDate, ...options];
+  }, [showPast, selectedDate]);
 
   function pickDate(iso: string) {
     selectFeedback();
@@ -68,49 +88,41 @@ export default function PlanEditorScreen() {
   }
 
   return (
-    <Screen contentContainerStyle={{ paddingBottom: 40 }}>
-      <View className="mb-4 flex-row items-center justify-between">
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Close"
-          className="h-10 w-10 items-center justify-center rounded-2xl border border-border bg-surface active:opacity-70"
-        >
-          <Ionicons name="close" size={18} color={colors.heading} />
-        </Pressable>
-        <Chip label={existing ? 'Editing' : 'New day'} selected={Boolean(existing)} />
-      </View>
-
-      <ScreenHeader
-        icon="create-outline"
-        eyebrow="Plan"
-        title={existing ? 'Edit your plan' : 'Plan a day'}
-        subtitle="Set the focus, link the tasks, leave a note for later."
+    <Screen scroll={false}>
+      <AppBar
+        left={<IconButton icon="close" accessibilityLabel="Close" onPress={close} />}
+        brand={false}
+        title={existing ? 'Edit plan' : 'Plan a day'}
       />
 
-      <View className="mt-5 flex-row items-center justify-between">
-        <Text className="text-sm font-semibold text-body">Day</Text>
-        <Chip label="Previous 14 days" selected={showPast} onPress={togglePast} />
+      <View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            gap: spacing.sm,
+            paddingHorizontal: layout.gutter,
+            paddingVertical: spacing.sm,
+          }}
+        >
+          <Chip
+            label={showPast ? 'Upcoming days' : 'Past days'}
+            icon={showPast ? 'arrow-forward' : 'arrow-back'}
+            onPress={togglePast}
+          />
+          {dayOptions.map((iso) => (
+            <Chip
+              key={iso}
+              label={dayLabel(iso)}
+              selected={iso === selectedDate}
+              onPress={() => pickDate(iso)}
+            />
+          ))}
+        </ScrollView>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="mt-2"
-        contentContainerStyle={{ gap: 8, paddingRight: 8 }}
-      >
-        {dayOptions.map((iso) => (
-          <Chip
-            key={iso}
-            label={dayLabel(iso)}
-            selected={iso === selectedDate}
-            onPress={() => pickDate(iso)}
-          />
-        ))}
-      </ScrollView>
-
       {planners.isPending ? (
-        <View className="mt-5" style={{ gap: 12 }}>
+        <View style={{ padding: layout.gutter, gap: spacing.md }}>
           <SkeletonCard lines={2} />
           <SkeletonCard lines={3} />
         </View>
@@ -133,6 +145,7 @@ export default function PlanEditorScreen() {
 
 function PlanForm({ date, existing }: { date: string; existing: Planner | null }) {
   const colors = useThemeColors();
+  const { confirm } = useDialog();
   const create = useCreatePlanner();
   const update = useUpdatePlanner();
   const remove = useDeletePlanner();
@@ -183,175 +196,187 @@ function PlanForm({ date, existing }: { date: string; existing: Planner | null }
   async function save() {
     setSaving(true);
     setError(null);
+    // A typed-but-not-added focus is almost always meant to be saved.
+    const pending = focusDraft.trim();
+    const focus = pending && !focusTasks.includes(pending) ? [...focusTasks, pending] : focusTasks;
     try {
       if (existing) {
         await update.mutateAsync({
           plannerId: existing.plannerId,
-          input: { date, focusTasks, tasks: linked, reflection },
+          input: { date, focusTasks: focus, tasks: linked, reflection },
         });
       } else {
-        await create.mutateAsync({ date, focusTasks, tasks: linked, reflection });
+        await create.mutateAsync({ date, focusTasks: focus, tasks: linked, reflection });
       }
       successFeedback();
-      router.back();
+      close();
     } catch (failure) {
       setError(errorMessage(failure));
       setSaving(false);
     }
   }
 
-  async function runDelete() {
+  async function confirmDelete() {
     if (!existing) return;
+    const ok = await confirm({
+      title: 'Delete plan',
+      message: 'The focus, linked tasks and reflection for this day go with it.',
+      icon: 'trash-outline',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!ok) return;
     setDeleting(true);
     setError(null);
     try {
       await remove.mutateAsync(existing.plannerId);
       warnFeedback();
-      router.back();
+      close();
     } catch (failure) {
       setError(errorMessage(failure));
       setDeleting(false);
     }
   }
 
-  function confirmDelete() {
-    if (!existing) return;
-    if (Platform.OS === 'web') {
-      void runDelete();
-      return;
-    }
-    Alert.alert('Delete plan', 'The focus, linked tasks and reflection for this day go with it.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => void runDelete() },
-    ]);
-  }
-
   return (
-    <View className="mt-5">
-      <Card>
-        <View className="flex-row items-center justify-between">
-          <Text className="text-sm font-semibold text-heading">Focus</Text>
-          <Text className="text-xs text-muted">
-            {focusTasks.length} {focusTasks.length === 1 ? 'item' : 'items'}
-          </Text>
-        </View>
-
-        {focusTasks.length > 0 ? (
-          <View className="mt-3 flex-row flex-wrap" style={{ gap: 8 }}>
-            {focusTasks.map((item, index) => (
-              <Pressable
-                key={`${index}-${item}`}
-                onPress={() => removeFocus(index)}
-                disabled={saving}
-                accessibilityRole="button"
-                accessibilityLabel={`Remove focus ${item}`}
-                className="flex-row items-center rounded-full bg-brand px-3 py-1.5 active:opacity-70"
-                style={{ gap: 6 }}
-              >
-                <Text className="text-xs font-semibold text-on-brand">{item}</Text>
-                <Ionicons name="close" size={13} color={colors.onBrand} />
-              </Pressable>
-            ))}
-          </View>
-        ) : (
-          <Text className="mt-2 text-sm text-muted">No focus set for this day yet.</Text>
-        )}
-
-        <View className="mt-3 flex-row items-center" style={{ gap: 8 }}>
-          <View className="flex-1">
-            <Input
-              placeholder="What matters most?"
-              value={focusDraft}
-              onChangeText={setFocusDraft}
-              onSubmitEditing={addFocus}
-              returnKeyType="done"
-              editable={!saving}
-            />
-          </View>
-          <Button
-            label="Add"
-            size="md"
-            variant="secondary"
-            disabled={!focusDraft.trim()}
-            onPress={addFocus}
-          />
-        </View>
-      </Card>
-
-      <Card className="mt-3">
-        <Input
-          label="Reflection"
-          placeholder="How did the day go?"
-          value={reflection}
-          onChangeText={setReflection}
-          multiline
-          editable={!saving}
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={{ paddingHorizontal: layout.gutter, paddingBottom: spacing.xxxl }}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
+      <SectionHeading className="mt-4">
+        <Heading
+          icon="flag-outline"
+          title="Focus"
+          meta={`${focusTasks.length} ${focusTasks.length === 1 ? 'item' : 'items'}`}
         />
-      </Card>
-
-      <SectionHeading>
-        <Text className="text-base font-bold text-heading">Linked tasks</Text>
       </SectionHeading>
 
-      <Card padded={false} className="overflow-hidden rounded-2xl">
-        {tasksQuery.isPending ? (
-          <View className="p-4" style={{ gap: 12 }}>
-            <Skeleton height={14} width="60%" />
-            <Skeleton height={14} />
-            <Skeleton height={14} width="80%" />
+      <View
+        className="flex-row items-center border-b border-border"
+        style={{ gap: spacing.md, minHeight: 56 }}
+      >
+        <Ionicons name="add-circle-outline" size={24} color={colors.brandInk} />
+        <TextInput
+          value={focusDraft}
+          onChangeText={setFocusDraft}
+          onSubmitEditing={addFocus}
+          placeholder="What matters most?"
+          placeholderTextColor={colors.muted}
+          returnKeyType="done"
+          blurOnSubmit={false}
+          editable={!saving}
+          accessibilityLabel="Add a focus"
+          className="flex-1 py-3 text-base text-heading"
+        />
+        {focusDraft.trim() ? (
+          <IconButton
+            icon="arrow-up-circle"
+            size={28}
+            color={colors.brandInk}
+            accessibilityLabel="Add focus"
+            onPress={addFocus}
+          />
+        ) : null}
+      </View>
+
+      {focusTasks.map((item, index) => (
+        <Animated.View key={`${index}-${item}`} entering={FadeInDown.duration(220)}>
+          <View
+            className="min-h-14 flex-row items-center border-b border-border py-2"
+            style={{ gap: spacing.md }}
+          >
+            <View className="h-6 w-6 items-center justify-center rounded-full bg-brand-soft">
+              <Text className="text-xs font-bold text-brand-ink">{index + 1}</Text>
+            </View>
+            <Text className="flex-1 text-[15px] text-heading">{item}</Text>
+            <IconButton
+              icon="close"
+              size={18}
+              color={colors.muted}
+              accessibilityLabel={`Remove focus ${item}`}
+              onPress={() => removeFocus(index)}
+            />
           </View>
-        ) : tasksQuery.isError ? (
-          <View className="p-4">
-            <Text className="text-sm text-muted">Could not load your open tasks.</Text>
-            <Pressable
-              onPress={() => void tasksQuery.refetch()}
-              accessibilityRole="button"
-              accessibilityLabel="Retry loading open tasks"
-              className="mt-2 active:opacity-70"
+        </Animated.View>
+      ))}
+
+      <SectionHeading>
+        <Heading
+          icon="link-outline"
+          title="Linked tasks"
+          meta={`${linked.length} linked`}
+        />
+      </SectionHeading>
+
+      {tasksQuery.isPending ? (
+        <View style={{ gap: spacing.md }}>
+          <Skeleton height={14} width="60%" />
+          <Skeleton height={14} />
+          <Skeleton height={14} width="80%" />
+        </View>
+      ) : tasksQuery.isError ? (
+        <ErrorState
+          title="Could not load your open tasks"
+          message={errorMessage(tasksQuery.error)}
+          onRetry={() => void tasksQuery.refetch()}
+        />
+      ) : candidates.length === 0 ? (
+        <EmptyState
+          icon="checkbox-outline"
+          title="No open tasks"
+          description="Add tasks first, then link them here."
+          actionLabel="Go to tasks"
+          onAction={() => router.navigate('/tasks')}
+          className="py-6"
+        />
+      ) : (
+        candidates.map((task, index) => {
+          const selected = linked.includes(task.taskId);
+          return (
+            <Animated.View
+              key={task.taskId}
+              entering={FadeInDown.duration(220).delay(Math.min(index, 10) * 40)}
             >
-              <Text className="text-sm font-semibold text-brand-ink">Try again</Text>
-            </Pressable>
-          </View>
-        ) : candidates.length === 0 ? (
-          <View className="p-4">
-            <Text className="text-sm text-muted">No open tasks to link yet.</Text>
-          </View>
-        ) : (
-          candidates.map((task, index) => {
-            const selected = linked.includes(task.taskId);
-            return (
               <Pressable
-                key={task.taskId}
                 onPress={() => toggleTask(task.taskId)}
                 disabled={saving}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: selected, disabled: saving }}
                 accessibilityLabel={task.title}
-                className={`flex-row items-center px-4 py-3 active:opacity-70 ${
-                  index < candidates.length - 1 ? 'border-b border-border' : ''
-                }`}
-                style={{ gap: 12 }}
+                className="min-h-14 flex-row items-center border-b border-border py-3 active:bg-surface-alt"
+                style={{ gap: spacing.md }}
               >
-                <View
-                  className={`h-5 w-5 items-center justify-center rounded-md border ${
-                    selected ? 'border-brand-ink bg-brand' : 'border-border'
-                  }`}
-                >
-                  {selected ? <Ionicons name="checkmark" size={13} color={colors.onBrand} /> : null}
-                </View>
-                <Text numberOfLines={1} className="flex-1 text-sm text-heading">
+                <Ionicons
+                  name={selected ? 'checkbox' : 'square-outline'}
+                  size={22}
+                  color={selected ? colors.brandInk : colors.muted}
+                />
+                <Text numberOfLines={1} className="flex-1 text-[15px] text-heading">
                   {task.title}
                 </Text>
-                {task.category ? <Chip label={task.category} /> : null}
+                {task.category ? (
+                  <Text className="text-xs text-muted">{task.category}</Text>
+                ) : null}
               </Pressable>
-            );
-          })
-        )}
-      </Card>
+            </Animated.View>
+          );
+        })
+      )}
 
-      <Text className="mt-2 text-xs text-muted">
-        {linked.length} {linked.length === 1 ? 'task linked' : 'tasks linked'}
-      </Text>
+      <SectionHeading>
+        <Heading icon="journal-outline" title="Reflection" />
+      </SectionHeading>
+
+      <Input
+        icon="chatbubble-outline"
+        placeholder="How did the day go?"
+        value={reflection}
+        onChangeText={setReflection}
+        multiline
+        editable={!saving}
+      />
 
       {error ? (
         <View className="mt-4">
@@ -359,7 +384,7 @@ function PlanForm({ date, existing }: { date: string; existing: Planner | null }
         </View>
       ) : null}
 
-      <View className="mt-5" style={{ gap: 8 }}>
+      <View className="mt-6" style={{ gap: spacing.sm }}>
         <Button
           label="Save plan"
           icon="checkmark"
@@ -371,13 +396,13 @@ function PlanForm({ date, existing }: { date: string; existing: Planner | null }
           <Button
             label="Delete plan"
             variant="danger"
-            icon="trash"
+            icon="trash-outline"
             loading={deleting}
             disabled={saving}
-            onPress={confirmDelete}
+            onPress={() => void confirmDelete()}
           />
         ) : null}
       </View>
-    </View>
+    </ScrollView>
   );
 }

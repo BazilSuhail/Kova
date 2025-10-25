@@ -1,8 +1,8 @@
 import Constants from 'expo-constants';
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { Button } from '@/components/ui/button';
+import { IconButton } from '@/components/ui/app-bar';
 import { Card } from '@/components/ui/card';
 import { Row } from '@/components/ui/row';
 import { Screen } from '@/components/ui/screen';
@@ -17,12 +17,13 @@ export default function AboutScreen() {
   const router = useRouter();
 
   return (
-    <Screen edges={['top', 'bottom']} contentContainerStyle={{ paddingBottom: 32 }}>
+    <Screen contentContainerStyle={{ paddingBottom: 32 }}>
       <ScreenHeader
         icon="information-circle-outline"
         eyebrow="About"
         title="Kova"
         subtitle={`Version ${versionLabel()}`}
+        right={<IconButton icon="close" onPress={() => router.back()} accessibilityLabel="Close" />}
       />
 
       <Card className="mt-5">
@@ -33,7 +34,7 @@ export default function AboutScreen() {
         </Text>
       </Card>
 
-      <Card padded={false} className="mt-4 overflow-hidden rounded-2xl">
+      <Card padded={false} className="mt-4 overflow-hidden">
         <Row title="Version" subtitle={versionLabel()} icon="pricetag-outline" />
         <Row
           title="Server"
@@ -42,10 +43,6 @@ export default function AboutScreen() {
           last
         />
       </Card>
-
-      <View className="mt-6">
-        <Button label="Close" variant="secondary" onPress={() => router.back()} />
-      </View>
     </Screen>
   );
 }

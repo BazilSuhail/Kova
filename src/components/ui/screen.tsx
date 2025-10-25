@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { ScrollView, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { Edge } from 'react-native-safe-area-context';
 
-import { spacing } from '@/config/theme';
+import { layout, spacing } from '@/config/theme';
 import { ThemedSafeAreaView } from './styled';
 
 type Props = {
@@ -33,8 +33,8 @@ export function Screen({
           style={{ flex: 1 }}
           contentContainerStyle={[
             {
-              paddingHorizontal: spacing.xxl,
-              paddingTop: spacing.xl,
+              paddingHorizontal: layout.gutter,
+              paddingTop: spacing.md,
               paddingBottom: spacing.xxxl,
             },
             contentContainerStyle,

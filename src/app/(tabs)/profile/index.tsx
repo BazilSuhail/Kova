@@ -1,238 +1,47 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
-import { Alert, Platform, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router, type Href } from 'expo-router';
 
+import { ThemePicker, THEME_OPTIONS } from '@/components/theme-picker';
+import { AppBar } from '@/components/ui/app-bar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useDialog } from '@/components/ui/dialog';
 import { FormError } from '@/components/ui/form-error';
+import { Icon } from '@/components/ui/icon';
 import { Row, type RowTone } from '@/components/ui/row';
 import { Screen } from '@/components/ui/screen';
-import { ScreenHeader } from '@/components/ui/screen-header';
-import { SectionHeading } from '@/components/ui/section-heading';
-import { SkeletonCard } from '@/components/ui/skeleton';
-import { ThemePicker } from '@/components/theme-picker';
+import { StatTile } from '@/components/ui/stat-tile';
 import { assetUrl } from '@/config/env';
-import { useProfile, useSettings, useProgress } from '@/lib/api';
+import { layout, spacing } from '@/config/theme';
+import { useProfile, useProgress } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
 import { initialsOf } from '@/lib/format';
+import { useTheme } from '@/providers/theme-provider';
 import { useAuthStore } from '@/store/auth-store';
-import { useThemeColors } from '@/config/theme';
 import type { IconName } from '@/theme/icons';
 
 type MenuRow = {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   icon: IconName;
-  href: Href;
+  onPress: () => void;
   tone?: RowTone;
 };
 
-const ACCOUNT_ROWS: MenuRow[] = [
-  {
-    title: 'Edit profile',
-    subtitle: 'Name, email and preferences',
-    icon: 'person-outline',
-    href: '/profile/edit',
-    tone: 'primary',
-  },
-  {
-    title: 'Choose an avatar',
-    subtitle: 'Pick from the Kova catalogue',
-    icon: 'happy-outline',
-    href: '/profile/avatars',
-  },
-  {
-    title: 'Settings',
-    subtitle: 'Appearance, notifications and language',
-    icon: 'options-outline',
-    href: '/profile/settings',
-  },
-];
+const go = (href: Href) => () => router.push(href);
 
-const APP_ROWS: MenuRow[] = [
-  {
-    title: 'Notifications',
-    subtitle: 'Reminders, recaps and nudges',
-    icon: 'notifications-outline',
-    href: '/notifications',
-  },
-  {
-    title: 'Registered devices',
-    subtitle: 'Where Kova can send push alerts',
-    icon: 'phone-portrait-outline',
-    href: '/profile/devices',
-  },
-  {
-    title: 'Sync and storage',
-    subtitle: 'Keep this account current everywhere',
-    icon: 'cloud-upload-outline',
-    href: '/profile/sync',
-  },
-  {
-    title: 'Change password',
-    subtitle: 'Update the password on this account',
-    icon: 'lock-closed-outline',
-    href: '/profile/security',
-  },
-];
-
-const MORE_ROWS: MenuRow[] = [
-  {
-    title: 'About Kova',
-    subtitle: 'Version, support and credits',
-    icon: 'information-circle-outline',
-    href: '/profile/about',
-  },
-  {
-    title: 'Delete account',
-    subtitle: 'Permanently remove your data',
-    icon: 'trash-outline',
-    href: '/profile/danger',
-    tone: 'danger',
-  },
-];
-
-const THEME_LABELS: Record<string, string> = { light: 'Light', dark: 'Dark', system: 'System' };
-const FONT_LABELS: Record<string, string> = { small: 'Small', medium: 'Medium', large: 'Large' };
-const LAYOUT_LABELS: Record<string, string> = { comfortable: 'Comfortable', compact: 'Compact' };
-const STYLE_LABELS: Record<string, string> = {
-  gentle: 'Gentle',
-  standard: 'Standard',
-  firm: 'Firm',
-};
-const LANGUAGE_LABELS: Record<string, string> = { en: 'English', ur: 'اردو' };
-
-function labelOf(map: Record<string, string>, value: string | undefined, fallback: string): string {
-  if (!value) return fallback;
-  return map[value] ?? value;
-}
-
-function memberSince(createdAt: string | undefined): string | null {
-  if (!createdAt) return null;
-  const date = new Date(createdAt);
-  if (Number.isNaN(date.getTime())) return null;
-  return `Member since ${date.toLocaleDateString()}`;
-}
-
-function MenuGroup({ rows }: { rows: MenuRow[] }) {
+function MenuGroup({ rows, index }: { rows: MenuRow[]; index: number }) {
   return (
-    <Card padded={false} className="overflow-hidden rounded-2xl">
-      {rows.map((row, index) => (
-        <Row
-          key={row.title}
-          title={row.title}
-          subtitle={row.subtitle}
-          icon={row.icon}
-          tone={row.tone}
-          onPress={() => router.push(row.href)}
-          last={index === rows.length - 1}
-        />
-      ))}
-    </Card>
-  );
-}
-
-function Stat({
-  icon,
-  value,
-  label,
-  tone,
-}: {
-  icon: IconName;
-  value: number;
-  label: string;
-  tone: 'success' | 'primary';
-}) {
-  const colors = useThemeColors();
-  const success = tone === 'success';
-
-  return (
-    <View className="flex-1 items-center">
-      <View
-        className={`h-9 w-9 items-center justify-center rounded-xl ${
-          success ? 'bg-success' : 'bg-brand'
-        }`}
-      >
-        <Ionicons name={icon} size={17} color={success ? colors.onSuccessFill : colors.onBrand} />
-      </View>
-      <Text className="mt-2 text-xl font-bold text-heading">{value}</Text>
-      <Text className="text-xs text-muted">{label}</Text>
-    </View>
-  );
-}
-
-function PreferencesCard() {
-  const settings = useSettings();
-
-  if (settings.isPending) {
-    return <SkeletonCard lines={3} />;
-  }
-
-  if (settings.isError || !settings.data) {
-    return (
-      <Card>
-        <Text className="text-sm text-body">
-          Your saved preferences could not be loaded right now.
-        </Text>
-        <View className="mt-3">
-          <Button
-            label="Try again"
-            variant="secondary"
-            size="sm"
-            icon="refresh"
-            onPress={() => void settings.refetch()}
-          />
-        </View>
+    <Animated.View entering={FadeInDown.duration(220).delay(index * 40)} className="mt-4">
+      <Card padded={false} className="overflow-hidden">
+        {rows.map((row, i) => (
+          <Row key={row.title} {...row} last={i === rows.length - 1} />
+        ))}
       </Card>
-    );
-  }
-
-  const data = settings.data;
-  const openSettings = () => router.push('/profile/settings');
-
-  return (
-    <Card padded={false} className="overflow-hidden rounded-2xl">
-      <Row
-        title="Theme"
-        subtitle={labelOf(THEME_LABELS, data.theme, 'System')}
-        icon="color-palette-outline"
-        onPress={openSettings}
-      />
-      <Row
-        title="Font size"
-        subtitle={labelOf(FONT_LABELS, data.fontSize, 'Medium')}
-        icon="text-outline"
-        onPress={openSettings}
-      />
-      <Row
-        title="Layout"
-        subtitle={labelOf(LAYOUT_LABELS, data.layout, 'Comfortable')}
-        icon="grid-outline"
-        onPress={openSettings}
-      />
-      <Row
-        title="Notification style"
-        subtitle={labelOf(STYLE_LABELS, data.notificationStyle, 'Standard')}
-        icon="notifications-outline"
-        onPress={openSettings}
-      />
-      <Row
-        title="Language"
-        subtitle={labelOf(LANGUAGE_LABELS, data.language, 'English')}
-        icon="language-outline"
-        onPress={openSettings}
-      />
-      <Row
-        title="Notifications"
-        subtitle={data.notificationsEnabled === false ? 'Off' : 'On'}
-        icon="toggle-outline"
-        tone={data.notificationsEnabled === false ? 'danger' : 'success'}
-        onPress={openSettings}
-        last
-      />
-    </Card>
+    </Animated.View>
   );
 }
 
@@ -240,144 +49,135 @@ export default function ProfileScreen() {
   const profile = useProfile();
   const progress = useProgress();
   const storeUser = useAuthStore((state) => state.user);
+  const { themeChoice } = useTheme();
+  const { confirm } = useDialog();
+
+  const [themeOpen, setThemeOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile.data) useAuthStore.getState().setUser(profile.data);
   }, [profile.data]);
 
-  const [signingOut, setSigningOut] = useState(false);
-  const [signOutError, setSignOutError] = useState<string | null>(null);
-
   const user = profile.data ?? storeUser;
-  const since = memberSince(user?.createdAt);
   const avatarUri = assetUrl(user?.profilePicture);
+  const themeLabel = THEME_OPTIONS.find((option) => option.value === themeChoice)?.label;
 
-  async function performSignOut() {
+  async function handleSignOut() {
+    const ok = await confirm({
+      title: 'Sign out?',
+      message: 'You will need your email and password to get back in.',
+      icon: 'log-out-outline',
+      confirmLabel: 'Sign out',
+    });
+    if (!ok) return;
+
     setSignOutError(null);
     setSigningOut(true);
     try {
       await useAuthStore.getState().signOut();
     } catch (error) {
       setSignOutError(errorMessage(error));
-    } finally {
       setSigningOut(false);
     }
   }
 
-  function handleSignOut() {
-    if (Platform.OS === 'web') {
-      void performSignOut();
-      return;
-    }
-    Alert.alert('Sign out', 'You will need to sign in again to get back in.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign out', style: 'destructive', onPress: () => void performSignOut() },
-    ]);
-  }
+  const groups: MenuRow[][] = [
+    [
+      { title: 'Edit profile', subtitle: 'Name and email', icon: 'person-outline', onPress: go('/profile/edit') },
+      { title: 'Avatars', subtitle: 'Pick your picture', icon: 'happy-outline', onPress: go('/profile/avatars') },
+    ],
+    [
+      { title: 'Settings', subtitle: 'Text, layout, reminders, language', icon: 'settings-outline', onPress: go('/profile/settings') },
+      { title: 'Theme', subtitle: themeLabel, icon: 'color-palette-outline', onPress: () => setThemeOpen(true) },
+      { title: 'Notifications', subtitle: 'Your inbox', icon: 'notifications-outline', onPress: go('/notifications') },
+    ],
+    [
+      { title: 'Devices', subtitle: 'Phones that get push', icon: 'phone-portrait-outline', onPress: go('/profile/devices') },
+      { title: 'Sync', subtitle: 'Pull the latest from the server', icon: 'sync-outline', onPress: go('/profile/sync') },
+      { title: 'Security', subtitle: 'Change password', icon: 'lock-closed-outline', onPress: go('/profile/security') },
+    ],
+    [
+      { title: 'About', subtitle: 'Version and server', icon: 'information-circle-outline', onPress: go('/profile/about') },
+      { title: 'Sign out', icon: 'log-out-outline', onPress: () => void handleSignOut() },
+    ],
+    [
+      { title: 'Danger zone', subtitle: 'Delete your account', icon: 'warning-outline', tone: 'danger', onPress: go('/profile/danger') },
+    ],
+  ];
 
   return (
-    <Screen contentContainerStyle={{ paddingBottom: 32 }}>
-      <ScreenHeader
-        icon="person-outline"
-        eyebrow="Profile"
-        title="You"
-        subtitle="Account, appearance and app details."
-      />
+    <Screen scroll={false}>
+      <AppBar title="You" brand={false} />
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: layout.gutter, paddingBottom: spacing.xxxl }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View entering={FadeInDown.duration(220)}>
+          <Pressable
+            onPress={go('/profile/edit')}
+            accessibilityRole="button"
+            accessibilityLabel="Edit profile"
+            className="flex-row items-center rounded-lg py-3 active:bg-surface-alt"
+            style={{ gap: spacing.lg }}
+          >
+            {avatarUri ? (
+              <Image
+                source={{ uri: avatarUri }}
+                accessibilityLabel="Your avatar"
+                contentFit="cover"
+                transition={200}
+                style={{ width: 64, height: 64, borderRadius: 32 }}
+              />
+            ) : (
+              <View className="h-16 w-16 items-center justify-center rounded-full bg-brand">
+                <Text className="text-2xl font-bold text-on-brand">{initialsOf(user?.name, 'K')}</Text>
+              </View>
+            )}
+            <View className="flex-1">
+              <Text numberOfLines={1} className="text-xl font-bold text-heading">
+                {user?.name ?? 'Kova user'}
+              </Text>
+              <Text numberOfLines={1} className="mt-0.5 text-sm text-muted">
+                {user?.email ?? ''}
+              </Text>
+            </View>
+            <Icon name="chevron-forward" size={18} tone="default" />
+          </Pressable>
+        </Animated.View>
 
-      <Card className="mt-5 flex-row items-center">
-        {avatarUri ? (
-          <Image
-            source={{ uri: avatarUri }}
-            accessibilityLabel={user?.name ? `${user.name}'s avatar` : 'Your avatar'}
-            contentFit="cover"
-            transition={200}
-            style={{ width: 64, height: 64, borderRadius: 24 }}
-          />
-        ) : (
-          <View className="h-16 w-16 items-center justify-center rounded-full bg-brand">
-            <Text className="text-2xl font-bold text-on-brand">{initialsOf(user?.name, 'K')}</Text>
+        {profile.isError ? (
+          <View className="mt-2">
+            <FormError message={errorMessage(profile.error)} />
+            <Button label="Try again" variant="secondary" size="sm" icon="refresh" onPress={() => void profile.refetch()} />
           </View>
-        )}
-        <View className="ml-3 flex-1">
-          <Text className="text-lg font-bold text-heading">{user?.name ?? 'Kova user'}</Text>
-          <Text className="mt-0.5 text-sm text-body">{user?.email ?? 'Signed in'}</Text>
-          {since ? <Text className="mt-0.5 text-xs text-muted">{since}</Text> : null}
-        </View>
-      </Card>
+        ) : null}
 
-      {profile.isError ? (
-        <View className="mt-4">
-          <FormError message={errorMessage(profile.error)} />
-          <Button
-            label="Try again"
-            variant="secondary"
-            size="sm"
-            icon="refresh"
-            onPress={() => void profile.refetch()}
-          />
-        </View>
-      ) : null}
+        {progress.data ? (
+          <Animated.View
+            entering={FadeInDown.duration(220).delay(40)}
+            className="mt-2 flex-row"
+            style={{ gap: spacing.md }}
+          >
+            <StatTile icon="checkmark-done" value={progress.data.totals.completedTasks} label="Tasks done" className="flex-1" />
+            <StatTile icon="flame-outline" value={progress.data.streak.current} label="Day streak" className="flex-1" />
+          </Animated.View>
+        ) : null}
 
-      {progress.data ? (
-        <Card className="mt-4 flex-row items-center">
-          <Stat
-            icon="checkmark-done"
-            value={progress.data.totals.completedTasks}
-            label="tasks done"
-            tone="success"
-          />
-          <Stat
-            icon="flame"
-            value={progress.data.streak.current}
-            label="day streak"
-            tone="success"
-          />
-          <Stat
-            icon="happy-outline"
-            value={progress.data.totals.moodEntries}
-            label="mood entries"
-            tone="primary"
-          />
-        </Card>
-      ) : null}
+        {groups.map((rows, index) => (
+          <MenuGroup key={rows[0]!.title} rows={rows} index={index + 2} />
+        ))}
 
-      <SectionHeading>
-        <Text className="text-base font-bold text-heading">Appearance</Text>
-      </SectionHeading>
-      <Card padded={false} className="overflow-hidden rounded-2xl">
-        <ThemePicker />
-      </Card>
+        {signingOut ? <Text className="mt-3 text-center text-xs text-muted">Signing out…</Text> : null}
+        {signOutError ? (
+          <View className="mt-3">
+            <FormError message={signOutError} />
+          </View>
+        ) : null}
+      </ScrollView>
 
-      <SectionHeading>
-        <Text className="text-base font-bold text-heading">Your preferences</Text>
-      </SectionHeading>
-      <PreferencesCard />
-
-      <SectionHeading>
-        <Text className="text-base font-bold text-heading">Account</Text>
-      </SectionHeading>
-      <MenuGroup rows={ACCOUNT_ROWS} />
-
-      <SectionHeading>
-        <Text className="text-base font-bold text-heading">App</Text>
-      </SectionHeading>
-      <MenuGroup rows={APP_ROWS} />
-
-      <SectionHeading>
-        <Text className="text-base font-bold text-heading">More</Text>
-      </SectionHeading>
-      <MenuGroup rows={MORE_ROWS} />
-
-      <View className="mt-6">
-        {signOutError ? <FormError message={signOutError} /> : null}
-        <Button
-          label="Sign out"
-          variant="secondary"
-          icon="log-out-outline"
-          loading={signingOut}
-          onPress={handleSignOut}
-        />
-      </View>
+      <ThemePicker visible={themeOpen} onClose={() => setThemeOpen(false)} />
     </Screen>
   );
 }

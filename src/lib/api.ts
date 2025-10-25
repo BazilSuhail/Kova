@@ -152,6 +152,22 @@ export const dashboardSchema = z.object({
   latestSummary: summarySchema.nullable().catch(null),
   streak: z.number().catch(0),
   suggestions: z.array(suggestionSchema).catch([]),
+  todayProgress: z
+    .object({ total: z.number(), completed: z.number(), pending: z.number() })
+    .catch({ total: 0, completed: 0, pending: 0 }),
+  weeklyCompletion: z
+    .array(z.object({ date: z.string(), completed: z.number(), total: z.number() }))
+    .catch([]),
+  moodTrend: z
+    .array(
+      z.object({
+        date: z.string(),
+        score: z.number().nullable().catch(null),
+        entries: z.number().catch(0),
+      }),
+    )
+    .catch([]),
+  recentSummaries: z.array(summarySchema).catch([]),
 });
 
 export type Dashboard = z.infer<typeof dashboardSchema>;
@@ -417,15 +433,27 @@ async function refreshTokens(): Promise<TokenPair | null> {
   if (refreshInFlight) return refreshInFlight;
 
   const task = (async (): Promise<TokenPair | null> => {
-    const current = await tokenStorage.load();
-    if (!current) return null;
-
     try {
-      const response = await fetch(`${API_BASE}${REFRESH_PATH}`, {
-        method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh_token: current.refreshToken }),
-      });
+      // Inside try so `finally` always releases the in-flight lock, even with no tokens.
+      const current = await tokenStorage.load();
+      if (!current) return null;
+
+      let response: Response;
+      try {
+        response = await fetch(`${API_BASE}${REFRESH_PATH}`, {
+          method: 'POST',
+          headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: current.refreshToken }),
+        });
+      } catch (error) {
+        // Offline: keep the tokens and surface a retryable error instead of signing out.
+        throw new ApiError({ kind: 'network', message: defaultMessageFor('network'), cause: error });
+      }
+      // Rate limit / server trouble is not proof the session is dead: keep tokens, let the caller retry.
+      if (response.status === 429 || response.status >= 500) {
+        throw await toApiError(response, response.headers.get('X-Request-ID') ?? undefined);
+      }
+      // 401 (revoked/expired), 404 (account gone), 400 (malformed) → the refresh token is unusable.
       if (!response.ok) return null;
 
       const payload = parseOrThrow(tokenPairSchema, await response.json(), 'token refresh');
@@ -436,8 +464,6 @@ async function refreshTokens(): Promise<TokenPair | null> {
 
       await tokenStorage.save(next);
       return next;
-    } catch {
-      return null;
     } finally {
       refreshInFlight = null;
     }
@@ -489,10 +515,15 @@ async function performFetch(
   }
 
   const headers: Record<string, string> = { Accept: 'application/json', ...options.headers };
+  const timeZone = deviceTimeZone();
+  if (timeZone) headers['X-Timezone'] = timeZone;
   let body: string | FormData | undefined;
 
   if (options.form) {
     body = options.form;
+    if (__DEV__) {
+      console.log('[api] sending multipart/form-data', { path, method: options.method ?? 'GET' });
+    }
   } else if (options.body !== undefined) {
     headers['Content-Type'] = 'application/json';
     body = JSON.stringify(options.body);
@@ -503,6 +534,9 @@ async function performFetch(
   }
 
   try {
+    if (__DEV__) {
+      console.log('[api] fetch request', { url, method: options.method ?? 'GET', hasAuth: !!tokens?.accessToken, hasForm: !!options.form, hasBody: !!options.body });
+    }
     const response = await fetch(url, {
       method: options.method ?? 'GET',
       headers,
@@ -512,6 +546,9 @@ async function performFetch(
     logResponse(path, options.method ?? 'GET', response);
     return { response, requestId: response.headers.get('X-Request-ID') ?? undefined };
   } catch (error) {
+    if (__DEV__) {
+      console.log('[api] fetch error', { path, error: String(error) });
+    }
     if (options.signal?.aborted) {
       throw new ApiError({
         kind: 'cancelled',
@@ -525,6 +562,15 @@ async function performFetch(
     throw new ApiError({ kind: 'network', message: defaultMessageFor('network'), cause: error });
   } finally {
     clearTimeout(timer);
+  }
+}
+
+/** IANA zone (e.g. "Asia/Karachi") so the server computes "today" in the user's day. Read per request: it changes when travelling. */
+function deviceTimeZone(): string | undefined {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+  } catch {
+    return undefined;
   }
 }
 
@@ -689,6 +735,27 @@ export async function changePassword(input: {
   newPassword: string;
 }): Promise<void> {
   await request<{ message?: string }>('/api/auth/password', { method: 'PUT', body: input });
+}
+
+/** Always resolves for a well-formed email (the server never reveals whether an account exists). */
+export async function requestPasswordReset(email: string): Promise<void> {
+  await request<{ message?: string }>('/api/auth/password/forgot', {
+    method: 'POST',
+    body: { email },
+    auth: false,
+  });
+}
+
+export async function resetPassword(input: {
+  email: string;
+  code: string;
+  newPassword: string;
+}): Promise<void> {
+  await request<{ message?: string }>('/api/auth/password/reset', {
+    method: 'POST',
+    body: input,
+    auth: false,
+  });
 }
 
 export type CalendarViewKind = 'day' | 'week' | 'month';
@@ -961,6 +1028,11 @@ export async function listSummaries(filters: SummaryFilters = {}): Promise<Pagin
   return unwrapList(parseOrThrow(summaryListSchema, payload, 'summaries'));
 }
 
+export async function fetchSummary(summaryId: string): Promise<Summary> {
+  const payload = await request<unknown>(`/api/summaries/${summaryId}`);
+  return parseOrThrow(summarySchema, payload, 'summary');
+}
+
 export async function createSummaryFromText(input: {
   text: string;
   title?: string;
@@ -1070,19 +1142,32 @@ export async function deleteTask(taskId: string): Promise<void> {
   await request<unknown>(`/api/tasks/${taskId}`, { method: 'DELETE' });
 }
 
-export async function createTaskFromPrompt(prompt: string): Promise<Task> {
+export type PromptOverrides = {
+  dueDate?: string;
+  category?: string;
+  title?: string;
+};
+
+export async function createTaskFromPrompt(
+  prompt: string,
+  overrides?: PromptOverrides,
+): Promise<Task> {
   const payload = await request<unknown>('/api/tasks/create/natural-language', {
     method: 'POST',
-    body: { prompt },
+    body: { prompt, ...(overrides ?? {}) },
     timeoutMs: AI_TIMEOUT_MS,
   });
   return parseOrThrow(taskSchema, payload, 'task');
 }
 
-export async function createTaskFromVoice(file: UploadFile): Promise<Task> {
+export async function createTaskFromVoice(file: UploadFile, dueDate?: string): Promise<Task> {
+  const form = await fileFormData(file);
+  if (dueDate) {
+    form.append('dueDate', dueDate);
+  }
   const payload = await request<unknown>('/api/tasks/create/voice', {
     method: 'POST',
-    form: await fileFormData(file),
+    form,
     timeoutMs: CAPTURE_TIMEOUT_MS,
   });
   return parseOrThrow(taskSchema, payload, 'task');
@@ -1095,10 +1180,14 @@ export type ImageCapture = {
   extractedText: string;
 };
 
-export async function createTaskFromImage(file: UploadFile): Promise<ImageCapture> {
+export async function createTaskFromImage(file: UploadFile, dueDate?: string): Promise<ImageCapture> {
+  const form = await fileFormData(file);
+  if (dueDate) {
+    form.append('dueDate', dueDate);
+  }
   const payload = await request<unknown>('/api/tasks/create/image', {
     method: 'POST',
-    form: await fileFormData(file),
+    form,
     timeoutMs: CAPTURE_TIMEOUT_MS,
   });
   const parsed = parseOrThrow(imageTaskSchema, payload, 'task');
@@ -1159,6 +1248,16 @@ export async function updateSettings(input: Partial<UserSettings>): Promise<User
   return parseOrThrow(settingsSchema, payload, 'settings');
 }
 
+/** Upload a photo (jpeg/png/webp, ≤ 5 MB) as the avatar; returns the updated profile. */
+export async function uploadAvatar(file: UploadFile): Promise<AuthUser> {
+  const payload = await request<unknown>('/api/users/profile/avatar', {
+    method: 'POST',
+    form: await fileFormData(file),
+    timeoutMs: 60_000,
+  });
+  return parseOrThrow(userSchema, payload, 'profile');
+}
+
 export async function listAvatars(): Promise<Avatar[]> {
   const payload = await request<unknown>('/api/users/avatars', { auth: false });
   return parseOrThrow(avatarListSchema, payload, 'avatars').avatars;
@@ -1215,6 +1314,7 @@ export const queryKeys = {
   summaries: ['summaries'] as const,
   summaryLists: ['summaries', 'list'] as const,
   summaryList: (filters: SummaryFilters) => ['summaries', 'list', filters] as const,
+  summary: (summaryId: string) => ['summaries', 'detail', summaryId] as const,
 
   profile: ['profile'] as const,
   settings: ['settings'] as const,
@@ -1266,6 +1366,26 @@ export function useAvatars() {
     queryFn: listAvatars,
 
     staleTime: 30 * 60_000,
+  });
+}
+
+export function useUploadAvatar() {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: UploadFile) => uploadAvatar(file),
+    onSuccess: (profile) => client.setQueryData(queryKeys.profile, profile),
+  });
+}
+
+export function useRequestPasswordReset() {
+  return useMutation({ mutationFn: (email: string) => requestPasswordReset(email) });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: (input: { email: string; code: string; newPassword: string }) =>
+      resetPassword(input),
   });
 }
 
@@ -1470,15 +1590,23 @@ export function useSummary(summaryId: string): {
   error: unknown;
   refetch: () => void;
 } {
-  const query = useSummaries();
-  const summary =
-    query.data?.pages.flatMap((page) => page.items).find((item) => item.summaryId === summaryId) ??
-    null;
+  const client = useQueryClient();
+  const query = useQuery({
+    queryKey: queryKeys.summary(summaryId),
+    queryFn: () => fetchSummary(summaryId),
+    enabled: Boolean(summaryId),
+    // Show the row from any loaded list page instantly; the fetch still refreshes it.
+    placeholderData: () =>
+      client
+        .getQueriesData<InfiniteData<Paginated<Summary>>>({ queryKey: queryKeys.summaryLists })
+        .flatMap(([, data]) => data?.pages.flatMap((page) => page.items) ?? [])
+        .find((item) => item.summaryId === summaryId),
+  });
 
   return {
-    summary,
-    isLoading: query.isPending || (query.isFetching && !summary),
-    isError: query.isError && !summary,
+    summary: query.data ?? null,
+    isLoading: query.isPending,
+    isError: query.isError,
     error: query.error,
     refetch: () => void query.refetch(),
   };
@@ -1775,6 +1903,9 @@ function useTaskRefresher() {
     void client.invalidateQueries({ queryKey: queryKeys.tasks });
     void client.invalidateQueries({ queryKey: queryKeys.dashboard });
     void client.invalidateQueries({ queryKey: queryKeys.dailyRecap });
+    void client.invalidateQueries({ queryKey: queryKeys.weeklyRecaps });
+    void client.invalidateQueries({ queryKey: queryKeys.planners });
+    void client.invalidateQueries({ queryKey: queryKeys.calendar });
     if (taskId) void client.invalidateQueries({ queryKey: queryKeys.subtasks(taskId) });
   };
 }
@@ -1852,7 +1983,8 @@ export function useCreateTask() {
 export function useCaptureTask() {
   const refresh = useTaskRefresher();
   return useMutation({
-    mutationFn: (prompt: string) => createTaskFromPrompt(prompt),
+    mutationFn: ({ prompt, overrides }: { prompt: string; overrides?: PromptOverrides }) =>
+      createTaskFromPrompt(prompt, overrides),
     onSuccess: (task) => {
       successFeedback();
       refresh(task.taskId);
@@ -1863,7 +1995,8 @@ export function useCaptureTask() {
 export function useCaptureTaskFromVoice() {
   const refresh = useTaskRefresher();
   return useMutation({
-    mutationFn: (file: UploadFile) => createTaskFromVoice(file),
+    mutationFn: ({ file, dueDate }: { file: UploadFile; dueDate?: string }) =>
+      createTaskFromVoice(file, dueDate),
     onSuccess: (task) => {
       successFeedback();
       refresh(task.taskId);
@@ -1874,7 +2007,8 @@ export function useCaptureTaskFromVoice() {
 export function useCaptureTaskFromImage() {
   const refresh = useTaskRefresher();
   return useMutation({
-    mutationFn: (file: UploadFile) => createTaskFromImage(file),
+    mutationFn: ({ file, dueDate }: { file: UploadFile; dueDate?: string }) =>
+      createTaskFromImage(file, dueDate),
     onSuccess: ({ task }) => {
       successFeedback();
       refresh(task.taskId);

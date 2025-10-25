@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" fill="none">
+  <circle cx="160" cy="124" r="96" fill="currentColor" fill-opacity=".07"/>
+  <circle cx="246" cy="58" r="20" fill="#E3B178"/>
+  <rect x="70" y="66" width="136" height="108" rx="10" fill="#9DB0D8" transform="rotate(-7 138 120)"/>
+  <rect x="104" y="82" width="144" height="112" rx="10" fill="#7FB5A3"/>
+  <circle cx="128" cy="110" r="9" stroke="#123F36" stroke-width="3"/>
+  <path d="M123.5 110l3 3 6-6.5" stroke="#123F36" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="146" y="105" width="80" height="10" rx="5" fill="#123F36" fill-opacity=".55"/>
+  <circle cx="128" cy="138" r="9" stroke="#123F36" stroke-width="3"/>
+  <path d="M123.5 138l3 3 6-6.5" stroke="#123F36" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="146" y="133" width="62" height="10" rx="5" fill="#123F36" fill-opacity=".55"/>
+  <circle cx="128" cy="166" r="9" stroke="#123F36" stroke-width="3"/>
+  <rect x="146" y="161" width="72" height="10" rx="5" fill="#123F36" fill-opacity=".3"/>
+  <path d="M74 196c0-22 14-36 32-40-2 20-14 34-32 40z" fill="#D79A9A"/>
+  <path d="M74 196c4-14 12-24 24-32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <rect x="60" y="200" width="200" height="4" rx="2" fill="currentColor" fill-opacity=".15"/>
+</svg>
